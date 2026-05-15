@@ -1,14 +1,17 @@
-# Portfolio
+# Phillip — Software Developer
 
-Hi, I'm Phillip,
+Hi, I'm Phillip.  
 I'm an Informatics student and developer focused on building practical software systems, web applications, and automation tools.
 
-I enjoy working on:
+---
 
-- Full-stack web development (React / Angular / HTML/CSS/JS / Express)
+## Focus Areas
+
+- Full-stack web development (React, Angular, Node.js)
 - Backend systems & APIs
-- Automation (Python, scripting, tooling)
-- Game-related systems (Discord-Bots)
+- Automation & scripting (Python)
+- Discord bots and game-related systems
+- Data visualization tools
 
 ---
 
@@ -18,7 +21,7 @@ The current tech stack I am most comfortable with and use for my projects includ
 
 - Programming Languages: JavaScript/TypeScript, Python, SQL, Java, C#
 
-Depending on the project and it's usage-area, I also use other languages and technologies, but the ones listed above are my main focus for web development and automation projects.
+Depending on the project's usage area, I also work with other languages and technologies, but the ones listed above are my main focus for web development and automation projects.
 
 ### Frontend
 
@@ -26,9 +29,9 @@ For the frontend, I primarily use:
 
 - React (JavaScript and TypeScript)
 - Angular (TypeScript)
-- HTML/CSS/JS (for simpler projects or when I want more control over the frontend)
+- HTML/CSS/JavaScript (for simpler projects or when I want more control over the frontend)
 
-For the styling, I often use CSS frameworks like Tailwind CSS or Bootstrap, but I also enjoy writing custom CSS for unique designs.
+For styling, I often use CSS frameworks like Tailwind CSS or Bootstrap, but I also enjoy writing custom CSS for more unique designs.
 
 ### Backend
 
@@ -39,30 +42,43 @@ For the backend, I have experience with:
 - Java (Spring Boot)
 - C# (.NET Core)
 
-As an additional point, I also came in touch with SQL and NOSQL databases, such as MySQL, PostgreSQL, and MongoDB, for data storage and management in my projects.
+Additionally, I have worked with SQL and NoSQL databases such as MySQL, PostgreSQL, and MongoDB for data storage and management in my projects.
 
 ### Tools & Platforms
 
-For round-tripping and development, I use a variety of tools and platforms, including:
+For development and deployment, I use a variety of tools and platforms, including:
 
-- Git / GitHub / Gitlab for version control and storage
+- Git / GitHub / GitLab for version control
 - Docker (basic) for containerization and deployment
-- Linux for development and server management (Currently using Arch Linux)
+- Linux for development and server management (currently using Arch Linux)
 - Azure for cloud services and hosting
 
 ---
 
 ## Featured Projects
 
-### Machine Visualizer — Datascience Visualizer Webapplication
+### Machine Visualizer — ML Data Visualization Tool
 
-A web-based machine learning visualizer that allows users to explore and understand various machine learning algorithms through interactive visualizations. Users can experiment with different algorithms, such as Gradient Descent, KNN-Classifier, The Perceptron, and more, to see how they work under the hood.
+Interactive web application for visualizing machine learning algorithms and concepts.
 
-**Tech:** Python (Streamlit, Pandas, Numpy)  
-Repo: <https://gitlab.com/woofi4/Projects/5bhif-datascience-webapp>  
-Live Demo: <https://ml-visualizer.at/>
+Users can explore:
 
-More projects can be found on my Gitlab: <https://gitlab.com/woofi4> and will be added to this portfolio as I continue to develop and learn new technologies.
+- Gradient Descent
+- KNN Classifier
+- Perceptron
+- Other ML models
+
+The goal is to make machine learning concepts more understandable through visual interaction.
+
+**Tech Stack:** Python, Streamlit, Pandas, NumPy  
+**Live Demo:** <https://ml-visualizer.at/>  
+**Repository:** <https://gitlab.com/woofi4/Projects/5bhif-datascience-webapp>  
+
+---
+
+## Other Projects
+
+More projects and experiments are available on my GitHub profile and will be continuously added as I develop new systems.
 
 ---
 
@@ -76,4 +92,4 @@ More projects can be found on my Gitlab: <https://gitlab.com/woofi4> and will be
 
 ## Notes
 
-This profile is a collection of personal and educational projects. Most repositories are actively developed or used for learning purposes. In addition, I recently moved from Gitlab to Github, so most of my projects can be found on Gitlab Feel free to explore and reach out if you have any questions or collaboration ideas!
+This profile contains personal and educational projects used for learning and experimentation. I am continuously improving and expanding my skill set across full-stack development and automation. 
