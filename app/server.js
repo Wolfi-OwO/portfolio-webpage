@@ -11,14 +11,15 @@ import path from 'path';
 import { logger } from './utils/logger.js';
 import { setupHealthChecks } from './utils/health-checks.js';
 
-/* ***************** IMPORT REQUEST-HANDLER **************** */
+/* ***************** IMPORT ROUTES **************** */
+import { projectsRouter } from './routes/projects-route.js';
 
 /* ***************** CONFIG and CONSTS ********************* */
 /* Take configuration from environment variables or use hardcoded default value */
 const HOSTNAME = process.env.BINDADDRESS || '0.0.0.0';
 const PORT = process.env.PORT || 8080;
-const MONGODB_CONNECTION_STRING = process.env.MONGODB_CONNECTION_STRING || 'mongodb://127.0.0.1/team_a';
-const MONGODB_RECREATE = process.env.MONGODB_RECREATE === 'true';
+const _MONGODB_CONNECTION_STRING = process.env.MONGODB_CONNECTION_STRING || 'mongodb://127.0.0.1/team_a';
+const _MONGODB_RECREATE = process.env.MONGODB_RECREATE === 'true';
 
 /* ***************** START UP ******************************* */
 logger.info('Backend - Starting configuration...');
@@ -33,6 +34,9 @@ app.use(
 
 // use build folder of vite as static directory
 app.use(express.static(path.join(__dirname, 'client', 'dist')));
+
+// setup routes
+app.use('/api/projects/', projectsRouter);
 
 // create HTTP server
 logger.info('Backend - Starting up ...');
