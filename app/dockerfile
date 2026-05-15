@@ -1,0 +1,37 @@
+# Stage 1: Setup Express backend
+FROM node:22-alpine AS backend
+WORKDIR /app
+
+# Upgrade base packages to get latest security fixes
+RUN apk upgrade --no-cache
+
+# Install server dependencies first (better caching)
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+# Copy only necessary backend files
+COPY . .
+
+# Set production mode
+ENV NODE_ENV=production
+ENV PORT=8080
+ENV BINDADDRESS=0.0.0.0
+
+RUN mkdir -p /app/data/executions /app/data/questions /app/data/quizzes /app/data/images && \
+    chown -R node:node /app && \
+    chmod -R u+w /app/data
+
+USER node
+
+# Expose port
+EXPOSE 8080
+
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
+  CMD node health-checks.js || exit 1
+
+# Graceful shutdown signal
+STOPSIGNAL SIGINT
+
+# Start Express
+CMD ["node", "server.js"]
