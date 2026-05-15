@@ -30,5 +30,4 @@ jobs:
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@v3
         with:
-          checkout_path: app
-          sarif_file: results.sarif
+          sarif_file: app/results.sarif
