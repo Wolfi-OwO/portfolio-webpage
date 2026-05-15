@@ -24,7 +24,7 @@ jobs:
 
       - run: npm install
 
-      - run: npm run lint:sarif
+      - run: npm run lint
 
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@v4
