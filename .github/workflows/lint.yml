@@ -17,6 +17,9 @@ jobs:
         with:
           node-version: 22
 
+      - name: Switch into app directory
+        run: cd app
+
       - name: Install dependencies
         run: npm install
 
