@@ -38,6 +38,15 @@ app.use(express.static(path.join(__dirname, 'client', 'dist')));
 // setup routes
 app.use('/api/projects/', projectsRouter);
 
+// SPA fallback (support direct navigation to client routes like /projects)
+app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+        return next();
+    }
+
+    res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
+});
+
 // create HTTP server
 logger.info('Backend - Starting up ...');
 const httpServer = createServer(app);

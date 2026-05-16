@@ -34,8 +34,32 @@ The website is built using the following technologies:
 
 ## Project Structure
 
+The webapplications root directory `app/` contains the main express and in `app/client/` the React application. The structure is organized as follows:
+
 ```txt
-/pages        → Application pages
-/components   → Reusable UI components
-/public       → Static assets
-/styles       → Global styles
+├── app
+│   ├── client
+│   ├── handlers
+│   ├── models
+│   ├── routes
+│   ├── tests
+│   ├── utils
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── dockerfile
+│   ├── eslint.config.js
+│   └── server.js
+├── LICENSE
+└── README.md
+```
+
+- `client/`: Contains the React frontend application (default vite setup)
+- `handlers/`: Contains request handlers for the backend
+- `models/`: Contains data models and schemas
+- `routes/`: Contains API route definitions
+- `tests/`: Contains unit and integration tests
+- `utils/`: Contains utility functions and helpers
+- `package.json`: Contains project dependencies and scripts
+- `dockerfile`: Contains instructions for building a Docker image of the application
+- `eslint.config.js`: Contains configuration for ESLint code linting
+- `server.js`: Entry point for the backend server
