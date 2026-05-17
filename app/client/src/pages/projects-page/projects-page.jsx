@@ -30,7 +30,7 @@ export default function ProjectsPage() {
                 </div>
             </section>
 
-            <section className="mx-auto grid max-w-10xl gap-6 px-6 sm:grid-cols-2 lg:grid-cols-3">
+            <section className="mx-auto grid max-w-10   xl gap-6 px-6 sm:grid-cols-2 lg:grid-cols-3">
                 {projects.map((project, index) => (
                     <div
                         key={index}
