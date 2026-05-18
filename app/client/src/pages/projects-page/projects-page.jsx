@@ -50,6 +50,7 @@ export default function ProjectsPage() {
                                 <a
                                     className="mt-3 text-sm font-semibold underline text-blue-600 hover:text-blue-800 visited:text-purple-600"
                                     href={project.livedemo}
+                                    target="_blank"
                                 >
                                     {project.livedemo}
                                 </a>
