@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 const highlights = [
     {
         title: 'Frontend Engineering',
@@ -41,12 +43,12 @@ export default function Homepage() {
                             View Projects
                         </a>
 
-                        <a
-                            href="#contact"
+                        <Link
+                            to="/contact"
                             className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800"
                         >
                             Contact Me
-                        </a>
+                        </Link>
                     </div>
 
                     <div className="flex gap-8 pt-4">
@@ -148,27 +150,6 @@ export default function Homepage() {
                             </p>
                         </article>
                     ))}
-                </div>
-            </section>
-
-            <section id="contact" className="mx-auto max-w-6xl px-6 lg:px-8">
-                <div className="rounded-[2rem] border border-slate-200 bg-slate-950 p-12 text-center dark:border-slate-800">
-                    <p className="text-sm uppercase tracking-[0.24em] text-slate-400">Contact</p>
-
-                    <h2 className="mt-4 text-4xl font-semibold tracking-tight text-white">
-                        Let's create something exceptional.
-                    </h2>
-
-                    <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-slate-300">
-                        Open for freelance projects, collaborations, and modern web development opportunities.
-                    </p>
-
-                    <a
-                        href="mailto:koflerphillip@outlook.com"
-                        className="mt-8 inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-200"
-                    >
-                        koflerphillip@outlook.com
-                    </a>
                 </div>
             </section>
         </div>
