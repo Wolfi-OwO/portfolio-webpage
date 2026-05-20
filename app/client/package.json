@@ -14,6 +14,7 @@
     "@tailwindplus/elements": "^1.0.22",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "react-intl": "^10.1.8",
     "react-router-dom": "^7.15.1"
   },
   "devDependencies": {
