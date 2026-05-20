@@ -1,5 +1,7 @@
 import { useEffect, useReducer } from 'react';
 import { initialState, reducer } from './projectsReducer.js';
+import { FormattedDate } from 'react-intl';
+import { ClockIcon } from '@heroicons/react/24/outline';
 
 export default function ProjectsPage() {
     const [state, dispatch] = useReducer(reducer, initialState);
@@ -42,13 +44,13 @@ export default function ProjectsPage() {
                 {state.projects.map((project, index) => (
                     <div
                         key={index}
-                        className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+                        className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900 flex flex-col"
                     >
                         <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
                             {project.title}
                         </h2>
 
-                        <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                        <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300 flex-1  ">
                             {project.description}
                         </p>
 
@@ -66,6 +68,18 @@ export default function ProjectsPage() {
                                 </a>
                             </div>
                         )}
+
+                        <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300 flex items-center">
+                            <ClockIcon className="h-4 w-4 mr-1"/>
+                            <FormattedDate
+                                value={project.createdAt}
+                                year="numeric"
+                                month="long"
+                                day="numeric"
+                                hour="2-digit"
+                                minute="2-digit"
+                            />
+                        </p>
 
                         <ul className="mt-4 flex flex-wrap gap-2">
                             {project.technologies.map(
