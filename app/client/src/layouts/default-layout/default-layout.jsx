@@ -64,7 +64,7 @@ export default function DefaultLayout() {
     const selectedTheme = themeOptions.find(option => option.id === theme);
 
     return (
-        <div className="min-h-screen bg-white text-gray-900 transition-colors duration-300 dark:bg-gray-950 dark:text-white">
+        <div className="min-h-screen flex flex-col bg-white text-gray-900 transition-colors duration-300 dark:bg-gray-950 dark:text-white">
             <header className="border-b border-gray-200 dark:border-gray-800">
                 <nav className="mx-auto flex h-16 max-w-8xl items-center justify-between px-3">
                     <div className="flex items-center gap-4">
@@ -123,12 +123,12 @@ export default function DefaultLayout() {
                 </nav>
             </header>
 
-            <main className="mx-auto min-h-[calc(100vh-65px)] max-w-8xl px-4 py-6">
+            <main className="flex-1 mx-auto max-w-8xl px-4 py-6">
                 <Outlet />
             </main>
 
             <footer className="bg-neutral-primary-soft rounded-base shadow-xs border border-gray-200 dark:border-gray-800">
-                <div className="w-full mx-auto max-w-screen-xl p-4 md:flex md:items-center md:justify-between">
+                <div className="w-full mx-auto px-10 py-5 md:flex md:items-center md:justify-between">
                     <span className="text-sm text-body sm:text-center">
                         © 2026{' '}
                         <a href="#" className="hover:underline">
