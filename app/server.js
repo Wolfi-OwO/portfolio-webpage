@@ -13,6 +13,7 @@ import { setupHealthChecks } from './utils/health-checks.js';
 
 /* ***************** IMPORT ROUTES **************** */
 import { projectsRouter } from './routes/projects-route.js';
+import { errorHandler } from './middlewares/error-handlers.js';
 
 /* ***************** CONFIG and CONSTS ********************* */
 /* Take configuration from environment variables or use hardcoded default value */
@@ -28,7 +29,6 @@ const app = express();
 app.use(
     express.json({
         type: ['application/json', 'application/merge-patch+json'],
-        limit: '50mb',
     }),
 );
 
@@ -39,13 +39,12 @@ app.use(express.static(path.join(__dirname, 'client', 'dist')));
 app.use('/api/projects/', projectsRouter);
 
 // SPA fallback (support direct navigation to client routes like /projects)
-app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api/')) {
-        return next();
-    }
-
+app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
 });
+
+// setup error handling middleware
+app.use(errorHandler)
 
 // create HTTP server
 logger.info('Backend - Starting up ...');

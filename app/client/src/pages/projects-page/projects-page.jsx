@@ -43,7 +43,7 @@ export default function ProjectsPage() {
                         </p>
 
                         {project.livedemo && (
-                            <div class="flex">
+                            <div className="flex">
                                 <span className="mt-3 text-sm text-slate-600 dark:text-slate-300 pr-2">
                                     Live Demo:
                                 </span>
