@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "fill-demo-data": "node database/fill-demo-data.js",
     "test": "cross-env LOG_LEVEL=error MONGODB_CONNECTION_STRING=mongodb://127.0.0.1:50000/portfolio-webpage?retryWrites=false c8 --reporter html --reporter text-summary mocha 'tests/**/*.test.js' --ignore 'tests/**/common.js' --ignore 'tests/helpers/**' --timeout 10000 --exit",
     "lint": "eslint . -f @microsoft/eslint-formatter-sarif -o results.sarif"
   },
