@@ -1,42 +1,52 @@
+import { useEffect, useReducer } from 'react';
+import { initialState, reducer } from './projectsReducer.js';
+
 export default function ProjectsPage() {
-    const projects = [
-        {
-            title: 'Machine Learning Visualizer',
-            description: 'A tutoring site, helping students master basic machine learning algorithms.',
-            livedemo: 'https://ml-visualizer.at/',
-            technologies: [
-                {
-                    tech: 'Python',
-                    color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300',
-                },
-                {
-                    tech: 'Streamlit',
-                    color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300',
-                },
-            ],
-        },
-    ];
+    const [state, dispatch] = useReducer(reducer, initialState);
+
+    useEffect(() => {
+        async function getProjects() {
+            const response = await fetch('/api/projects?embed=(technologies)');
+
+            if (!response.ok) {
+                // throw an error or display a toast
+            }
+
+            const projects = await response.json();
+            dispatch({
+                type: 'SET_PROJECTS',
+                payload: projects,
+            });
+        }
+
+        getProjects();
+    }, []);
 
     return (
         <div className="space-y-4 py-1 lg:py-2">
             <section className="mx-auto flex flex-col lg:flex-row lg:items-center lg:justify-between px-6">
                 <div className="max-w-2xl space-y-2">
-                    <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-white">Projects</h1>
+                    <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-white">
+                        Projects
+                    </h1>
 
                     <p className="max-w-xl text-base leading-8 text-slate-600 dark:text-slate-300">
-                        In recent years, I have worked on multiple software engineering projects ranging from web
-                        applications to backend systems and UI-focused platforms.
+                        In recent years, I have worked on multiple software
+                        engineering projects ranging from web applications to backend
+                        systems and UI-focused platforms.
                     </p>
                 </div>
             </section>
 
             <section className="mx-auto grid max-w-10xl gap-6 px-6 sm:grid-cols-2 lg:grid-cols-3">
-                {projects.map((project, index) => (
+                {state.projects.map((project, index) => (
                     <div
                         key={index}
                         className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
                     >
-                        <h2 className="text-xl font-semibold text-slate-900 dark:text-white">{project.title}</h2>
+                        <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+                            {project.title}
+                        </h2>
 
                         <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
                             {project.description}
@@ -58,11 +68,16 @@ export default function ProjectsPage() {
                         )}
 
                         <ul className="mt-4 flex flex-wrap gap-2">
-                            {project.technologies.map(({ tech, color }, techIndex) => (
-                                <li key={techIndex} className={`rounded-full px-3 py-1 text-xs font-medium ${color}`}>
-                                    {tech}
-                                </li>
-                            ))}
+                            {project.technologies.map(
+                                ({ tech, color }, techIndex) => (
+                                    <li
+                                        key={techIndex}
+                                        className={`rounded-full px-3 py-1 text-xs font-medium ${color}`}
+                                    >
+                                        {tech}
+                                    </li>
+                                ),
+                            )}
                         </ul>
                     </div>
                 ))}
