@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { ComputerDesktopIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline';
 
@@ -9,25 +9,19 @@ const themeOptions = [
 ];
 
 export default function DefaultLayout() {
-    const [theme, setTheme] = useState(localStorage.getItem('theme') || 'system');
+    const [theme, setTheme] = useState(() => {
+        return localStorage.getItem('theme') || 'system';
+    });
 
-    useEffect(() => {
-        const root = window.document.documentElement;
+    useLayoutEffect(() => {
+        const root = document.documentElement;
 
         const applyTheme = () => {
-            if (theme === 'dark') {
-                root.classList.add('dark');
-            } else if (theme === 'light') {
-                root.classList.remove('dark');
-            } else {
-                const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-                if (systemDark) {
-                    root.classList.add('dark');
-                } else {
-                    root.classList.remove('dark');
-                }
-            }
+            const isDark = theme === 'dark' || (theme === 'system' && systemDark);
+
+            root.classList.toggle('dark', isDark);
         };
 
         applyTheme();
