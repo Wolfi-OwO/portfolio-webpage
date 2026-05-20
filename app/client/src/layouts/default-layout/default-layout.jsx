@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { ComputerDesktopIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline';
 
@@ -12,6 +12,30 @@ export default function DefaultLayout() {
     const [theme, setTheme] = useState(() => {
         return localStorage.getItem('theme') || 'system';
     });
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = event => {
+            if (dropdownOpen && dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setDropdownOpen(false);
+            }
+        };
+
+        const handleEscape = event => {
+            if (event.key === 'Escape') {
+                setDropdownOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('keydown', handleEscape);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleEscape);
+        };
+    }, [dropdownOpen]);
 
     useLayoutEffect(() => {
         const root = document.documentElement;
@@ -60,13 +84,17 @@ export default function DefaultLayout() {
                         </NavLink>
                     </div>
 
-                    <div className="relative">
-                        <details className="group">
-                            <summary className="flex cursor-pointer items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm shadow-gray-200/50 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-slate-950 dark:text-gray-200 dark:hover:bg-gray-800">
-                                {selectedTheme?.Icon && <selectedTheme.Icon className="h-5 w-5" />}
-                                <span>Theme</span>
-                            </summary>
+                    <div className="relative" ref={dropdownRef}>
+                        <button
+                            type="button"
+                            onClick={() => setDropdownOpen(open => !open)}
+                            className="flex cursor-pointer items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm shadow-gray-200/50 transition hover:bg-gray-50 focus:outline-none focus:ring-0 dark:border-gray-700 dark:bg-slate-950 dark:text-gray-200 dark:hover:bg-gray-800"
+                        >
+                            {selectedTheme?.Icon && <selectedTheme.Icon className="h-5 w-5" />}
+                            <span>Theme</span>
+                        </button>
 
+                        {dropdownOpen && (
                             <div className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900">
                                 {themeOptions.map(({ id, label, Icon }) => {
                                     const selected = theme === id;
@@ -74,8 +102,11 @@ export default function DefaultLayout() {
                                         <button
                                             key={id}
                                             type="button"
-                                            onClick={() => setTheme(id)}
-                                            className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition hover:bg-gray-50 dark:hover:bg-gray-800 ${
+                                            onClick={() => {
+                                                setTheme(id);
+                                                setDropdownOpen(false);
+                                            }}
+                                            className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition hover:bg-gray-50 focus:outline-none focus:ring-0 dark:hover:bg-gray-800 ${
                                                 selected
                                                     ? 'bg-gray-100 text-slate-900 dark:bg-gray-800 dark:text-white'
                                                     : 'text-gray-600 dark:text-gray-300'
@@ -87,7 +118,7 @@ export default function DefaultLayout() {
                                     );
                                 })}
                             </div>
-                        </details>
+                        )}
                     </div>
                 </nav>
             </header>
