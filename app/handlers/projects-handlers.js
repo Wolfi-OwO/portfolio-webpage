@@ -20,6 +20,7 @@ async function getAllProjects(req, res, next) {
             'title',
             'createdAt',
             'updatedAt',
+            'embed'
         );
 
         const projects = await ProjectModel.find(filter)
