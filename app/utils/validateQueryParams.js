@@ -1,8 +1,7 @@
 import mongoose from 'mongoose';
-import { promises as fsp } from 'fs';
 
 const DEFAULT_SORTING_PARAMS = {
-    projects: 'createdAt',
+    projects: '+createdAt',
 };
 
 /**
@@ -12,7 +11,7 @@ const DEFAULT_SORTING_PARAMS = {
  * @returns {Object} Processed query parameters with sort, limit, offset, embed, and filter
  * @throws {mongoose.Error.ValidationError} If validation fails
  */
-function validateQuery(query, ...allowedFields) {
+function validateQueryParams(query, ...allowedFields) {
     let { sort, limit, offset, embed, ...filter } = query;
     const error = new mongoose.Error.ValidationError();
 
@@ -187,4 +186,4 @@ function removeNullValues(obj) {
     return obj;
 }
 
-export { removeNullValues, validateQuery, DEFAULT_SORTING_PARAMS };
+export { removeNullValues, validateQueryParams, DEFAULT_SORTING_PARAMS };
