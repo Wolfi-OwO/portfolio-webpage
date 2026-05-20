@@ -46,7 +46,7 @@ In order to test the backend, you can run the tests using:
 1. Start the mongo database (docker):
 
    ```bash
-    docker run -d -p 50000:27017 --name portfolio-mongo mongo
+    docker run -d -p 50000:27017 --name portfolio-mongo-test mongo
    ```
 
 2. Run the tests:
