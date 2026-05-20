@@ -1,7 +1,7 @@
 /* ***************** IMPORT packages *********************** */
 import mongoose from 'mongoose';
 import { ProjectModel } from '../models/projects';
-import { validateQueryParams } from '../utils/validateQueryParams.js';
+import { DEFAULT_SORTING_PARAMS, validateQueryParams } from '../utils/validateQueryParams.js';
 import { BadRequest, InternalServerError } from '../middlewares/error-handlers.js';
 
 /* ***************** DECLARE handlers *********************** */
@@ -24,7 +24,7 @@ async function getAllProjects(req, res, next) {
         );
 
         const projects = await ProjectModel.find(filter)
-            .sort(sort)
+            .sort(sort || DEFAULT_SORTING_PARAMS.projects)
             .limit(limit)
             .skip(offset)
             .populate(embed);
