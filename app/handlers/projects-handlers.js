@@ -1,6 +1,8 @@
 /* ***************** IMPORT packages *********************** */
+import mongoose from 'mongoose';
 import { ProjectModel } from '../models/projects';
 import { validateQueryParams } from '../utils/validateQueryParams.js';
+import { BadRequest, InternalServerError } from '../middlewares/error-handlers.js';
 
 /* ***************** DECLARE handlers *********************** */
 
@@ -8,10 +10,10 @@ import { validateQueryParams } from '../utils/validateQueryParams.js';
  *
  * @param {import('express').Request} req - Express request object with query parameters
  * @param {import('express').Response} res - Express response object
- * @param {import('express').NextFunction} _next - Express next function
+ * @param {import('express').NextFunction} next - Express next function
  * @returns List of Projects
  */
-async function getAllProjects(req, res, _next) {
+async function getAllProjects(req, res, next) {
     try {
         const { sort, embed, offset, limit, ...filter } = validateQueryParams(
             req.query,
@@ -28,7 +30,11 @@ async function getAllProjects(req, res, _next) {
 
         return res.json(projects);
     } catch (err) {
-        return res.status(500).send(err.message);
+        if (err instanceof mongoose.Error.ValidationError) {
+            next(new BadRequest(err.message, err));
+        } else {
+            next(new InternalServerError(err));
+        }
     }
 }
 
