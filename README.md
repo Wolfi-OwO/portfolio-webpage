@@ -2,6 +2,59 @@
 
 This is my personal developer portfolio website. It showcases my projects, skills, and background as an Informatics student and software developer.
 
+## Local Development
+
+To run the website locally, follow these steps:
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/Wolfi-OwO/portfolio-webpage.git
+    cd portfolio-webpage
+   ```
+
+2. Install dependencies (Server and Client):
+
+   ```bash
+    cd app
+    npm install
+
+    cd client
+    npm install
+    ```
+
+3. Start the mongo database (docker):
+
+   ```bash
+    docker run -d -p 27017:27017 --name portfolio-mongo mongo
+   ```
+
+4. Build the client application:
+
+   ```bash
+    npm run build
+   ```
+
+5. Start the server:
+
+   ```bash
+    npm start
+   ```
+
+In order to test the backend, you can run the tests using:
+
+1. Start the mongo database (docker):
+
+   ```bash
+    docker run -d -p 50000:27017 --name portfolio-mongo mongo
+   ```
+
+2. Run the tests:
+
+    ```bash
+    npm test
+    ```
+
 ## Live Demo
 
 <!--The live version of the website can be accessed at: [https://my-portfolio.vercel.app](https://my-portfolio.vercel.app) -->
