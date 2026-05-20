@@ -22,6 +22,7 @@ const projectSchema = new mongoose.Schema(
     },
     {
         optimisticConcurrency: true,
+        timestamps: true,
     },
 );
 
