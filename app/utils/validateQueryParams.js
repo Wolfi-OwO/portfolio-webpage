@@ -24,6 +24,7 @@ function validateQueryParams(query, ...allowedFields) {
     }
 
     filter = convertFilterParams(filter);
+    embed = embed ? convertEmbedFields(embed) : "";
     return { sort, limit, offset, embed, filter };
 }
 
@@ -60,17 +61,26 @@ function convertFilterParams(filter) {
         if (typeof filterValue === 'string' && filterValue.trim() === '') {
             continue;
         }
-        const isNotOperator = typeof filterValue === 'string' && filterValue?.startsWith('!');
+        const isNotOperator =
+            typeof filterValue === 'string' && filterValue?.startsWith('!');
 
         if (isNotOperator) {
             filterValue = filterValue.substring(1);
         }
 
-        if (typeof filterValue === 'string' && filterValue.startsWith('[') && filterValue.endsWith(']')) {
+        if (
+            typeof filterValue === 'string' &&
+            filterValue.startsWith('[') &&
+            filterValue.endsWith(']')
+        ) {
             filterValue = JSON.parse(filterValue);
         }
 
-        if (key === 'labels' && typeof filterValue === 'string' && filterValue.length > 0) {
+        if (
+            key === 'labels' &&
+            typeof filterValue === 'string' &&
+            filterValue.length > 0
+        ) {
             const orGroups = filterValue
                 .split('|')
                 .filter(g => g)
@@ -87,7 +97,9 @@ function convertFilterParams(filter) {
         }
 
         if (Array.isArray(filterValue)) {
-            convertedFilter[key] = isNotOperator ? { $not: { $in: filterValue } } : { $in: filterValue };
+            convertedFilter[key] = isNotOperator
+                ? { $not: { $in: filterValue } }
+                : { $in: filterValue };
         } else if (key === 'search') {
             const safe = escapeRegex(filterValue);
             const regex = new RegExp(`.*${safe}.*`, 'gi');
@@ -108,7 +120,9 @@ function convertFilterParams(filter) {
             });
         } else {
             const safe = escapeRegex(filterValue);
-            convertedFilter[key] = isNotOperator ? { $not: new RegExp(`.*${safe}.*`, 'g') } : filterValue;
+            convertedFilter[key] = isNotOperator
+                ? { $not: new RegExp(`.*${safe}.*`, 'g') }
+                : filterValue;
         }
     }
 
@@ -120,6 +134,14 @@ function convertFilterParams(filter) {
     }
 
     return convertedFilter;
+}
+/**
+ * Converts filter parameters from query string to MongoDB filter format.
+ * @param {String} embed - The filter object
+ * @returns {String} Converted filter object for MongoDB
+ */
+function convertEmbedFields(embed) {
+    return embed.replaceAll('(', '').replaceAll(')', '');
 }
 
 /**
@@ -139,7 +161,8 @@ function validateSortingParameters(sortBy, allowedFields) {
         sortingParam = sortingParam.replace('-', '');
 
         if (!allowedFields.includes(sortingParam)) {
-            validation = validation + ` The sorting key ${sortingParam} is not valid!`;
+            validation =
+                validation + ` The sorting key ${sortingParam} is not valid!`;
         }
     }
     return validation;
@@ -180,7 +203,9 @@ function validatePaging(offset, limit) {
 function removeNullValues(obj) {
     Object.keys(obj).forEach(
         key =>
-            (obj[key] && typeof obj[key] === 'object' && removeNullValues(obj[key])) ||
+            (obj[key] &&
+                typeof obj[key] === 'object' &&
+                removeNullValues(obj[key])) ||
             ((obj[key] === undefined || obj[key] === null) && delete obj[key]),
     );
     return obj;
