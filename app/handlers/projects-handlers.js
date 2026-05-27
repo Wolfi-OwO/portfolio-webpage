@@ -5,7 +5,7 @@ import {
     DEFAULT_SORTING_PARAMS,
     validateQueryParams,
 } from '../utils/validateQueryParams.js';
-import { BadRequest, InternalServerError } from '../middlewares/error-handlers.js';
+import { BadRequest, InternalServerError, NotFound } from '../middlewares/error-handlers.js';
 import { TechnologyModel } from '../models/technology.js';
 
 /* ***************** DECLARE handlers *********************** */
@@ -152,9 +152,76 @@ async function createNewProject(req, res, next) {
     }
 }
 
-function updateProjectById(_req, _res, _next) {}
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+async function updateProjectById(req, res, next) {
+    try {
+        const projectId = req.params.id;
+        const update = { ...req.body };
 
-function deleteProjectById(_req, _res, _next) {}
+        if (Array.isArray(update.technologies)) {
+            const ids = update.technologies
+                .map(t => t && (t._id || t))
+                .filter(Boolean);
+
+            if (ids.length) {
+                const existing = await TechnologyModel.find({ _id: { $in: ids } });
+                const foundIds = new Set(existing.map(d => d._id.toString()));
+                const invalid = ids.filter(id => !foundIds.has(id.toString()));
+
+                if (invalid.length) {
+                    return next(new BadRequest(`Invalid technology IDs: ${invalid.join(', ')}`));
+                }
+            }
+
+            update.technologies = ids;
+        }
+
+        const updated = await ProjectModel.findByIdAndUpdate(projectId, update, {
+            new: true,
+            runValidators: true,
+        }).populate('technologies');
+
+        if (!updated) {
+            return next(new NotFound(`Project ${projectId} not found.`));
+        }
+
+        return res.json(updated);
+    } catch (err) {
+        if (err instanceof mongoose.Error.ValidationError) {
+            return next(new BadRequest(err.message, err));
+        }
+        if (err instanceof mongoose.Error.CastError) {
+            return next(new BadRequest('Invalid project id.', err));
+        }
+        return next(new InternalServerError(err));
+    }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+async function deleteProjectById(req, res, next) {
+    try {
+        const deleted = await ProjectModel.findByIdAndDelete(req.params.id);
+
+        if (!deleted) {
+            return next(new NotFound(`Project ${req.params.id} not found.`));
+        }
+
+        return res.status(204).end();
+    } catch (err) {
+        if (err instanceof mongoose.Error.CastError) {
+            return next(new BadRequest('Invalid project id.', err));
+        }
+        return next(new InternalServerError(err));
+    }
+}
 
 export {
     getAllProjects,
