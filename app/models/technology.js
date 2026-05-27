@@ -5,6 +5,7 @@ const technologySchema = new mongoose.Schema(
         tech: {
             type: String,
             required: true,
+            index: true,
         },
         color: {
             type: String,

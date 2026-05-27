@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const DEFAULT_SORTING_PARAMS = {
-    projects: '+createdAt',
+    projects: 'createdAt',
 };
 
 /**
