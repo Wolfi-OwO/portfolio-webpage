@@ -132,7 +132,7 @@ export default function ProjectsPage() {
     }
 
     return (
-        <div className="space-y-4 py-1 lg:py-2">
+        <div className="space-y-4 py-1 lg:py-2 w-full">
             <section className="mx-auto flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between px-6">
                 <div className="max-w-2xl space-y-2">
                     <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-white">
@@ -473,7 +473,7 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                                         <NewTechRow
                                             query={query}
                                             color={form.newTechColor}
-                                            onColorChange={value => setField('newTechColor', value)}
+                                            onColorChange={setField}
                                             onCreate={() =>
                                                 dispatch({
                                                     type: 'ADD_SELECTED_TECH',
@@ -545,11 +545,11 @@ function NewTechRow({ query, color, onColorChange, onCreate }) {
             </div>
 
             <div className="mt-3">
-                <TailwindColorPicker value={color} onChange={onColorChange} />
+                <TailwindColorPicker value={color} onChange={value => onColorChange('newTechColor', value)} />
             </div>
         </div>
     );
-}
+  }
 
 const inputClass =
     'mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-950 placeholder-slate-400 transition focus:border-slate-950 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-950/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder-slate-500 dark:focus:border-white dark:focus:bg-slate-900 dark:focus:ring-white/10';
