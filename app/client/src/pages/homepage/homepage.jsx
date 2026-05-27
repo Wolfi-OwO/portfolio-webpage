@@ -36,12 +36,12 @@ export default function Homepage() {
                     </div>
 
                     <div className="flex flex-wrap gap-4">
-                        <a
-                            href="#projects"
+                        <Link
+                            to="/projects"
                             className="inline-flex items-center justify-center rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
                         >
                             View Projects
-                        </a>
+                        </Link>
 
                         <Link
                             to="/contact"
