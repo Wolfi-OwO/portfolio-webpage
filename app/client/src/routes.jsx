@@ -4,6 +4,7 @@ import Homepage from './pages/homepage/homepage.jsx';
 import ProjectsPage from './pages/projects-page/projects-page.jsx';
 import ContactPage from './pages/contact-page/contact-page.jsx';
 import PrivacyPolicyPage from './pages/privacy-policy-page/privacy-policy-page.jsx';
+import AdminLoginPage from './pages/admin-login-page/admin-login-page.jsx';
 import ErrorPage from './pages/error-page/error-page.jsx';
 
 const router = createBrowserRouter([
@@ -27,6 +28,10 @@ const router = createBrowserRouter([
             {
                 path: '/privacy-policy',
                 element: <PrivacyPolicyPage />,
+            },
+            {
+                path: '/admin/login',
+                element: <AdminLoginPage />,
             },
         ],
     },

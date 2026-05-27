@@ -55,6 +55,51 @@ In order to test the backend, you can run the tests using:
     npm test
     ```
 
+## Authentication
+
+The API uses JWT-based authorization. Reading projects and technologies is public; creating, updating, and deleting them requires a valid `Bearer` token.
+
+### Obtaining a token
+
+```bash
+curl -X POST http://localhost:8080/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"admin","password":"admin"}'
+```
+
+Response:
+
+```json
+{ "token": "<jwt>", "expiresIn": "1h" }
+```
+
+### Endpoint matrix
+
+| Method | Path                       | Auth required |
+| ------ | -------------------------- | ------------- |
+| POST   | `/auth/login`              | no            |
+| GET    | `/api/projects`            | no            |
+| GET    | `/api/projects/:id`        | no            |
+| POST   | `/api/projects`            | yes           |
+| PUT    | `/api/projects/:id`        | yes           |
+| DELETE | `/api/projects/:id`        | yes           |
+| GET    | `/api/technologies`        | no            |
+| GET    | `/api/technologies/:id`    | no            |
+| POST   | `/api/technologies`        | yes           |
+| PUT    | `/api/technologies/:id`    | yes           |
+| DELETE | `/api/technologies/:id`    | yes           |
+
+### Calling a protected endpoint
+
+```bash
+curl -X POST http://localhost:8080/api/technologies \
+  -H 'Authorization: Bearer <jwt>' \
+  -H 'Content-Type: application/json' \
+  -d '{"tech":"Rust","color":"bg-orange-100 text-orange-800"}'
+```
+
+Unauthenticated or expired-token requests return `401 Unauthorized`.
+
 ## Live Demo
 
 <!--The live version of the website can be accessed at: [https://my-portfolio.vercel.app](https://my-portfolio.vercel.app) -->

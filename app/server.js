@@ -14,6 +14,8 @@ import { dropCurrentDatabase, setupDatabaseConnection } from './database/databas
 
 /* ***************** IMPORT ROUTES **************** */
 import { projectsRouter } from './routes/projects-route.js';
+import { technologiesRouter } from './routes/technologies-route.js';
+import { authRouter } from './routes/auth-route.js';
 import { errorHandler } from './middlewares/error-handlers.js';
 
 /* ***************** CONFIG and CONSTS ********************* */
@@ -37,7 +39,9 @@ app.use(
 app.use(express.static(path.join(__dirname, 'client', 'dist')));
 
 // setup routes
+app.use('/auth/', authRouter);
 app.use('/api/projects/', projectsRouter);
+app.use('/api/technologies/', technologiesRouter);
 
 // SPA fallback (support direct navigation to client routes like /projects)
 app.get(/^(?!\/api).*/, (_req, res) => {

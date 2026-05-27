@@ -17,10 +17,6 @@ ENV NODE_ENV=production
 ENV PORT=8080
 ENV BINDADDRESS=0.0.0.0
 
-RUN mkdir -p /app/data/executions /app/data/questions /app/data/quizzes /app/data/images && \
-    chown -R node:node /app && \
-    chmod -R u+w /app/data
-
 USER node
 
 # Expose port

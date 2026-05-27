@@ -10,6 +10,10 @@ const projectSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        repositoryUrl: {
+            type: String,
+            required: true,
+        },
         livedemo: {
             type: String,
         },

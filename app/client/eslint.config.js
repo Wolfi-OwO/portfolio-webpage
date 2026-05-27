@@ -13,6 +13,17 @@ export default defineConfig([
       reactHooks.configs.flat.recommended,
       reactRefresh.configs.vite,
     ],
+    rules: {
+            'no-console': 'warn',
+            'no-unused-vars': [
+                'warn',
+                {
+                    varsIgnorePattern: '^_',
+                    argsIgnorePattern: '^_',
+                },
+            ],
+            'no-case-declarations': 'warn',
+        },
     languageOptions: {
       globals: globals.browser,
       parserOptions: { ecmaFeatures: { jsx: true } },

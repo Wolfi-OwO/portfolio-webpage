@@ -16,6 +16,9 @@ export default defineConfig({
             '/api': {
                 target: 'http://localhost:8080/',
             },
+            '/auth': {
+                target: 'http://localhost:8080/',
+            },
         },
     },
 });
