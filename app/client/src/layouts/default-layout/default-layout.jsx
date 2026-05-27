@@ -135,7 +135,7 @@ export default function DefaultLayout() {
                 </nav>
             </header>
 
-            <main className="flex-1 mx-auto max-w-8xl px-4 py-6">
+            <main className="w-full flex-1 mx-auto max-w-8xl px-4 py-6">
                 <Outlet />
             </main>
 
