@@ -7,7 +7,16 @@ RUN apk upgrade --no-cache
 
 # Install server dependencies first (better caching)
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --only=production
+
+# Copy backend source code
+COPY server.js ./
+COPY database/ ./database/
+COPY handlers/ ./handlers/
+COPY middlewares/ ./middlewares/
+COPY models/ ./models/
+COPY routes/ ./routes/
+COPY utils/ ./utils/
 
 # Copy only necessary backend files
 COPY . .
@@ -17,6 +26,7 @@ ENV NODE_ENV=production
 ENV PORT=8080
 ENV BINDADDRESS=0.0.0.0
 
+# Set user to node -> no admin user needed
 USER node
 
 # Expose port
