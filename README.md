@@ -102,7 +102,7 @@ Unauthenticated or expired-token requests return `401 Unauthorized`.
 
 ## Live Demo
 
-<!--The live version of the website can be accessed at: [https://my-portfolio.vercel.app](https://my-portfolio.vercel.app) -->
+The live version of the website can be accessed at: [https://my-portfolio.app](https://portfolio-app.mangostone-13b22afa.westeurope.azurecontainerapps.io/)
 
 ## Purpose
 
