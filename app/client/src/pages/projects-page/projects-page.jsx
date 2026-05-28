@@ -300,6 +300,7 @@ function ProjectForm({ state, dispatch, onSubmit }) {
     const { form, technologies, submitting, error, formMode } = state;
     const query = form.techQuery.trim();
     const isEdit = formMode === 'edit';
+    const [techOpen, setTechOpen] = useState(false);
 
     const filtered = useMemo(() => {
         const lower = query.toLowerCase();
@@ -429,7 +430,15 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                             </ul>
                         )}
 
-                        <div className="relative mt-2">
+                        <div
+                            className="relative mt-2"
+                            onFocus={() => setTechOpen(true)}
+                            onBlur={e => {
+                                if (!e.currentTarget.contains(e.relatedTarget)) {
+                                    setTechOpen(false);
+                                }
+                            }}
+                        >
                             <input
                                 type="text"
                                 value={form.techQuery}
@@ -438,7 +447,7 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                                 placeholder="Search or create a technology..."
                             />
 
-                            {(filtered.length > 0 || (query && !exactMatchExists)) && (
+                            {techOpen && (filtered.length > 0 || (query && !exactMatchExists)) && (
                                 <div className="absolute z-20 mt-1 max-h-80 w-full overflow-auto rounded-2xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
                                     {filtered.map(tech => {
                                         const { className, style } = chipProps(tech.color);
