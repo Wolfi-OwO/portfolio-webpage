@@ -16,6 +16,7 @@ import { dropCurrentDatabase, setupDatabaseConnection } from './database/databas
 import { projectsRouter } from './routes/projects-route.js';
 import { technologiesRouter } from './routes/technologies-route.js';
 import { authRouter } from './routes/auth-route.js';
+import { infoRouter } from './routes/info-route.js';
 import { errorHandler } from './middlewares/error-handlers.js';
 
 /* ***************** CONFIG and CONSTS ********************* */
@@ -40,6 +41,7 @@ app.use(express.static(path.join(__dirname, 'client', 'dist')));
 
 // setup routes
 app.use('/auth/', authRouter);
+app.use('/api/info/', infoRouter);
 app.use('/api/projects/', projectsRouter);
 app.use('/api/technologies/', technologiesRouter);
 

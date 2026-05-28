@@ -21,6 +21,26 @@ COPY utils/ ./utils/
 # Copy only necessary backend files
 COPY . .
 
+# Build metadata (OCI image annotations) - passed in via --build-arg.
+ARG VERSION=dev
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VCS_URL
+
+LABEL org.opencontainers.image.version="${VERSION}" \
+    org.opencontainers.image.created="${BUILD_DATE}" \
+    org.opencontainers.image.revision="${VCS_REF}" \
+    org.opencontainers.image.source="${VCS_URL}" \
+    org.opencontainers.image.title="Portfolio Webpage" \
+    org.opencontainers.image.description="Personal developer portfolio built with React, Express and MongoDB"
+
+# Mirror the metadata into runtime env vars so /api/info can surface it in the footer
+# (LABELs are not readable by the running process).
+ENV APP_VERSION=${VERSION}
+ENV APP_BUILD_DATE=${BUILD_DATE}
+ENV APP_REVISION=${VCS_REF}
+ENV APP_REPOSITORY_URL=${VCS_URL}
+
 # Set production mode
 ENV NODE_ENV=production
 ENV PORT=8080

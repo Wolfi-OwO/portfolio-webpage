@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { ComputerDesktopIcon, LockClosedIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline';
+import { CodeBracketIcon, ComputerDesktopIcon, LockClosedIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline';
 
 const themeOptions = [
     { id: 'light', label: 'Light', Icon: SunIcon },
@@ -13,7 +13,25 @@ export default function DefaultLayout() {
         return localStorage.getItem('theme') || 'system';
     });
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [buildInfo, setBuildInfo] = useState(null);
     const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        let active = true;
+
+        fetch('/api/info')
+            .then(res => (res.ok ? res.json() : null))
+            .then(info => {
+                if (active && info) setBuildInfo(info);
+            })
+            .catch(() => {
+                // build info is non-critical: stay silent if the endpoint is unreachable
+            });
+
+        return () => {
+            active = false;
+        };
+    }, []);
 
     useEffect(() => {
         const handleClickOutside = event => {
@@ -140,15 +158,20 @@ export default function DefaultLayout() {
             </main>
 
             <footer className="bg-neutral-primary-soft rounded-base shadow-xs border border-gray-200 dark:border-gray-800">
-                <div className="w-full mx-auto px-10 py-5 md:flex md:items-center md:justify-between">
-                    <span className="text-sm text-body sm:text-center">
+                <div className="w-full mx-auto px-10 py-5 gap-3 md:grid md:grid-cols-3 md:items-center">
+                    <span className="text-sm text-body sm:text-center md:text-left">
                         © 2026{' '}
                         <a href="#" className="hover:underline">
                             Woofi-Developtments
                         </a>
                         . All Rights Reserved.
                     </span>
-                    <ul className="flex flex-wrap items-center mt-3 text-sm font-medium text-body sm:mt-0">
+
+                    <div className="mt-3 flex justify-center md:mt-0">
+                        {buildInfo && <BuildInfo info={buildInfo} />}
+                    </div>
+
+                    <ul className="flex flex-wrap items-center mt-3 text-sm font-medium text-body sm:mt-0 md:justify-end">
                         <li>
                             <NavLink to="/" className="hover:underline me-4 md:me-6">
                                 About
@@ -168,5 +191,52 @@ export default function DefaultLayout() {
                 </div>
             </footer>
         </div>
+    );
+}
+
+// Derives the "owner/repo" slug from a repository URL (e.g. a GitHub source URL).
+function repoSlug(url) {
+    if (!url) return '';
+    try {
+        return new URL(url).pathname.replace(/^\/+|\/+$/g, '').replace(/\.git$/, '');
+    } catch {
+        return '';
+    }
+}
+
+// Renders the deployed build's repository + version (fed by /api/info) for the footer center.
+function BuildInfo({ info }) {
+    const slug = repoSlug(info.repositoryUrl);
+    const label = slug || 'local';
+    const tooltip = [
+        info.revision && `revision ${info.revision}`,
+        info.buildDate && `built ${info.buildDate}`,
+    ]
+        .filter(Boolean)
+        .join(' · ');
+
+    const chip = (
+        <span
+            title={tooltip || undefined}
+            className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-500 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400"
+        >
+            <CodeBracketIcon className="h-3.5 w-3.5" />
+            <span className="font-medium text-gray-700 dark:text-gray-200">{label}</span>
+            <span className="text-gray-300 dark:text-gray-600">·</span>
+            <span>{info.version}</span>
+        </span>
+    );
+
+    if (!info.repositoryUrl) return chip;
+
+    return (
+        <a
+            href={info.repositoryUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="transition hover:opacity-80"
+        >
+            {chip}
+        </a>
     );
 }
