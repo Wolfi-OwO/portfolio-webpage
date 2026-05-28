@@ -1,12 +1,14 @@
 /* ***************** IMPORT packages *********************** */
 import request from 'supertest';
 import httpServer from '../../server.js';
+import { adminToken } from '../tokens.js';
 
 /* ***************** SETUP demo data *********************** */
 const exampleProject = {
     title: 'Machine Learning Visualizer',
     description:
         'A tutoring site, helping students master basic machine learning algorithms.',
+    repositoryUrl: 'https://gitlab.com/woofi4/Projects/5bhif-datascience-webapp.git',
     livedemo: 'https://ml-visualizer.at/',
     technologies: [
         {
@@ -24,25 +26,24 @@ const anotherExampleProject = {
     title: 'Alpinfex',
     description:
         'A blog website for enthusiastic mountaineers who want to share their experiences with others.',
+    repositoryUrl: 'https://gitlab.com/woofi4/Projects/tourblog.git',
     technologies: [
-        [
-            {
-                tech: 'React',
-                color: 'bg-sky-100 text-sky-800 dark:bg-sky-500/20 dark:text-sky-300',
-            },
-            {
-                tech: 'NodeJs',
-                color: 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300',
-            },
-            {
-                tech: 'Express',
-                color: 'bg-neutral-200 text-neutral-800 dark:bg-neutral-700/30 dark:text-neutral-200',
-            },
-            {
-                tech: 'TailwindCSS',
-                color: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-500/20 dark:text-cyan-300',
-            },
-        ],
+        {
+            tech: 'React',
+            color: 'bg-sky-100 text-sky-800 dark:bg-sky-500/20 dark:text-sky-300',
+        },
+        {
+            tech: 'NodeJs',
+            color: 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300',
+        },
+        {
+            tech: 'Express',
+            color: 'bg-neutral-200 text-neutral-800 dark:bg-neutral-700/30 dark:text-neutral-200',
+        },
+        {
+            tech: 'TailwindCSS',
+            color: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-500/20 dark:text-cyan-300',
+        },
     ],
 };
 
@@ -50,6 +51,7 @@ const thirdExampleProject = {
     title: 'Portfolio Webpage',
     description:
         'A full-stack portfolio web application built to present projects, skills, and experience using React, Node.js, Express, and TailwindCSS.',
+    repositoryUrl: 'https://github.com/Wolfi-OwO/portfolio-webpage',
     technologies: [
         [
             {
@@ -96,6 +98,7 @@ async function getProjectById(projectId) {
 async function createProject(project) {
     const res = await request(httpServer)
         .post(`/api/projects`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .set('Content-Type', 'application/json')
         .send(project)
         .expect('Content-Type', /json/)

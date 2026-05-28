@@ -1,0 +1,5 @@
+const adminToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3OTkyMjE3MSwiZXhwIjoxNzc5OTI1NzcxfQ.aPHpChRi3uzn7snpOfQdJd-ZHTJYuGe-zyetTrJiJVw'
+
+export {
+    adminToken
+}
