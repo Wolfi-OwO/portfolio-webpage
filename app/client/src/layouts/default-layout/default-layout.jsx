@@ -1,6 +1,14 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
-import { CodeBracketIcon, ComputerDesktopIcon, LockClosedIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import {
+    ArrowRightOnRectangleIcon,
+    CodeBracketIcon,
+    ComputerDesktopIcon,
+    LockClosedIcon,
+    MoonIcon,
+    SunIcon,
+} from '@heroicons/react/24/outline';
+import { isAdmin, logout } from '../../utils/auth.js';
 
 const themeOptions = [
     { id: 'light', label: 'Light', Icon: SunIcon },
@@ -14,7 +22,20 @@ export default function DefaultLayout() {
     });
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [buildInfo, setBuildInfo] = useState(null);
+    const [loggedIn, setLoggedIn] = useState(() => isAdmin());
     const dropdownRef = useRef(null);
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        setLoggedIn(isAdmin());
+    }, [location.pathname]);
+
+    async function handleLogout() {
+        await logout();
+        setLoggedIn(false);
+        navigate('/');
+    }
 
     useEffect(() => {
         let active = true;
@@ -101,17 +122,28 @@ export default function DefaultLayout() {
                             Projects
                         </NavLink>
 
-                        <NavLink
-                            to="/admin/login"
-                            className={({ isActive }) =>
-                                `inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-gray-50 hover:text-slate-900 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-white ${
-                                    isActive ? 'bg-gray-100 text-slate-900 dark:bg-gray-800 dark:text-white' : ''
-                                }`
-                            }
-                        >
-                            <LockClosedIcon className="h-4 w-4" />
-                            <span>Admin</span>
-                        </NavLink>
+                        {loggedIn ? (
+                            <button
+                                type="button"
+                                onClick={handleLogout}
+                                className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-gray-50 hover:text-slate-900 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-white"
+                            >
+                                <ArrowRightOnRectangleIcon className="h-4 w-4" />
+                                <span>Logout</span>
+                            </button>
+                        ) : (
+                            <NavLink
+                                to="/admin/login"
+                                className={({ isActive }) =>
+                                    `inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-gray-50 hover:text-slate-900 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-white ${
+                                        isActive ? 'bg-gray-100 text-slate-900 dark:bg-gray-800 dark:text-white' : ''
+                                    }`
+                                }
+                            >
+                                <LockClosedIcon className="h-4 w-4" />
+                                <span>Admin</span>
+                            </NavLink>
+                        )}
                     </div>
 
                     <div className="relative" ref={dropdownRef}>

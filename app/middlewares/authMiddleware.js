@@ -9,13 +9,7 @@ const authMiddleware = (req, res, next) => {
     }
 
     try {
-        let decoded;
-
-        if (process.env.NODE_ENV == 'production'){
-            decoded = jwt.verify(token, process.env.JWT_SECRET);
-        } else {
-            decoded = jwt.decode(token);
-        }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
         req.user = decoded; // Attach user info to request
         next(); // Proceed to route handler

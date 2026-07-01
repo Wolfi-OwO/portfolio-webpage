@@ -17,4 +17,12 @@ function authHeaders() {
     return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-export { TOKEN_STORAGE_KEY, getAdminToken, isAdmin, clearAdminToken, authHeaders };
+async function logout() {
+    try {
+        await fetch('/auth/logout', { method: 'POST', headers: authHeaders() });
+    } finally {
+        clearAdminToken();
+    }
+}
+
+export { TOKEN_STORAGE_KEY, getAdminToken, isAdmin, clearAdminToken, authHeaders, logout };

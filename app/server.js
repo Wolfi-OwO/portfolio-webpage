@@ -4,6 +4,7 @@ const __dirname = import.meta.dirname;
 
 /* ***************** IMPORT packages *********************** */
 import express from 'express';
+import helmet from 'helmet';
 import { createServer } from 'http';
 import path from 'path';
 
@@ -29,7 +30,15 @@ const MONGODB_RECREATE = process.env.MONGODB_RECREATE === 'true';
 /* ***************** START UP ******************************* */
 logger.info('Backend - Starting configuration...');
 
+const REQUIRED_ENV_VARS = ['JWT_SECRET', 'ADMIN_USER', 'ADMIN_PASSWORD_HASH'];
+const missingEnvVars = REQUIRED_ENV_VARS.filter(name => !process.env[name]);
+if (missingEnvVars.length > 0) {
+    logger.error(`Backend - Missing required environment variable(s): ${missingEnvVars.join(', ')}`);
+    process.exit(1);
+}
+
 const app = express();
+app.use(helmet());
 app.use(
     express.json({
         type: ['application/json', 'application/merge-patch+json'],
