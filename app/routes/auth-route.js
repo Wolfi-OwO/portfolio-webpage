@@ -3,6 +3,6 @@ import { login } from '../handlers/auth-handlers.js';
 
 const authRouter = express.Router();
 
-authRouter.post('/login', login);
+authRouter.post('/auth/login', login);
 
 export { authRouter };
