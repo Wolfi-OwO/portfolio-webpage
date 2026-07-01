@@ -40,7 +40,11 @@ jobs:
       - name: Resolve image coordinates
         id: img
         run: |
-          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          TAG="${{ github.event.inputs.tag || github.event.release.tag_name || github.ref_name }}"
+          if [ -z "$TAG" ]; then
+            echo "::error::Could not resolve an image tag from the triggering event."
+            exit 1
+          fi
           IMAGE="${{ vars.ACR_NAME }}.azurecr.io/${{ vars.IMAGE_NAME }}"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
