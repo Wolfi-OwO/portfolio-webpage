@@ -177,6 +177,14 @@ export default function ProjectsPage() {
     );
 }
 
+function liveDemoLabel(url) {
+    try {
+        return new URL(url).hostname;
+    } catch {
+        return url;
+    }
+}
+
 function ProjectCard({ project, admin, onEdit, onDelete }) {
     const hasRepo = Boolean(project.repositoryUrl);
 
@@ -250,18 +258,19 @@ function ProjectCard({ project, admin, onEdit, onDelete }) {
             </p>
 
             {project.livedemo && (
-                <div className="flex">
-                    <span className="mt-3 text-sm text-slate-600 dark:text-slate-300 pr-2">
+                <div className="mt-3 flex min-w-0 items-center gap-2 text-sm">
+                    <span className="shrink-0 text-slate-600 dark:text-slate-300">
                         Live Demo:
                     </span>
                     <a
-                        className="mt-3 text-sm font-semibold underline text-blue-600 hover:text-blue-800 visited:text-purple-600"
+                        className="truncate font-semibold underline text-blue-600 hover:text-blue-800 dark:text-sky-400 dark:hover:text-sky-300"
                         href={project.livedemo}
                         target="_blank"
                         rel="noopener noreferrer"
+                        title={project.livedemo}
                         onClick={event => event.stopPropagation()}
                     >
-                        {project.livedemo}
+                        {liveDemoLabel(project.livedemo)}
                     </a>
                 </div>
             )}
