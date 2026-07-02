@@ -1,7 +1,15 @@
 name: Release Deploy
 
-# Publishing a GitHub Release builds the image, pushes it to Azure Container
-# Registry and rolls the Azure Container App onto the new tag.
+# Publishing a GitHub Release builds the client, pushes the image to Azure
+# Container Registry and rolls the Azure Container App onto the new tag.
+#
+# Jobs are split so the parts that don't need an Azure identity (metadata
+# resolution, client build, the ACR push using scoped registry tokens) can
+# run freely. Only the final containerapp rollout needs an Azure AD identity
+# (rolling a revision is an ARM call, not a registry operation, so the ACR
+# tokens used to push the image can't authorize it) and therefore the
+# `production` environment. Keeping that one call in its own job means a
+# release only ever waits on a single reviewer approval.
 
 on:
   release:
@@ -14,14 +22,34 @@ on:
 
 permissions:
   contents: read
-  id-token: write   # required for Azure OIDC login
+  id-token: write   # required for Azure OIDC login in deploy-to-production
 
 jobs:
-  deploy:
-    name: Build, push & deploy
+  resolve-metadata:
+    name: Resolve image metadata
     runs-on: ubuntu-latest
-    environment: production
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+      image: ${{ steps.meta.outputs.image }}
+      build_date: ${{ steps.meta.outputs.build_date }}
+    steps:
+      - name: Compute tag, image & build date
+        id: meta
+        run: |
+          TAG="${{ github.event.inputs.tag || github.event.release.tag_name || github.ref_name }}"
+          if [ -z "$TAG" ]; then
+            echo "::error::Could not resolve an image tag from the triggering event."
+            exit 1
+          fi
+          IMAGE="${{ vars.ACR_NAME }}.azurecr.io/${{ vars.IMAGE_NAME }}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+          echo "build_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+          echo "Resolved ${IMAGE}:${TAG}"
 
+  build-client:
+    name: Build client bundle
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -37,19 +65,61 @@ jobs:
           npm ci
           npm run build
 
-      - name: Resolve image coordinates
-        id: img
-        run: |
-          TAG="${{ github.event.inputs.tag || github.event.release.tag_name || github.ref_name }}"
-          if [ -z "$TAG" ]; then
-            echo "::error::Could not resolve an image tag from the triggering event."
-            exit 1
-          fi
-          IMAGE="${{ vars.ACR_NAME }}.azurecr.io/${{ vars.IMAGE_NAME }}"
-          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
-          echo "Building ${IMAGE}:${TAG}"
+      - name: Upload client bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-dist
+          path: app/client/dist
+          retention-days: 1
 
+  push-image:
+    name: Push image to ACR
+    runs-on: ubuntu-latest
+    needs: [resolve-metadata, build-client]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download client bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: client-dist
+          path: app/client/dist
+
+      # Scoped ACR token (push/pull only, revocable) — no Azure AD identity
+      # or OIDC login needed for this job.
+      - name: Log in to ACR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ vars.ACR_NAME }}.azurecr.io
+          username: ${{ secrets.ACR_PUSH_USERNAME }}
+          password: ${{ secrets.ACR_PUSH_PASSWORD }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: app
+          file: app/dockerfile
+          push: true
+          tags: |
+            ${{ needs.resolve-metadata.outputs.image }}:${{ needs.resolve-metadata.outputs.tag }}
+            ${{ needs.resolve-metadata.outputs.image }}:latest
+          build-args: |
+            VERSION=${{ needs.resolve-metadata.outputs.tag }}
+            BUILD_DATE=${{ needs.resolve-metadata.outputs.build_date }}
+            VCS_REF=${{ github.sha }}
+            VCS_URL=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-to-production:
+    name: Deploy to Azure Container App
+    runs-on: ubuntu-latest
+    needs: [resolve-metadata, push-image]
+    environment: production
+    steps:
       - name: Azure login (OIDC)
         uses: azure/login@v2
         with:
@@ -57,29 +127,12 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Log in to ACR
-        run: az acr login --name ${{ vars.ACR_NAME }}
-
-      - name: Build and push image
-        working-directory: app
-        run: |
-          docker build -f dockerfile \
-            --build-arg VERSION="${{ steps.img.outputs.tag }}" \
-            --build-arg BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-            --build-arg VCS_REF="${GITHUB_SHA}" \
-            --build-arg VCS_URL="${{ github.server_url }}/${{ github.repository }}" \
-            -t "${{ steps.img.outputs.image }}:${{ steps.img.outputs.tag }}" \
-            -t "${{ steps.img.outputs.image }}:latest" \
-            .
-          docker push "${{ steps.img.outputs.image }}:${{ steps.img.outputs.tag }}"
-          docker push "${{ steps.img.outputs.image }}:latest"
-
       - name: Deploy to Azure Container App
         run: |
           az containerapp update \
             --name "${{ vars.CONTAINERAPP_NAME }}" \
             --resource-group "${{ vars.RESOURCE_GROUP }}" \
-            --image "${{ steps.img.outputs.image }}:${{ steps.img.outputs.tag }}"
+            --image "${{ needs.resolve-metadata.outputs.image }}:${{ needs.resolve-metadata.outputs.tag }}"
 
       - name: Show deployed revision
         run: |
