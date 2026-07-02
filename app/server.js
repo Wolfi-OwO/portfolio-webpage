@@ -24,7 +24,7 @@ import { errorHandler } from './middlewares/error-handlers.js';
 /* Take configuration from environment variables or use hardcoded default value */
 const HOSTNAME = process.env.BINDADDRESS || '0.0.0.0';
 const PORT = process.env.PORT || 8080;
-const MONGODB_CONNECTION_STRING = process.env.MONGODB_CONNECTION_STRING || 'mongodb://127.0.0.1/team_a';
+const MONGODB_CONNECTION_STRING = process.env.MONGODB_CONNECTION_STRING || 'mongodb://127.0.0.1/portfolio-app';
 const MONGODB_RECREATE = process.env.MONGODB_RECREATE === 'true';
 
 /* ***************** START UP ******************************* */

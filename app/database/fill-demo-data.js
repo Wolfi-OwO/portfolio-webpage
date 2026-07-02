@@ -6,7 +6,7 @@ import { ProjectModel } from '../models/project.js';
 import { TechnologyModel } from '../models/technology.js';
 
 const MONGODB_CONNECTION_STRING =
-    process.env.MONGODB_CONNECTION_STRING || 'mongodb://127.0.0.1/team_a';
+    process.env.MONGODB_CONNECTION_STRING || 'mongodb://127.0.0.1/portfolio-app';
 
 fillDatabase();
 
