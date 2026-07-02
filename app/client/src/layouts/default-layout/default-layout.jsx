@@ -117,8 +117,13 @@ export default function DefaultLayout() {
                     <div className="flex items-center gap-4">
                         <NavLink
                             to="/"
-                            className="text-xl font-semibold tracking-tight"
+                            className="flex items-center gap-2 text-xl font-semibold tracking-tight"
                         >
+                            <img
+                                src="/favicon.svg"
+                                alt=""
+                                className="h-8 w-8 rounded-lg"
+                            />
                             Woofi-Developments
                         </NavLink>
 
