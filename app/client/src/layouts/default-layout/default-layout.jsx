@@ -28,7 +28,9 @@ export default function DefaultLayout() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        setLoggedIn(isAdmin());
+        (() => {
+            setLoggedIn(isAdmin());
+        })();
     }, [location.pathname]);
 
     async function handleLogout() {
@@ -56,7 +58,11 @@ export default function DefaultLayout() {
 
     useEffect(() => {
         const handleClickOutside = event => {
-            if (dropdownOpen && dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+            if (
+                dropdownOpen &&
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target)
+            ) {
                 setDropdownOpen(false);
             }
         };
@@ -80,7 +86,9 @@ export default function DefaultLayout() {
         const root = document.documentElement;
 
         const applyTheme = () => {
-            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const systemDark = window.matchMedia(
+                '(prefers-color-scheme: dark)',
+            ).matches;
 
             const isDark = theme === 'dark' || (theme === 'system' && systemDark);
 
@@ -107,7 +115,10 @@ export default function DefaultLayout() {
             <header className="border-b border-gray-200 dark:border-gray-800">
                 <nav className="mx-auto flex h-16 max-w-8xl items-center justify-between px-3">
                     <div className="flex items-center gap-4">
-                        <NavLink to="/" className="text-xl font-semibold tracking-tight">
+                        <NavLink
+                            to="/"
+                            className="text-xl font-semibold tracking-tight"
+                        >
                             Woofi-Developments
                         </NavLink>
 
@@ -115,7 +126,9 @@ export default function DefaultLayout() {
                             to="/projects"
                             className={({ isActive }) =>
                                 `rounded-full px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-gray-50 hover:text-slate-900 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-white ${
-                                    isActive ? 'bg-gray-100 text-slate-900 dark:bg-gray-800 dark:text-white' : ''
+                                    isActive
+                                        ? 'bg-gray-100 text-slate-900 dark:bg-gray-800 dark:text-white'
+                                        : ''
                                 }`
                             }
                         >
@@ -136,7 +149,9 @@ export default function DefaultLayout() {
                                 to="/admin/login"
                                 className={({ isActive }) =>
                                     `inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-gray-50 hover:text-slate-900 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-white ${
-                                        isActive ? 'bg-gray-100 text-slate-900 dark:bg-gray-800 dark:text-white' : ''
+                                        isActive
+                                            ? 'bg-gray-100 text-slate-900 dark:bg-gray-800 dark:text-white'
+                                            : ''
                                     }`
                                 }
                             >
@@ -152,7 +167,9 @@ export default function DefaultLayout() {
                             onClick={() => setDropdownOpen(open => !open)}
                             className="flex cursor-pointer items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm shadow-gray-200/50 transition hover:bg-gray-50 focus:outline-none focus:ring-0 dark:border-gray-700 dark:bg-slate-950 dark:text-gray-200 dark:hover:bg-gray-800"
                         >
-                            {selectedTheme?.Icon && <selectedTheme.Icon className="h-5 w-5" />}
+                            {selectedTheme?.Icon && (
+                                <selectedTheme.Icon className="h-5 w-5" />
+                            )}
                             <span>Theme</span>
                         </button>
 
@@ -210,12 +227,18 @@ export default function DefaultLayout() {
                             </NavLink>
                         </li>
                         <li>
-                            <NavLink to="/privacy-policy" className="hover:underline me-4 md:me-6">
+                            <NavLink
+                                to="/privacy-policy"
+                                className="hover:underline me-4 md:me-6"
+                            >
                                 Privacy Policy
                             </NavLink>
                         </li>
                         <li>
-                            <NavLink to="/contact" className="font-semibold tracking-tight hover:underline">
+                            <NavLink
+                                to="/contact"
+                                className="font-semibold tracking-tight hover:underline"
+                            >
                                 Contact
                             </NavLink>
                         </li>
@@ -253,7 +276,9 @@ function BuildInfo({ info }) {
             className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-500 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400"
         >
             <CodeBracketIcon className="h-3.5 w-3.5" />
-            <span className="font-medium text-gray-700 dark:text-gray-200">{label}</span>
+            <span className="font-medium text-gray-700 dark:text-gray-200">
+                {label}
+            </span>
             <span className="text-gray-300 dark:text-gray-600">·</span>
             <span>{info.version}</span>
         </span>

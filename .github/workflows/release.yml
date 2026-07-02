@@ -107,10 +107,10 @@ jobs:
             ${{ needs.resolve-metadata.outputs.image }}:${{ needs.resolve-metadata.outputs.tag }}
             ${{ needs.resolve-metadata.outputs.image }}:latest
           build-args: |
-            VERSION=${{ needs.resolve-metadata.outputs.tag }}
+            APP_VERSION=${{ needs.resolve-metadata.outputs.tag }}
             BUILD_DATE=${{ needs.resolve-metadata.outputs.build_date }}
             VCS_REF=${{ github.sha }}
-            VCS_URL=${{ github.server_url }}/${{ github.repository }}
+            APP_SOURCE=${{ github.server_url }}/${{ github.repository }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

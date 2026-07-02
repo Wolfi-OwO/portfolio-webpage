@@ -6,7 +6,7 @@ import { logger } from '../utils/logger.js';
 
 /* ***************** CONFIG and CONSTS ********************* */
 /* Build metadata is injected as env vars by the Dockerfile (mirrored from the
- * OCI image labels, see --build-arg VERSION/BUILD_DATE/VCS_REF/VCS_URL). */
+ * OCI image labels, see --build-arg APP_VERSION/BUILD_DATE/VCS_REF/APP_SOURCE). */
 const buildInfo = {
     version: process.env.APP_VERSION || 'dev',
     repositoryUrl: process.env.APP_REPOSITORY_URL || '',

@@ -12,16 +12,7 @@ RUN apk upgrade --no-cache
 COPY package*.json ./
 RUN npm ci --omit=dev --only=production
 
-# Copy backend source code
-COPY server.js ./
-COPY database/ ./database/
-COPY handlers/ ./handlers/
-COPY middlewares/ ./middlewares/
-COPY models/ ./models/
-COPY routes/ ./routes/
-COPY utils/ ./utils/
-
-# Copy only necessary backend files
+# Copy backend source code (.dockerignore keeps dev-only files out)
 COPY . .
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -92,8 +83,10 @@ USER node
 EXPOSE 8080
 
 # Healthcheck — periodically verifies the app is responsive
+# (hits the liveness route set up by utils/health-checks.js; wget is present
+# in node:22-alpine by default, curl is not)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
-  CMD node utils/health-checks.js || exit 1
+  CMD wget --no-verbose --tries=1 --spider "http://127.0.0.1:${PORT}/api/live" || exit 1
 
 # Graceful shutdown signal
 STOPSIGNAL SIGINT

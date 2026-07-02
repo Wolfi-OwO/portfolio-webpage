@@ -20,6 +20,8 @@ export default defineConfig([
                 {
                     varsIgnorePattern: '^_',
                     argsIgnorePattern: '^_',
+                    caughtErrorsIgnorePattern: '^_',
+                    destructuredArrayIgnorePattern: '^_',
                 },
             ],
             'no-case-declarations': 'warn',
