@@ -1,11 +1,14 @@
-# Stage 1: Setup Express backend
+# ═══════════════════════════════════════════════════════════════════════════
+# BUILD/RUNTIME STAGE — single-stage build for the Express backend
+# ═══════════════════════════════════════════════════════════════════════════
 FROM node:22-alpine AS backend
 WORKDIR /app
 
 # Upgrade base packages to get latest security fixes
 RUN apk upgrade --no-cache
 
-# Install server dependencies first (better caching)
+# Install server dependencies first (better layer caching — deps only
+# reinstall when package*.json changes, not on every source edit)
 COPY package*.json ./
 RUN npm ci --omit=dev --only=production
 
@@ -21,25 +24,61 @@ COPY utils/ ./utils/
 # Copy only necessary backend files
 COPY . .
 
-# Build metadata (OCI image annotations) - passed in via --build-arg.
-ARG VERSION=dev
+# ═══════════════════════════════════════════════════════════════════════════
+# OCI IMAGE METADATA — build args with defaults, overridable via --build-arg
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Image version (e.g. from a git tag/release)
+ARG APP_VERSION=0.0.0-dev
+# Short git commit hash, identifies the exact source state
+ARG VCS_REF=unknown
+# Timestamp of the image build (ISO 8601, passed in by CI)
 ARG BUILD_DATE
-ARG VCS_REF
-ARG VCS_URL
+# Human-readable display name of the app
+ARG APP_TITLE="Portfolio Webpage"
+# Short description of what the app does
+ARG APP_DESCRIPTION="Personal developer portfolio built with React, Express and MongoDB"
+# Publisher/organization
+ARG APP_VENDOR="Woofi-Developments"
+# Author(s) of the application
+ARG APP_AUTHORS="Woofi-Developments"
+# Project/documentation URL
+ARG APP_URL="https://github.com/Wolfi-OwO/portfolio-webpage"
+# Source code repository URL
+ARG APP_SOURCE="https://github.com/Wolfi-OwO/portfolio-webpage"
+# License of the application (SPDX identifier)
+ARG APP_LICENSES="MIT"
 
-LABEL org.opencontainers.image.version="${VERSION}" \
-    org.opencontainers.image.created="${BUILD_DATE}" \
+# LABELs write the above ARGs into the image as standard OCI metadata
+# (readable e.g. via `docker inspect` or registries/dashboards)
+LABEL org.opencontainers.image.title="${APP_TITLE}" \
+    org.opencontainers.image.description="${APP_DESCRIPTION}" \
+    org.opencontainers.image.vendor="${APP_VENDOR}" \
+    org.opencontainers.image.authors="${APP_AUTHORS}" \
+    org.opencontainers.image.url="${APP_URL}" \
+    org.opencontainers.image.source="${APP_SOURCE}" \
+    org.opencontainers.image.licenses="${APP_LICENSES}" \
+    org.opencontainers.image.version="${APP_VERSION}" \
     org.opencontainers.image.revision="${VCS_REF}" \
-    org.opencontainers.image.source="${VCS_URL}" \
-    org.opencontainers.image.title="Portfolio Webpage" \
-    org.opencontainers.image.description="Personal developer portfolio built with React, Express and MongoDB"
+    org.opencontainers.image.created="${BUILD_DATE}"
 
-# Mirror the metadata into runtime env vars so /api/info can surface it in the footer
-# (LABELs are not readable by the running process).
-ENV APP_VERSION=${VERSION}
+# ═══════════════════════════════════════════════════════════════════════════
+# RUNTIME ENV — mirror build metadata into env vars so /api/info can surface
+# it in the footer (LABELs are not readable by the running process)
+# ═══════════════════════════════════════════════════════════════════════════
+ENV APP_VERSION=${APP_VERSION}
 ENV APP_BUILD_DATE=${BUILD_DATE}
 ENV APP_REVISION=${VCS_REF}
-ENV APP_REPOSITORY_URL=${VCS_URL}
+ENV APP_REPOSITORY_URL=${APP_SOURCE}
+ENV APP_TITLE=${APP_TITLE}
+ENV APP_DESCRIPTION=${APP_DESCRIPTION}
+ENV APP_VENDOR=${APP_VENDOR}
+ENV APP_AUTHORS=${APP_AUTHORS}
+ENV APP_LICENSES=${APP_LICENSES}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# RUNTIME CONFIG
+# ═══════════════════════════════════════════════════════════════════════════
 
 # Set production mode
 ENV NODE_ENV=production
@@ -52,7 +91,7 @@ USER node
 # Expose port
 EXPOSE 8080
 
-# Healthcheck
+# Healthcheck — periodically verifies the app is responsive
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
   CMD node utils/health-checks.js || exit 1
 
