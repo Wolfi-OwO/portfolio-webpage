@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom';
+import { usePageMeta } from '../../hooks/usePageMeta.js';
 
 const lastUpdated = 'May 18, 2026';
 
 export default function PrivacyPolicyPage() {
+    usePageMeta('Privacy Policy', 'Privacy policy for the Woofi Developments portfolio website.');
+
     return (
         <div className="space-y-14 py-10 lg:py-14">
             <section className="mx-auto max-w-6xl px-6 lg:px-8">

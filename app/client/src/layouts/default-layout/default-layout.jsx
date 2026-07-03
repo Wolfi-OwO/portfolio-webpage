@@ -1,29 +1,40 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { FormattedMessage, useIntl } from 'react-intl';
 import {
     ArrowRightOnRectangleIcon,
     CodeBracketIcon,
     ComputerDesktopIcon,
+    LanguageIcon,
     LockClosedIcon,
     MoonIcon,
     SunIcon,
 } from '@heroicons/react/24/outline';
 import { isAdmin, logout } from '../../utils/auth.js';
+import { useLocale, SUPPORTED_LOCALES } from '../../i18n/LocaleContext.jsx';
 
 const themeOptions = [
-    { id: 'light', label: 'Light', Icon: SunIcon },
-    { id: 'dark', label: 'Dark', Icon: MoonIcon },
-    { id: 'system', label: 'Browser', Icon: ComputerDesktopIcon },
+    { id: 'light', labelId: 'theme.light', defaultLabel: 'Light', Icon: SunIcon },
+    { id: 'dark', labelId: 'theme.dark', defaultLabel: 'Dark', Icon: MoonIcon },
+    { id: 'system', labelId: 'theme.system', defaultLabel: 'Browser', Icon: ComputerDesktopIcon },
 ];
 
+const languageOptions = {
+    en: { labelId: 'language.en', defaultLabel: 'English', short: 'EN' },
+    de: { labelId: 'language.de', defaultLabel: 'Deutsch', short: 'DE' },
+};
+
 export default function DefaultLayout() {
+    const intl = useIntl();
+    const { locale, setLocale } = useLocale();
     const [theme, setTheme] = useState(() => {
         return localStorage.getItem('theme') || 'system';
     });
-    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [openDropdown, setOpenDropdown] = useState(null); // 'theme' | 'language' | null
     const [buildInfo, setBuildInfo] = useState(null);
     const [loggedIn, setLoggedIn] = useState(() => isAdmin());
-    const dropdownRef = useRef(null);
+    const themeDropdownRef = useRef(null);
+    const languageDropdownRef = useRef(null);
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -59,17 +70,24 @@ export default function DefaultLayout() {
     useEffect(() => {
         const handleClickOutside = event => {
             if (
-                dropdownOpen &&
-                dropdownRef.current &&
-                !dropdownRef.current.contains(event.target)
+                openDropdown === 'theme' &&
+                themeDropdownRef.current &&
+                !themeDropdownRef.current.contains(event.target)
             ) {
-                setDropdownOpen(false);
+                setOpenDropdown(null);
+            }
+            if (
+                openDropdown === 'language' &&
+                languageDropdownRef.current &&
+                !languageDropdownRef.current.contains(event.target)
+            ) {
+                setOpenDropdown(null);
             }
         };
 
         const handleEscape = event => {
             if (event.key === 'Escape') {
-                setDropdownOpen(false);
+                setOpenDropdown(null);
             }
         };
 
@@ -80,7 +98,7 @@ export default function DefaultLayout() {
             document.removeEventListener('mousedown', handleClickOutside);
             document.removeEventListener('keydown', handleEscape);
         };
-    }, [dropdownOpen]);
+    }, [openDropdown]);
 
     useLayoutEffect(() => {
         const root = document.documentElement;
@@ -110,6 +128,11 @@ export default function DefaultLayout() {
 
     const selectedTheme = themeOptions.find(option => option.id === theme);
 
+    const navLinkClasses = ({ isActive }) =>
+        `rounded-full px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-gray-50 hover:text-slate-900 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-white ${
+            isActive ? 'bg-gray-100 text-slate-900 dark:bg-gray-800 dark:text-white' : ''
+        }`;
+
     return (
         <div className="min-h-screen flex flex-col bg-white text-gray-900 transition-colors duration-300 dark:bg-gray-950 dark:text-white">
             <header className="border-b border-gray-200 dark:border-gray-800">
@@ -127,17 +150,8 @@ export default function DefaultLayout() {
                             Woofi-Developments
                         </NavLink>
 
-                        <NavLink
-                            to="/projects"
-                            className={({ isActive }) =>
-                                `rounded-full px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-gray-50 hover:text-slate-900 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-white ${
-                                    isActive
-                                        ? 'bg-gray-100 text-slate-900 dark:bg-gray-800 dark:text-white'
-                                        : ''
-                                }`
-                            }
-                        >
-                            Projects
+                        <NavLink to="/projects" className={navLinkClasses}>
+                            <FormattedMessage id="nav.projects" defaultMessage="Projects" />
                         </NavLink>
 
                         {loggedIn ? (
@@ -147,62 +161,106 @@ export default function DefaultLayout() {
                                 className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-gray-50 hover:text-slate-900 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-white"
                             >
                                 <ArrowRightOnRectangleIcon className="h-4 w-4" />
-                                <span>Logout</span>
+                                <span>
+                                    <FormattedMessage id="nav.logout" defaultMessage="Logout" />
+                                </span>
                             </button>
                         ) : (
-                            <NavLink
-                                to="/admin/login"
-                                className={({ isActive }) =>
-                                    `inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-gray-50 hover:text-slate-900 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-white ${
-                                        isActive
-                                            ? 'bg-gray-100 text-slate-900 dark:bg-gray-800 dark:text-white'
-                                            : ''
-                                    }`
-                                }
-                            >
+                            <NavLink to="/admin/login" className={navLinkClasses}>
                                 <LockClosedIcon className="h-4 w-4" />
-                                <span>Admin</span>
+                                <span>
+                                    <FormattedMessage id="nav.admin" defaultMessage="Admin" />
+                                </span>
                             </NavLink>
                         )}
                     </div>
 
-                    <div className="relative" ref={dropdownRef}>
-                        <button
-                            type="button"
-                            onClick={() => setDropdownOpen(open => !open)}
-                            className="flex cursor-pointer items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm shadow-gray-200/50 transition hover:bg-gray-50 focus:outline-none focus:ring-0 dark:border-gray-700 dark:bg-slate-950 dark:text-gray-200 dark:hover:bg-gray-800"
-                        >
-                            {selectedTheme?.Icon && (
-                                <selectedTheme.Icon className="h-5 w-5" />
-                            )}
-                            <span>Theme</span>
-                        </button>
+                    <div className="flex items-center gap-2">
+                        <div className="relative" ref={languageDropdownRef}>
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setOpenDropdown(open => (open === 'language' ? null : 'language'))
+                                }
+                                className="flex cursor-pointer items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm shadow-gray-200/50 transition hover:bg-gray-50 focus:outline-none focus:ring-0 dark:border-gray-700 dark:bg-slate-950 dark:text-gray-200 dark:hover:bg-gray-800"
+                            >
+                                <LanguageIcon className="h-5 w-5" />
+                                <span>{languageOptions[locale].short}</span>
+                            </button>
 
-                        {dropdownOpen && (
-                            <div className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900">
-                                {themeOptions.map(({ id, label, Icon }) => {
-                                    const selected = theme === id;
-                                    return (
-                                        <button
-                                            key={id}
-                                            type="button"
-                                            onClick={() => {
-                                                setTheme(id);
-                                                setDropdownOpen(false);
-                                            }}
-                                            className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition hover:bg-gray-50 focus:outline-none focus:ring-0 dark:hover:bg-gray-800 ${
-                                                selected
-                                                    ? 'bg-gray-100 text-slate-900 dark:bg-gray-800 dark:text-white'
-                                                    : 'text-gray-600 dark:text-gray-300'
-                                            }`}
-                                        >
-                                            <Icon className="h-5 w-5" />
-                                            <span>{label}</span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        )}
+                            {openDropdown === 'language' && (
+                                <div className="absolute right-0 z-50 mt-2 w-44 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900">
+                                    {SUPPORTED_LOCALES.map(code => {
+                                        const selected = locale === code;
+                                        return (
+                                            <button
+                                                key={code}
+                                                type="button"
+                                                onClick={() => {
+                                                    setLocale(code);
+                                                    setOpenDropdown(null);
+                                                }}
+                                                className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition hover:bg-gray-50 focus:outline-none focus:ring-0 dark:hover:bg-gray-800 ${
+                                                    selected
+                                                        ? 'bg-gray-100 text-slate-900 dark:bg-gray-800 dark:text-white'
+                                                        : 'text-gray-600 dark:text-gray-300'
+                                                }`}
+                                            >
+                                                <span>
+                                                    {intl.formatMessage({
+                                                        id: languageOptions[code].labelId,
+                                                        defaultMessage: languageOptions[code].defaultLabel,
+                                                    })}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="relative" ref={themeDropdownRef}>
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setOpenDropdown(open => (open === 'theme' ? null : 'theme'))
+                                }
+                                className="flex cursor-pointer items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm shadow-gray-200/50 transition hover:bg-gray-50 focus:outline-none focus:ring-0 dark:border-gray-700 dark:bg-slate-950 dark:text-gray-200 dark:hover:bg-gray-800"
+                            >
+                                {selectedTheme?.Icon && <selectedTheme.Icon className="h-5 w-5" />}
+                                <span>
+                                    <FormattedMessage id="theme.label" defaultMessage="Theme" />
+                                </span>
+                            </button>
+
+                            {openDropdown === 'theme' && (
+                                <div className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900">
+                                    {themeOptions.map(({ id, labelId, defaultLabel, Icon }) => {
+                                        const selected = theme === id;
+                                        return (
+                                            <button
+                                                key={id}
+                                                type="button"
+                                                onClick={() => {
+                                                    setTheme(id);
+                                                    setOpenDropdown(null);
+                                                }}
+                                                className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition hover:bg-gray-50 focus:outline-none focus:ring-0 dark:hover:bg-gray-800 ${
+                                                    selected
+                                                        ? 'bg-gray-100 text-slate-900 dark:bg-gray-800 dark:text-white'
+                                                        : 'text-gray-600 dark:text-gray-300'
+                                                }`}
+                                            >
+                                                <Icon className="h-5 w-5" />
+                                                <span>
+                                                    {intl.formatMessage({ id: labelId, defaultMessage: defaultLabel })}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </nav>
             </header>
@@ -216,9 +274,10 @@ export default function DefaultLayout() {
                     <span className="text-sm text-body sm:text-center md:text-left">
                         © 2026{' '}
                         <a href="#" className="hover:underline">
-                            Woofi-Developtments
+                            Woofi-Developments
                         </a>
-                        . All Rights Reserved.
+                        .{' '}
+                        <FormattedMessage id="footer.rightsReserved" defaultMessage="All Rights Reserved." />
                     </span>
 
                     <div className="mt-3 flex justify-center md:mt-0">
@@ -227,16 +286,11 @@ export default function DefaultLayout() {
 
                     <ul className="flex flex-wrap items-center mt-3 text-sm font-medium text-body sm:mt-0 md:justify-end">
                         <li>
-                            <NavLink to="/" className="hover:underline me-4 md:me-6">
-                                About
-                            </NavLink>
-                        </li>
-                        <li>
                             <NavLink
                                 to="/privacy-policy"
                                 className="hover:underline me-4 md:me-6"
                             >
-                                Privacy Policy
+                                <FormattedMessage id="footer.privacyPolicy" defaultMessage="Privacy Policy" />
                             </NavLink>
                         </li>
                         <li>
@@ -244,7 +298,7 @@ export default function DefaultLayout() {
                                 to="/contact"
                                 className="font-semibold tracking-tight hover:underline"
                             >
-                                Contact
+                                <FormattedMessage id="footer.contact" defaultMessage="Contact" />
                             </NavLink>
                         </li>
                     </ul>

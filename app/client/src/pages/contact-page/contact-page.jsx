@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { usePageMeta } from '../../hooks/usePageMeta.js';
 
 const emailAddress = 'koflerphillip@outlook.com';
 const githubUrl = 'https://github.com/Wolfi-OwO';
@@ -61,12 +62,17 @@ const services = [
 ];
 
 const responseInfo = [
-    { label: 'Response Time', value: '24–48h' },
+    { label: 'Response Time', value: '24-48h' },
     { label: 'Based In', value: 'Austria' },
     { label: 'Availability', value: 'Open' },
 ];
 
 export default function ContactPage() {
+    usePageMeta(
+        'Contact',
+        'Get in touch about freelance projects, collaborations, and modern web engineering work. Usually responds within 24-48 hours.',
+    );
+
     return (
         <div className="space-y-20 py-10 lg:py-14">
             <section className="mx-auto max-w-6xl px-6 lg:px-8">
@@ -90,7 +96,7 @@ export default function ContactPage() {
 
                             <p className="max-w-xl text-lg leading-8 text-slate-600 dark:text-slate-300">
                                 Freelance work, collaborations, and modern web engineering projects are welcome.
-                                I typically respond within 24–48 hours.
+                                I typically respond within 24-48 hours.
                             </p>
 
                             <div className="flex flex-wrap gap-3">

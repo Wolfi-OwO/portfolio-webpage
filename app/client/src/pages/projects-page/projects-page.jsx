@@ -12,8 +12,14 @@ import {
 import { authHeaders, isAdmin } from '../../utils/auth.js';
 import { chipProps } from '../../utils/tech-color.js';
 import TailwindColorPicker from '../../components/TailwindColorPicker.jsx';
+import { usePageMeta } from '../../hooks/usePageMeta.js';
 
 export default function ProjectsPage() {
+    usePageMeta(
+        'Projects',
+        'A selection of web applications, APIs, and UI-focused projects built with React, Node.js, and modern cloud technologies.',
+    );
+
     const [state, dispatch] = useReducer(reducer, initialState);
     const [admin] = useState(() => isAdmin());
 

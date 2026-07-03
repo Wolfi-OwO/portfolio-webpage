@@ -40,8 +40,8 @@ To help with analysis and resolution, please include:
 
 ## ⏱ Response Timeline
 
-- Initial response: within 48–72 hours
-- Assessment: within 5–10 working days
+- Initial response: within 48-72 hours
+- Assessment: within 5-10 working days
 - Fix timeline: depends on severity and project status
 
 You will be updated during the process if the issue is confirmed.
