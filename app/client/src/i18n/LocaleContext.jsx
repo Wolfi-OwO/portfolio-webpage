@@ -53,4 +53,5 @@ function useLocale() {
     return ctx;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- context + hook + its constant belong together
 export { LocaleProvider, useLocale, SUPPORTED_LOCALES };
