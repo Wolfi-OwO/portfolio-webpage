@@ -287,6 +287,14 @@ export default function DefaultLayout() {
                     <ul className="flex flex-wrap items-center mt-3 text-sm font-medium text-body sm:mt-0 md:justify-end">
                         <li>
                             <NavLink
+                                to="/status"
+                                className="hover:underline me-4 md:me-6"
+                            >
+                                <FormattedMessage id="footer.status" defaultMessage="Status" />
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink
                                 to="/privacy-policy"
                                 className="hover:underline me-4 md:me-6"
                             >

@@ -16,6 +16,7 @@ export default {
     'language.de': 'Deutsch',
 
     'footer.about': 'Über mich',
+    'footer.status': 'Status',
     'footer.privacyPolicy': 'Datenschutz',
     'footer.contact': 'Kontakt',
     'footer.rightsReserved': 'Alle Rechte vorbehalten.',

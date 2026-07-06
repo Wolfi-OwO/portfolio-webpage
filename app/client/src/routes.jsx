@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import DefaultLayout from './layouts/default-layout/default-layout.jsx';
 import Homepage from './pages/homepage/homepage.jsx';
 import ProjectsPage from './pages/projects-page/projects-page.jsx';
+import StatusPage from './pages/status-page/status-page.jsx';
 import ContactPage from './pages/contact-page/contact-page.jsx';
 import PrivacyPolicyPage from './pages/privacy-policy-page/privacy-policy-page.jsx';
 import AdminLoginPage from './pages/admin-login-page/admin-login-page.jsx';
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
             {
                 path: '/projects',
                 element: <ProjectsPage />,
+            },
+            {
+                path: '/status',
+                element: <StatusPage />,
             },
             {
                 path: '/contact',

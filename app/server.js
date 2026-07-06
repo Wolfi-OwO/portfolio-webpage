@@ -12,12 +12,15 @@ import path from 'path';
 import { logger } from './utils/logger.js';
 import { setupHealthChecks } from './utils/health-checks.js';
 import { dropCurrentDatabase, setupDatabaseConnection } from './database/database.js'
+import { startStatusChecker } from './utils/status-checker.js';
 
 /* ***************** IMPORT ROUTES **************** */
 import { projectsRouter } from './routes/projects-route.js';
 import { technologiesRouter } from './routes/technologies-route.js';
 import { authRouter } from './routes/auth-route.js';
 import { infoRouter } from './routes/info-route.js';
+import { monitorsRouter } from './routes/monitors-route.js';
+import { statusRouter } from './routes/status-route.js';
 import { errorHandler } from './middlewares/error-handlers.js';
 
 /* ***************** CONFIG and CONSTS ********************* */
@@ -53,6 +56,8 @@ app.use('/auth/', authRouter);
 app.use('/api/info/', infoRouter);
 app.use('/api/projects/', projectsRouter);
 app.use('/api/technologies/', technologiesRouter);
+app.use('/api/monitors/', monitorsRouter);
+app.use('/api/status/', statusRouter);
 
 // SPA fallback (support direct navigation to client routes like /projects)
 app.get(/^(?!\/api).*/, (_req, res) => {
@@ -72,6 +77,9 @@ setupHealthChecks(httpServer);
 // setup database connection
 setupDatabaseConnection(MONGODB_CONNECTION_STRING, MONGODB_RECREATE)
 httpServer.dropCurrentDatabase = dropCurrentDatabase;
+
+// start periodic monitor checks (uptime tracking for the status page)
+startStatusChecker();
 
 // start listening to HTTP requests
 httpServer.listen(PORT, HOSTNAME, () => {
