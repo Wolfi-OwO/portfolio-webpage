@@ -286,9 +286,11 @@ export default function DefaultLayout() {
 
                     <ul className="flex flex-wrap items-center mt-3 text-sm font-medium text-body sm:mt-0 md:justify-end">
                         <li>
-                            {/* Status lives on its own `status.` subdomain, not an in-app route. */}
+                            {/* Status lives on its own `status.` subdomain, not an in-app route.
+                                `window.location` (not the `location` var above, which is react-router's
+                                useLocation() and shadows the global — it has no protocol/host). */}
                             <a
-                                href={`${location.protocol}//status.${location.host}`}
+                                href={`${window.location.protocol}//status.${window.location.host}`}
                                 className="hover:underline me-4 md:me-6"
                             >
                                 <FormattedMessage id="footer.status" defaultMessage="Status" />
