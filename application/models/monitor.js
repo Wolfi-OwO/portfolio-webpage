@@ -11,6 +11,14 @@ const monitorSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        // Free-text label — monitors sharing the same group are shown together
+        // on the status page with a summarized (averaged) uptime.
+        group: {
+            type: String,
+            trim: true,
+            default: null,
+            index: true,
+        },
     },
     {
         optimisticConcurrency: true,

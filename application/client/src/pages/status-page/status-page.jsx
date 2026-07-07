@@ -8,6 +8,7 @@ import {
     CheckCircleIcon,
     ClockIcon,
     ExclamationTriangleIcon,
+    PencilSquareIcon,
     PlusIcon,
     ServerIcon,
     TrashIcon,
@@ -156,11 +157,14 @@ function OverallBanner({ report, upCount, total }) {
     );
 }
 
-function MonitorRow({ monitor, admin, onDelete }) {
+function MonitorRow({ monitor, admin, onEdit, onDelete }) {
     const badge = BADGE[monitor.status] ?? BADGE.pending;
+    // Hovering anywhere on the row surfaces why it's down, not just the inline error box below.
+    const rowTitle =
+        monitor.status === 'down' ? monitor.lastError || 'Down — no further error details available' : undefined;
 
     return (
-        <div className="py-5 border-b border-slate-200 last:border-0 dark:border-slate-800">
+        <div className="py-5 border-b border-slate-200 last:border-0 dark:border-slate-800" title={rowTitle}>
             <div className="mb-2 flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-2.5">
                     <StatusDot status={monitor.status} />
@@ -189,15 +193,26 @@ function MonitorRow({ monitor, admin, onDelete }) {
                     </span>
 
                     {admin && (
-                        <button
-                            type="button"
-                            onClick={() => onDelete(monitor)}
-                            aria-label={`Remove ${monitor.name}`}
-                            title="Remove"
-                            className="cursor-pointer rounded-full p-1.5 text-slate-500 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40 dark:text-slate-400 dark:hover:bg-red-500/10 dark:hover:text-red-300"
-                        >
-                            <TrashIcon className="h-4 w-4" />
-                        </button>
+                        <>
+                            <button
+                                type="button"
+                                onClick={() => onEdit(monitor)}
+                                aria-label={`Edit ${monitor.name}`}
+                                title="Edit"
+                                className="cursor-pointer rounded-full p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+                            >
+                                <PencilSquareIcon className="h-4 w-4" />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => onDelete(monitor)}
+                                aria-label={`Remove ${monitor.name}`}
+                                title="Remove"
+                                className="cursor-pointer rounded-full p-1.5 text-slate-500 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40 dark:text-slate-400 dark:hover:bg-red-500/10 dark:hover:text-red-300"
+                            >
+                                <TrashIcon className="h-4 w-4" />
+                            </button>
+                        </>
                     )}
                 </div>
             </div>
@@ -240,9 +255,10 @@ function MonitorSkeleton() {
     );
 }
 
-function AddMonitorForm({ onCreate }) {
-    const [name, setName] = useState('');
-    const [url, setUrl] = useState('');
+function MonitorForm({ editing, existingGroups, onSubmit, onCancel }) {
+    const [name, setName] = useState(editing?.name ?? '');
+    const [url, setUrl] = useState(editing?.url ?? '');
+    const [group, setGroup] = useState(editing?.group ?? '');
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
 
@@ -257,11 +273,14 @@ function AddMonitorForm({ onCreate }) {
 
         setSubmitting(true);
         try {
-            await onCreate({ name: name.trim(), url: url.trim() });
-            setName('');
-            setUrl('');
+            await onSubmit({ name: name.trim(), url: url.trim(), group: group.trim() });
+            if (!editing) {
+                setName('');
+                setUrl('');
+                setGroup('');
+            }
         } catch (err) {
-            setError(err.message || 'Failed to add monitor.');
+            setError(err.message || 'Failed to save monitor.');
         } finally {
             setSubmitting(false);
         }
@@ -273,7 +292,7 @@ function AddMonitorForm({ onCreate }) {
             className="mb-6 flex flex-wrap items-end gap-3 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900"
         >
             <p className="basis-full font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-600">
-                Admin · Add Monitor
+                Admin · {editing ? 'Edit Monitor' : 'Add Monitor'}
             </p>
 
             <label className="flex-1 basis-40">
@@ -302,17 +321,82 @@ function AddMonitorForm({ onCreate }) {
                 />
             </label>
 
-            <button
-                type="submit"
-                disabled={submitting}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/30 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 dark:focus-visible:ring-white/30"
-            >
-                <PlusIcon className="h-4 w-4" />
-                {submitting ? 'Adding…' : 'Add Monitor'}
-            </button>
+            <label className="flex-1 basis-40">
+                <span className="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                    Group (optional)
+                </span>
+                <input
+                    list="monitor-groups"
+                    type="text"
+                    value={group}
+                    onChange={e => setGroup(e.target.value)}
+                    placeholder="e.g. ML Visualizer"
+                    className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-950 placeholder-slate-400 transition focus:border-slate-950 focus:outline-none focus:ring-2 focus:ring-slate-950/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder-slate-500 dark:focus:border-white dark:focus:ring-white/10"
+                />
+                <datalist id="monitor-groups">
+                    {existingGroups?.map(g => <option key={g} value={g} />)}
+                </datalist>
+            </label>
+
+            <div className="flex items-center gap-2">
+                {editing && (
+                    <button
+                        type="button"
+                        onClick={onCancel}
+                        className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800"
+                    >
+                        Cancel
+                    </button>
+                )}
+
+                <button
+                    type="submit"
+                    disabled={submitting}
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/30 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 dark:focus-visible:ring-white/30"
+                >
+                    <PlusIcon className="h-4 w-4" />
+                    {submitting ? 'Saving…' : editing ? 'Save Changes' : 'Add Monitor'}
+                </button>
+            </div>
 
             {error && <p className="w-full text-sm text-red-600 dark:text-red-400">{error}</p>}
         </form>
+    );
+}
+
+// A named group of monitors — shows a summarized (averaged) uptime and a
+// worst-of status up top, with each member's own row nested underneath.
+function GroupSection({ group, admin, onEdit, onDelete }) {
+    const badge = BADGE[group.status] ?? BADGE.pending;
+
+    return (
+        <div className="border-b border-slate-200 py-5 last:border-0 dark:border-slate-800">
+            <div className="mb-2 flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2.5">
+                    <StatusDot status={group.status} />
+                    <p className="truncate text-sm font-semibold text-slate-950 dark:text-white">{group.name}</p>
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[10px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                        {group.monitors.length} services
+                    </span>
+                </div>
+
+                <span className={`flex shrink-0 items-center gap-1.5 text-xs font-medium ${badge.cls}`}>
+                    <badge.Icon className="h-4 w-4" /> {badge.label}
+                </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px]">
+                <span className={uptimeTone(group.uptime.d30)}>{group.uptime.d30}% · 30d avg</span>
+                <span className={uptimeTone(group.uptime.d7)}>{group.uptime.d7}% · 7d avg</span>
+                <span className={uptimeTone(group.uptime.h24)}>{group.uptime.h24}% · 24h avg</span>
+            </div>
+
+            <div className="mt-3 ml-2 space-y-1 border-l-2 border-slate-100 pl-4 dark:border-slate-900">
+                {group.monitors.map(monitor => (
+                    <MonitorRow key={monitor._id} monitor={monitor} admin={admin} onEdit={onEdit} onDelete={onDelete} />
+                ))}
+            </div>
+        </div>
     );
 }
 
@@ -322,6 +406,7 @@ export default function StatusPage() {
     const [report, setReport] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
     const [admin] = useState(() => isAdmin());
+    const [editingMonitor, setEditingMonitor] = useState(null);
 
     const load = useCallback(() => {
         return fetch('/api/status')
@@ -352,16 +437,30 @@ export default function StatusPage() {
         setRefreshing(false);
     }
 
-    async function handleCreate({ name, url }) {
+    async function handleCreate({ name, url, group }) {
         const response = await fetch('/api/monitors', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...authHeaders() },
-            body: JSON.stringify({ name, url }),
+            body: JSON.stringify({ name, url, group }),
         });
         if (!response.ok) {
             const payload = await response.json().catch(() => ({}));
             throw new Error(payload.message || 'Failed to add monitor.');
         }
+        await load();
+    }
+
+    async function handleUpdate(monitor, { name, url, group }) {
+        const response = await fetch(`/api/monitors/${monitor._id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', ...authHeaders() },
+            body: JSON.stringify({ name, url, group }),
+        });
+        if (!response.ok) {
+            const payload = await response.json().catch(() => ({}));
+            throw new Error(payload.message || 'Failed to update monitor.');
+        }
+        setEditingMonitor(null);
         await load();
     }
 
@@ -377,10 +476,15 @@ export default function StatusPage() {
             window.alert('Failed to remove monitor.');
             return;
         }
+        setEditingMonitor(current => (current?._id === monitor._id ? null : current));
         await load();
     }
 
-    const monitors = report?.monitors ?? [];
+    const groups = report?.groups ?? [];
+    const ungrouped = report?.ungrouped ?? [];
+    const monitors = [...groups.flatMap(g => g.monitors), ...ungrouped];
+    const existingGroups = groups.map(g => g.name);
+
     const upCount = monitors.filter(m => m.status === 'operational').length;
     const avgUptime = monitors.length
         ? round1(monitors.reduce((sum, m) => sum + m.uptime.d30, 0) / monitors.length)
@@ -432,7 +536,19 @@ export default function StatusPage() {
                     </div>
                 )}
 
-                {admin && <AddMonitorForm onCreate={handleCreate} />}
+                {admin && (
+                    editingMonitor ? (
+                        <MonitorForm
+                            key={editingMonitor._id}
+                            editing={editingMonitor}
+                            existingGroups={existingGroups}
+                            onSubmit={values => handleUpdate(editingMonitor, values)}
+                            onCancel={() => setEditingMonitor(null)}
+                        />
+                    ) : (
+                        <MonitorForm key="new" existingGroups={existingGroups} onSubmit={handleCreate} />
+                    )
+                )}
 
                 <div className="rounded-[2rem] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
                     <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 dark:border-slate-900">
@@ -443,8 +559,24 @@ export default function StatusPage() {
                     </div>
 
                     <div className="px-6">
-                        {monitors.map(monitor => (
-                            <MonitorRow key={monitor._id} monitor={monitor} admin={admin} onDelete={handleDelete} />
+                        {groups.map(group => (
+                            <GroupSection
+                                key={group.name}
+                                group={group}
+                                admin={admin}
+                                onEdit={setEditingMonitor}
+                                onDelete={handleDelete}
+                            />
+                        ))}
+
+                        {ungrouped.map(monitor => (
+                            <MonitorRow
+                                key={monitor._id}
+                                monitor={monitor}
+                                admin={admin}
+                                onEdit={setEditingMonitor}
+                                onDelete={handleDelete}
+                            />
                         ))}
 
                         {report && monitors.length === 0 && (

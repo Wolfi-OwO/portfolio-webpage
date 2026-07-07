@@ -93,6 +93,7 @@ async function buildMonitorStatus(monitor) {
         _id: monitor._id,
         name: monitor.name,
         url: monitor.url,
+        group: monitor.group ?? null,
         status,
         latencyMs: latest?.latencyMs ?? null,
         lastCheckedAt: latest?.at ?? null,
@@ -107,16 +108,51 @@ async function buildMonitorStatus(monitor) {
     };
 }
 
+// Groups member monitors under their shared `group` label with a summarized
+// (averaged) uptime and a worst-of status, so related services (e.g. a site
+// and its app subdomain) read as one entry on the status page.
+function buildGroups(statuses) {
+    const byGroup = new Map();
+    const ungrouped = [];
+
+    for (const entry of statuses) {
+        if (!entry.group) {
+            ungrouped.push(entry);
+            continue;
+        }
+        if (!byGroup.has(entry.group)) byGroup.set(entry.group, []);
+        byGroup.get(entry.group).push(entry);
+    }
+
+    const avg = (members, field) =>
+        round1(members.reduce((sum, m) => sum + m.uptime[field], 0) / members.length);
+
+    const groups = Array.from(byGroup.entries()).map(([name, members]) => ({
+        name,
+        status: members.some(m => m.status === 'down') ? 'down' : 'operational',
+        uptime: {
+            h24: avg(members, 'h24'),
+            d7: avg(members, 'd7'),
+            d30: avg(members, 'd30'),
+        },
+        monitors: members,
+    }));
+
+    return { groups, ungrouped };
+}
+
 async function getStatusReport() {
     const monitors = await MonitorModel.find().sort({ createdAt: 1 });
-    const report = await Promise.all(monitors.map(buildMonitorStatus));
+    const statuses = await Promise.all(monitors.map(buildMonitorStatus));
 
-    const status = report.some(m => m.status === 'down') ? 'down' : 'operational';
+    const status = statuses.some(m => m.status === 'down') ? 'down' : 'operational';
+    const { groups, ungrouped } = buildGroups(statuses);
 
     return {
         status,
         checkIntervalMs: CHECK_MS,
-        monitors: report,
+        groups,
+        ungrouped,
     };
 }
 

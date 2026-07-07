@@ -5,6 +5,7 @@ import express from 'express';
 import {
     getAllMonitors,
     createMonitor,
+    updateMonitorById,
     deleteMonitorById,
 } from '../handlers/monitors-handlers.js';
 
@@ -18,6 +19,7 @@ monitorsRouter.get('/', getAllMonitors);
 
 /* ***************** PROTECTED ROUTES ********************** */
 monitorsRouter.post('/', authMiddleware, createMonitor);
+monitorsRouter.put('/:id', authMiddleware, updateMonitorById);
 monitorsRouter.delete('/:id', authMiddleware, deleteMonitorById);
 
 export { monitorsRouter };

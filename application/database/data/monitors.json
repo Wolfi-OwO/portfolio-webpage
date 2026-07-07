@@ -1,7 +1,13 @@
 [
     {
-        "name": "Machine Learning Visualizer",
-        "url": "https://ml-visualizer.at/"
+        "name": "Machine Learning Visualizer (Overlay)",
+        "url": "https://ml-visualizer.at/",
+        "group": "ML Visualizer"
+    },
+    {
+        "name": "Machine Learning Visualizer (App)",
+        "url": "https://app.ml-visualizer.at/",
+        "group": "ML Visualizer"
     },
     {
         "name": "Network Visualizer",
