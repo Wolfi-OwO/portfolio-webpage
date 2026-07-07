@@ -1,11 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-    CheckCircleIcon,
-    ExclamationTriangleIcon,
-    XCircleIcon,
+    ArrowLeftIcon,
     ArrowPathIcon,
+    ArrowTopRightOnSquareIcon,
+    BoltIcon,
+    ChartBarIcon,
+    CheckCircleIcon,
+    ClockIcon,
+    ExclamationTriangleIcon,
     PlusIcon,
+    ServerIcon,
     TrashIcon,
+    XCircleIcon,
 } from '@heroicons/react/24/outline';
 import { authHeaders, isAdmin } from '../../utils/auth.js';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
@@ -19,6 +25,10 @@ const BADGE = {
     pending: { label: 'Pending', cls: 'text-amber-600 dark:text-amber-400', Icon: ExclamationTriangleIcon },
 };
 
+function round1(n) {
+    return Math.round(n * 10) / 10;
+}
+
 function fmtRelative(at) {
     if (!at) return 'never';
     const seconds = Math.round((Date.now() - at) / 1000);
@@ -30,19 +40,118 @@ function fmtRelative(at) {
     return `${Math.round(hours / 24)}d ago`;
 }
 
+function fmtDateTime(at) {
+    if (!at) return 'unknown time';
+    return new Date(at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+}
+
+function summarizeHistory(history) {
+    const known = history.filter(Boolean);
+    if (!known.length) return 'No uptime data yet';
+    const okCount = known.filter(entry => entry.ok).length;
+    return `${Math.round((okCount / known.length) * 100)}% operational across the last ${known.length} checks`;
+}
+
+function uptimeTone(pct) {
+    if (pct >= 99.9) return 'text-emerald-600 dark:text-emerald-400';
+    if (pct >= 99) return 'text-amber-600 dark:text-amber-400';
+    return 'text-red-600 dark:text-red-400';
+}
+
+// A small live indicator: pulses for operational/pending, solid for down —
+// so status reads at a glance without relying on color alone (paired with text elsewhere).
+function StatusDot({ status, size = 'sm' }) {
+    const dim = size === 'lg' ? 'h-3 w-3' : 'h-2 w-2';
+
+    if (status === 'down') {
+        return <span className={`inline-flex shrink-0 ${dim} rounded-full bg-red-500`} />;
+    }
+
+    const tone = status === 'operational' ? 'emerald' : 'amber';
+    return (
+        <span className={`relative inline-flex shrink-0 ${dim}`}>
+            <span
+                className={`absolute inline-flex h-full w-full motion-safe:animate-ping rounded-full bg-${tone}-400 opacity-75`}
+            />
+            <span className={`relative inline-flex ${dim} rounded-full bg-${tone}-500`} />
+        </span>
+    );
+}
+
 function UptimeBar({ history }) {
     const bars = Array.from({ length: HISTORY_LENGTH }, (_, i) => history[history.length - HISTORY_LENGTH + i]);
     return (
-        <div className="flex h-6 items-stretch gap-[2px]">
+        <div className="flex h-7 items-stretch gap-[2px]" role="img" aria-label={summarizeHistory(history)}>
             {bars.map((bar, index) => (
                 <div
                     key={index}
-                    title={bar ? (bar.ok ? 'Operational' : 'Down') : 'No data'}
-                    className={`flex-1 rounded-[1px] ${
+                    aria-hidden="true"
+                    title={bar ? `${bar.ok ? 'Operational' : 'Down'} · ${fmtDateTime(bar.at)}` : 'No data'}
+                    className={`flex-1 rounded-[2px] transition-colors ${
                         bar ? (bar.ok ? 'bg-emerald-500' : 'bg-red-500') : 'bg-slate-200 dark:bg-slate-800'
                     }`}
                 />
             ))}
+        </div>
+    );
+}
+
+function UptimeLegend() {
+    return (
+        <div className="hidden items-center gap-4 font-mono text-[11px] text-slate-400 dark:text-slate-500 sm:flex">
+            <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-sm bg-emerald-500" /> operational
+            </span>
+            <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-sm bg-red-500" /> down
+            </span>
+            <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-sm bg-slate-200 dark:bg-slate-800" /> no data
+            </span>
+        </div>
+    );
+}
+
+function StatTile({ label, value, Icon }) {
+    return (
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500">
+                <Icon className="h-4 w-4" />
+                <p className="text-xs font-medium uppercase tracking-wider">{label}</p>
+            </div>
+            <p className="mt-2 font-mono text-2xl font-semibold text-slate-950 dark:text-white">{value}</p>
+        </div>
+    );
+}
+
+function OverallBanner({ report, upCount, total }) {
+    if (!report) {
+        return (
+            <div className="mb-6 flex animate-pulse items-center gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-900">
+                <span className="h-3 w-3 shrink-0 rounded-full bg-slate-300 dark:bg-slate-700" />
+                <p className="font-mono text-sm text-slate-400 dark:text-slate-600">Connecting to status service…</p>
+            </div>
+        );
+    }
+
+    const allOperational = report.status === 'operational';
+    const label = allOperational ? 'All Systems Operational' : upCount === 0 && total > 0 ? 'Major Outage' : 'Partial Outage Detected';
+
+    return (
+        <div
+            className={`mb-6 flex items-center gap-4 rounded-2xl border p-5 ${
+                allOperational
+                    ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-500/30 dark:bg-emerald-500/10'
+                    : 'border-red-200 bg-red-50 dark:border-red-500/30 dark:bg-red-500/10'
+            }`}
+        >
+            <StatusDot status={report.status} size="lg" />
+            <div className="min-w-0 flex-1">
+                <p className="text-base font-semibold text-slate-950 dark:text-white">{label}</p>
+                <p className="font-mono text-xs text-slate-500 dark:text-slate-400">
+                    checks every {Math.round(report.checkIntervalMs / 1000)}s
+                </p>
+            </div>
         </div>
     );
 }
@@ -53,19 +162,28 @@ function MonitorRow({ monitor, admin, onDelete }) {
     return (
         <div className="py-5 border-b border-slate-200 last:border-0 dark:border-slate-800">
             <div className="mb-2 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-slate-950 dark:text-white">{monitor.name}</p>
-                    <a
-                        href={monitor.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block truncate text-xs text-slate-500 underline-offset-2 hover:underline dark:text-slate-400"
-                    >
-                        {monitor.url}
-                    </a>
+                <div className="flex min-w-0 items-center gap-2.5">
+                    <StatusDot status={monitor.status} />
+
+                    <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-slate-950 dark:text-white">{monitor.name}</p>
+                        <a
+                            href={monitor.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group inline-flex min-w-0 max-w-full items-center gap-1 font-mono text-xs text-slate-500 dark:text-slate-400"
+                        >
+                            <span className="truncate underline-offset-2 group-hover:underline">{monitor.url}</span>
+                            <ArrowTopRightOnSquareIcon className="h-3 w-3 shrink-0 opacity-0 transition group-hover:opacity-100" />
+                        </a>
+                    </div>
                 </div>
 
                 <div className="flex shrink-0 items-center gap-3">
+                    {monitor.latencyMs != null && (
+                        <span className="font-mono text-xs text-slate-400 dark:text-slate-500">{monitor.latencyMs}ms</span>
+                    )}
+
                     <span className={`flex items-center gap-1.5 text-xs font-medium ${badge.cls}`}>
                         <badge.Icon className="h-4 w-4" /> {badge.label}
                     </span>
@@ -76,7 +194,7 @@ function MonitorRow({ monitor, admin, onDelete }) {
                             onClick={() => onDelete(monitor)}
                             aria-label={`Remove ${monitor.name}`}
                             title="Remove"
-                            className="rounded-full p-1.5 text-slate-500 transition hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-red-500/10 dark:hover:text-red-300"
+                            className="cursor-pointer rounded-full p-1.5 text-slate-500 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40 dark:text-slate-400 dark:hover:bg-red-500/10 dark:hover:text-red-300"
                         >
                             <TrashIcon className="h-4 w-4" />
                         </button>
@@ -86,15 +204,38 @@ function MonitorRow({ monitor, admin, onDelete }) {
 
             <UptimeBar history={monitor.history} />
 
-            <div className="mt-1.5 flex flex-wrap justify-between gap-x-4 gap-y-1 font-mono text-[11px] text-slate-500 dark:text-slate-400">
-                <span>{monitor.uptime.d30}% · 30d</span>
-                <span>{monitor.uptime.d7}% · 7d</span>
-                <span>{monitor.uptime.h24}% · 24h</span>
-                <span>
-                    {monitor.status === 'pending' ? 'Checking…' : `Checked ${fmtRelative(monitor.lastCheckedAt)}`}
-                    {monitor.latencyMs != null && ` · ${monitor.latencyMs}ms`}
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 font-mono text-[11px]">
+                <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                    <span className={uptimeTone(monitor.uptime.d30)}>{monitor.uptime.d30}% · 30d</span>
+                    <span className={uptimeTone(monitor.uptime.d7)}>{monitor.uptime.d7}% · 7d</span>
+                    <span className={uptimeTone(monitor.uptime.h24)}>{monitor.uptime.h24}% · 24h</span>
+                </span>
+                <span className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                    <ClockIcon className="h-3.5 w-3.5" />
+                    {monitor.status === 'pending' ? 'Checking…' : `checked ${fmtRelative(monitor.lastCheckedAt)}`}
                 </span>
             </div>
+
+            {monitor.status === 'down' && monitor.lastError && (
+                <p
+                    title={monitor.lastError}
+                    className="mt-2 truncate rounded-lg bg-red-50 px-3 py-2 font-mono text-[11px] text-red-700 dark:bg-red-500/10 dark:text-red-300"
+                >
+                    {monitor.lastError}
+                </p>
+            )}
+        </div>
+    );
+}
+
+function MonitorSkeleton() {
+    return (
+        <div className="animate-pulse py-5 border-b border-slate-200 last:border-0 dark:border-slate-800">
+            <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="h-4 w-40 rounded bg-slate-200 dark:bg-slate-800" />
+                <div className="h-4 w-14 rounded bg-slate-200 dark:bg-slate-800" />
+            </div>
+            <div className="h-7 rounded bg-slate-100 dark:bg-slate-900" />
         </div>
     );
 }
@@ -127,7 +268,14 @@ function AddMonitorForm({ onCreate }) {
     }
 
     return (
-        <form onSubmit={handleSubmit} className="mb-6 flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+        <form
+            onSubmit={handleSubmit}
+            className="mb-6 flex flex-wrap items-end gap-3 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900"
+        >
+            <p className="basis-full font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-600">
+                Admin · Add Monitor
+            </p>
+
             <label className="flex-1 basis-40">
                 <span className="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                     Name
@@ -150,14 +298,14 @@ function AddMonitorForm({ onCreate }) {
                     value={url}
                     onChange={e => setUrl(e.target.value)}
                     placeholder="https://example.com"
-                    className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-950 placeholder-slate-400 transition focus:border-slate-950 focus:outline-none focus:ring-2 focus:ring-slate-950/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder-slate-500 dark:focus:border-white dark:focus:ring-white/10"
+                    className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 font-mono text-sm text-slate-950 placeholder-slate-400 transition focus:border-slate-950 focus:outline-none focus:ring-2 focus:ring-slate-950/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder-slate-500 dark:focus:border-white dark:focus:ring-white/10"
                 />
             </label>
 
             <button
                 type="submit"
                 disabled={submitting}
-                className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+                className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/30 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 dark:focus-visible:ring-white/30"
             >
                 <PlusIcon className="h-4 w-4" />
                 {submitting ? 'Adding…' : 'Add Monitor'}
@@ -232,52 +380,96 @@ export default function StatusPage() {
         await load();
     }
 
-    const overall = report ? (BADGE[report.status] ?? BADGE.operational) : BADGE.operational;
-    const allOperational = !report || report.status === 'operational';
+    const monitors = report?.monitors ?? [];
+    const upCount = monitors.filter(m => m.status === 'operational').length;
+    const avgUptime = monitors.length
+        ? round1(monitors.reduce((sum, m) => sum + m.uptime.d30, 0) / monitors.length)
+        : null;
+    const latencies = monitors.map(m => m.latencyMs).filter(ms => ms != null);
+    const avgLatency = latencies.length
+        ? Math.round(latencies.reduce((sum, ms) => sum + ms, 0) / latencies.length)
+        : null;
 
     return (
         <div className="space-y-10 py-10 lg:py-14">
-            <section className="mx-auto max-w-3xl px-6 lg:px-8">
+            <section className="mx-auto max-w-4xl px-6 lg:px-8">
                 <div className="mb-6 flex items-center gap-3">
-                    <h1 className="text-3xl font-bold tracking-tight text-slate-950 dark:text-white">Status</h1>
+                    <div>
+                        <p className="font-mono text-xs font-semibold uppercase tracking-[0.3em] text-slate-400 dark:text-slate-500">
+                            system.status()
+                        </p>
+                        <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950 dark:text-white">Status</h1>
+                    </div>
+
                     <div className="flex-1" />
+
                     <button
                         type="button"
                         onClick={handleRefresh}
                         aria-label="Refresh"
                         title="Refresh"
-                        className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+                        className="cursor-pointer rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
                     >
                         <ArrowPathIcon className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`} />
                     </button>
                 </div>
 
-                <div
-                    className={`mb-6 flex items-center gap-3 rounded-2xl border p-5 ${
-                        allOperational
-                            ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-500/30 dark:bg-emerald-500/10'
-                            : 'border-red-200 bg-red-50 dark:border-red-500/30 dark:bg-red-500/10'
-                    }`}
-                >
-                    <overall.Icon className={`h-7 w-7 shrink-0 ${overall.cls}`} />
-                    <p className="text-base font-semibold text-slate-950 dark:text-white">
-                        {allOperational ? 'All Systems Operational' : overall.label}
-                    </p>
-                </div>
+                <OverallBanner report={report} upCount={upCount} total={monitors.length} />
+
+                {report && monitors.length > 0 && (
+                    <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        <StatTile label="Services Up" value={`${upCount}/${monitors.length}`} Icon={ServerIcon} />
+                        <StatTile
+                            label="Avg Uptime · 30d"
+                            value={avgUptime != null ? `${avgUptime}%` : '—'}
+                            Icon={ChartBarIcon}
+                        />
+                        <StatTile
+                            label="Avg Latency"
+                            value={avgLatency != null ? `${avgLatency}ms` : '—'}
+                            Icon={BoltIcon}
+                        />
+                    </div>
+                )}
 
                 {admin && <AddMonitorForm onCreate={handleCreate} />}
 
-                <div className="rounded-[2rem] border border-slate-200 bg-white px-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-                    {report?.monitors.map(monitor => (
-                        <MonitorRow key={monitor._id} monitor={monitor} admin={admin} onDelete={handleDelete} />
-                    ))}
-                    {report && report.monitors.length === 0 && (
-                        <p className="py-8 text-center text-sm text-slate-500 dark:text-slate-400">
-                            No monitors configured yet.
+                <div className="rounded-[2rem] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
+                    <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 dark:border-slate-900">
+                        <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-600">
+                            Monitored Services
                         </p>
-                    )}
-                    {!report && <p className="py-8 text-center text-sm text-slate-500 dark:text-slate-400">Loading status…</p>}
+                        <UptimeLegend />
+                    </div>
+
+                    <div className="px-6">
+                        {monitors.map(monitor => (
+                            <MonitorRow key={monitor._id} monitor={monitor} admin={admin} onDelete={handleDelete} />
+                        ))}
+
+                        {report && monitors.length === 0 && (
+                            <div className="flex flex-col items-center gap-2 py-14 text-center">
+                                <ServerIcon className="h-8 w-8 text-slate-300 dark:text-slate-700" />
+                                <p className="text-sm text-slate-500 dark:text-slate-400">No monitors configured yet.</p>
+                            </div>
+                        )}
+
+                        {!report && (
+                            <>
+                                <MonitorSkeleton />
+                                <MonitorSkeleton />
+                                <MonitorSkeleton />
+                            </>
+                        )}
+                    </div>
                 </div>
+
+                <a
+                    href={`${location.protocol}//${location.host.replace(/^status\./, '')}`}
+                    className="mt-6 inline-flex items-center gap-1.5 text-xs text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                >
+                    <ArrowLeftIcon className="h-3.5 w-3.5" /> Back to Woofi Developments
+                </a>
             </section>
         </div>
     );

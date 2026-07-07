@@ -286,12 +286,13 @@ export default function DefaultLayout() {
 
                     <ul className="flex flex-wrap items-center mt-3 text-sm font-medium text-body sm:mt-0 md:justify-end">
                         <li>
-                            <NavLink
-                                to="/status"
+                            {/* Status lives on its own `status.` subdomain, not an in-app route. */}
+                            <a
+                                href={`${location.protocol}//status.${location.host}`}
                                 className="hover:underline me-4 md:me-6"
                             >
                                 <FormattedMessage id="footer.status" defaultMessage="Status" />
-                            </NavLink>
+                            </a>
                         </li>
                         <li>
                             <NavLink
