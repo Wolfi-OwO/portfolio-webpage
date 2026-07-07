@@ -288,9 +288,10 @@ export default function DefaultLayout() {
                         <li>
                             {/* Status lives on its own `status.` subdomain, not an in-app route.
                                 `window.location` (not the `location` var above, which is react-router's
-                                useLocation() and shadows the global — it has no protocol/host). */}
+                                useLocation() and shadows the global — it has no protocol/host). Drop
+                                any subdomain (www, etc.) so this resolves the same from every host. */}
                             <a
-                                href={`${window.location.protocol}//status.${window.location.host}`}
+                                href={statusUrl()}
                                 className="hover:underline me-4 md:me-6"
                             >
                                 <FormattedMessage id="footer.status" defaultMessage="Status" />
@@ -317,6 +318,14 @@ export default function DefaultLayout() {
             </footer>
         </div>
     );
+}
+
+// Builds the status page URL for whatever host we're currently on — dropping any
+// subdomain (www, status, ...) so it always resolves to `status.<base-domain>`.
+function statusUrl() {
+    const { protocol, hostname, port } = window.location;
+    const baseHost = hostname.split('.').slice(-2).join('.');
+    return `${protocol}//status.${baseHost}${port ? `:${port}` : ''}`;
 }
 
 // Derives the "owner/repo" slug from a repository URL (e.g. a GitHub source URL).
