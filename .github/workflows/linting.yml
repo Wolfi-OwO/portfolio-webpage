@@ -14,7 +14,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: app
+        working-directory: application
 
     steps:
       - uses: actions/checkout@v4
@@ -30,7 +30,7 @@ jobs:
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: app/results.sarif
+          sarif_file: application/results.sarif
 
   lint-client:
     name: Lint (client)
@@ -38,7 +38,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: app/client
+        working-directory: application/client
 
     steps:
       - uses: actions/checkout@v4

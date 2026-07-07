@@ -57,10 +57,10 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: app/client/package-lock.json
+          cache-dependency-path: application/client/package-lock.json
 
       - name: Build client bundle
-        working-directory: app/client
+        working-directory: application/client
         run: |
           npm ci
           npm run build
@@ -69,7 +69,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: client-dist
-          path: app/client/dist
+          path: application/client/dist
           retention-days: 1
 
   push-image:
@@ -83,7 +83,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: client-dist
-          path: app/client/dist
+          path: application/client/dist
 
       # Scoped ACR token (push/pull only, revocable) — no Azure AD identity
       # or OIDC login needed for this job.
@@ -100,8 +100,8 @@ jobs:
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
-          context: app
-          file: app/dockerfile
+          context: application
+          file: application/dockerfile
           push: true
           tags: |
             ${{ needs.resolve-metadata.outputs.image }}:${{ needs.resolve-metadata.outputs.tag }}

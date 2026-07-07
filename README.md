@@ -60,7 +60,7 @@ To run the website locally, follow these steps:
 2. Install dependencies (Server and Client):
 
    ```bash
-    cd app
+    cd application
     npm install
 
     cd client
@@ -168,10 +168,10 @@ The website is built using the following technologies:
 
 ## Project Structure
 
-The webapplications root directory `app/` contains the main express and in `app/client/` the React application. The structure is organized as follows:
+The root directory `application/` contains the main express app, and `application/client/` the React application. The structure is organized as follows:
 
 ```txt
-├── app
+├── application
 │   ├── client
 │   ├── handlers
 │   ├── models

@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: app
+        working-directory: application
 
     services:
       mongodb:
@@ -35,7 +35,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: app/package-lock.json
+          cache-dependency-path: application/package-lock.json
 
       - run: npm ci
 
@@ -48,7 +48,7 @@ jobs:
     needs: test
     defaults:
       run:
-        working-directory: app/client
+        working-directory: application/client
 
     steps:
       - uses: actions/checkout@v4
@@ -57,7 +57,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: app/client/package-lock.json
+          cache-dependency-path: application/client/package-lock.json
 
       - run: npm ci
 
@@ -68,7 +68,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: client-dist
-          path: app/client/dist
+          path: application/client/dist
           retention-days: 7
 
   package:
@@ -83,7 +83,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: client-dist
-          path: app/client/dist
+          path: application/client/dist
 
       - name: Compute build metadata
         id: meta
@@ -95,8 +95,8 @@ jobs:
       - name: Build image (no push)
         uses: docker/build-push-action@v6
         with:
-          context: app
-          file: app/dockerfile
+          context: application
+          file: application/dockerfile
           push: false
           load: true
           tags: portfolio-webpage:ci-${{ github.sha }}
