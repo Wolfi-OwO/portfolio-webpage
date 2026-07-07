@@ -42,6 +42,7 @@
         "title": "NetViz",
         "description": "Design, visualize and simulate real enterprise networks in the browser — a drag-and-drop topology builder with live hop-by-hop packet simulation, a Wireshark-style capture view, and a CIDR calculator.",
         "repositoryUrl": "https://github.com/Wolfi-OwO/network-visualizer.git",
+        "livedemo": "https://netviz.woofi-developments.at/",
         "technologies": [
             {
                 "tech": "React",

@@ -1,6 +1,50 @@
-# Portfolio Website
+<div align="center">
 
-This is my personal developer portfolio website. It showcases my projects, skills, and background as an Informatics student and software developer.
+# Woofi Developments — Portfolio Website
+
+My personal developer portfolio: projects, skills, background, and a live status page for monitoring uptime.
+
+[![Project Linting](https://github.com/Wolfi-OwO/portfolio-webpage/actions/workflows/linting.yml/badge.svg)](https://github.com/Wolfi-OwO/portfolio-webpage/actions/workflows/linting.yml)
+[![CI](https://github.com/Wolfi-OwO/portfolio-webpage/actions/workflows/ci.yml/badge.svg)](https://github.com/Wolfi-OwO/portfolio-webpage/actions/workflows/ci.yml)
+[![Release Deploy](https://github.com/Wolfi-OwO/portfolio-webpage/actions/workflows/release.yml/badge.svg)](https://github.com/Wolfi-OwO/portfolio-webpage/actions/workflows/release.yml)
+[![Secret Detection](https://github.com/Wolfi-OwO/portfolio-webpage/actions/workflows/secret-detection.yml/badge.svg)](https://github.com/Wolfi-OwO/portfolio-webpage/actions/workflows/secret-detection.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+
+![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=black)
+![Vite](https://img.shields.io/badge/Vite-646cff?logo=vite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38bdf8?logo=tailwindcss&logoColor=white)
+![Node](https://img.shields.io/badge/Node-%E2%89%A522-339933?logo=node.js&logoColor=white)
+![Express](https://img.shields.io/badge/Express-5-000000?logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?logo=mongodb&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-single_image-2496ED?logo=docker&logoColor=white)
+
+</div>
+
+![Homepage — hero, highlights and about section](docs/screenshots/homepage.png)
+
+## Features
+
+### Projects
+
+![Projects — showcase backed by a small CRUD API](docs/screenshots/projects.png)
+
+- Bilingual (EN/DE) UI with light/dark/system theme switching.
+- Project showcase backed by a CRUD API — title, description, repo/live-demo links, color-coded technology tags.
+- Admin-only inline editing: sign in and add/edit/delete projects directly from the page.
+
+### Live Status Page
+
+![Status page — live uptime tracking for monitored services](docs/screenshots/status.png)
+
+- Add any URL as a monitor; a background job checks it on a fixed interval (default 60s) and writes results to MongoDB, building a 24/7 uptime history (90-day retention).
+- Public, Discord-style status page served on its own `status.` subdomain from a separate, minimal Vite bundle — visiting it doesn't download the whole app just to show uptime.
+- Per-monitor 24h / 7d / 30d uptime percentages and a scrolling history bar.
+
+### Contact
+
+![Contact page](docs/screenshots/contact.png)
+
+- Direct links for email, GitHub and LinkedIn, plus a quick summary of services offered.
 
 ## Local Development
 
@@ -102,7 +146,7 @@ Unauthenticated or expired-token requests return `401 Unauthorized`.
 
 ## Live Demo
 
-The live version of the website can be accessed at: [https://my-portfolio.app](https://portfolio-app.mangostone-13b22afa.westeurope.azurecontainerapps.io/)
+The live version of the website can be accessed at: [https://woofi-developments.at](https://woofi-developments.at)
 
 ## Purpose
 

@@ -4,6 +4,7 @@ import { promises as fsp } from 'fs';
 import mongoose from 'mongoose';
 import { ProjectModel } from '../models/project.js';
 import { TechnologyModel } from '../models/technology.js';
+import { MonitorModel } from '../models/monitor.js';
 
 const MONGODB_CONNECTION_STRING =
     process.env.MONGODB_CONNECTION_STRING || 'mongodb://127.0.0.1/portfolio-app';
@@ -19,6 +20,7 @@ async function fillDatabase() {
     logger.info('Starting filling database with demo data...');
 
     await logResults('Projects', fillProjectsData);
+    await logResults('Monitors', fillMonitorsData);
 
     logger.info('Finished filling database!');
 
@@ -87,6 +89,14 @@ async function fillProjectsData() {
         errorCnt,
         errorObjects,
     };
+}
+
+async function fillMonitorsData() {
+    const allMonitors = JSON.parse(
+        await fsp.readFile('./database/data/monitors.json', 'utf-8'),
+    );
+
+    return processDocuments(allMonitors, MonitorModel.create.bind(MonitorModel));
 }
 
 async function processDocuments(documents, createFunction) {
