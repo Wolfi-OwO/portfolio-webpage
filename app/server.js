@@ -49,7 +49,9 @@ app.use(
 );
 
 // use build folder of vite as static directory
-app.use(express.static(path.join(__dirname, 'client', 'dist')));
+// `index: false` — the SPA fallback below picks index.html vs status.html by
+// hostname, so static must not shortcut `/` to index.html on its own.
+app.use(express.static(path.join(__dirname, 'client', 'dist'), { index: false }));
 
 // setup routes
 app.use('/auth/', authRouter);
@@ -59,9 +61,11 @@ app.use('/api/technologies/', technologiesRouter);
 app.use('/api/monitors/', monitorsRouter);
 app.use('/api/status/', statusRouter);
 
-// SPA fallback (support direct navigation to client routes like /projects)
-app.get(/^(?!\/api).*/, (_req, res) => {
-    res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
+// SPA fallback (support direct navigation to client routes like /projects).
+// The `status.` subdomain gets its own standalone bundle instead of the main app's.
+app.get(/^(?!\/api).*/, (req, res) => {
+    const entry = /^status\./i.test(req.hostname) ? 'status.html' : 'index.html';
+    res.sendFile(path.join(__dirname, 'client', 'dist', entry));
 });
 
 // setup error handling middleware
