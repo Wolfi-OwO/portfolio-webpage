@@ -1,16 +1,24 @@
 [
     {
-        "name": "Machine Learning Visualizer (Overlay)",
-        "url": "https://ml-visualizer.at/",
-        "group": "ML Visualizer"
-    },
-    {
-        "name": "Machine Learning Visualizer (App)",
-        "url": "https://app.ml-visualizer.at/",
-        "group": "ML Visualizer"
+        "name": "Portfolio",
+        "url": "https://woofi-developments.at",
+        "containerApp": { "resourceGroup": "portfolio-webpage-rg", "name": "portfolio-app" }
     },
     {
         "name": "Network Visualizer",
-        "url": "https://netviz.woofi-developments.at/"
+        "url": "https://netviz.woofi-developments.at",
+        "group": "Network Visualizer",
+        "containerApp": { "resourceGroup": "netviz-rg", "name": "netviz" }
+    },
+    {
+        "name": "Network Visualizer (Preview)",
+        "group": "Network Visualizer",
+        "containerApp": { "resourceGroup": "netviz-rg", "name": "netviz-preview" }
+    },
+    {
+        "name": "Machine Learning Visualizer",
+        "url": "https://ml-visualizer.at",
+        "group": "ML Visualizer",
+        "containerApp": { "resourceGroup": "dsai-5bhif-app", "name": "dsai-containerapp" }
     }
 ]
