@@ -5,10 +5,12 @@ name: Deploy Monitor Checker
 # this only redeploys when monitor-checker/ itself changes.
 #
 # Uses the same GitHub Actions OIDC identity (gh-portfolio-deploy) as the
-# Container App release, but with its own federated credential (trusts pushes
-# to main directly, not the `production` environment) and its own narrowly
-# scoped role assignment (Website Contributor on just this Function App, not
-# the whole resource group).
+# Container App release, with its own narrowly scoped role assignment
+# (Website Contributor on just this Function App, not the whole resource
+# group). Declares the `production` environment because that's where
+# AZURE_CLIENT_ID lives (AZURE_TENANT_ID/AZURE_SUBSCRIPTION_ID are repo-level)
+# — as of this writing that environment has no protection rules, so this
+# doesn't add an approval gate to these deploys.
 
 on:
   push:
@@ -25,6 +27,7 @@ jobs:
   deploy:
     name: Deploy to Azure Functions
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - uses: actions/checkout@v4
 
