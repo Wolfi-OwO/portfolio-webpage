@@ -57,6 +57,11 @@ async function buildDailyHistory(monitorId) {
 
 // ── Probing ───────────────────────────────────────────────────────────────────
 async function checkMonitor(monitor) {
+    // Container-app monitors with no URL are checked via Azure's runningStatus
+    // by the separate monitor-checker Function, which has ARM read access this
+    // in-app checker doesn't — nothing to do here.
+    if (!monitor.url) return;
+
     const start = Date.now();
     try {
         const response = await fetch(monitor.url, {
@@ -137,10 +142,12 @@ async function buildMonitorStatus(monitor) {
         name: monitor.name,
         url: monitor.url,
         group: monitor.group ?? null,
+        containerApp: monitor.containerApp?.name ? monitor.containerApp : null,
         status,
         latencyMs: latest?.latencyMs ?? null,
         lastCheckedAt: latest?.at ?? null,
         lastError: !latest?.ok ? latest?.error : undefined,
+        runningStatus: latest?.runningStatus ?? null,
         monitoringSince,
         uptime: {
             h24: await uptimePct(monitor._id, DAY, monitoringSince),

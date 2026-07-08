@@ -63,23 +63,32 @@ async function createMonitor(req, res, next) {
 async function updateMonitorById(req, res, next) {
     try {
         const { name, url, group } = req.body;
+        const existing = await MonitorModel.findById(req.params.id);
 
-        if (!name || !url) {
-            return next(new BadRequest('Both "name" and "url" are required.'));
+        if (!existing) {
+            return next(new NotFound(`Monitor ${req.params.id} not found.`));
         }
 
-        try {
-            const parsed = new URL(url);
-            if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-                throw new Error('unsupported protocol');
+        // Auto-discovered container-app monitors track Azure's runningStatus
+        // and don't necessarily have (or need) a URL to check.
+        if (!name || (!url && !existing.containerApp?.name)) {
+            return next(new BadRequest('"name" is required, and "url" unless this is a container-app monitor.'));
+        }
+
+        if (url) {
+            try {
+                const parsed = new URL(url);
+                if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+                    throw new Error('unsupported protocol');
+                }
+            } catch {
+                return next(new BadRequest('"url" must be a valid http(s) URL.'));
             }
-        } catch {
-            return next(new BadRequest('"url" must be a valid http(s) URL.'));
         }
 
         const updated = await MonitorModel.findByIdAndUpdate(
             req.params.id,
-            { name, url, group: normalizeGroup(group) },
+            { name, url: url || undefined, group: normalizeGroup(group) },
             { new: true, runValidators: true },
         );
 

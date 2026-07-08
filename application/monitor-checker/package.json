@@ -23,7 +23,9 @@
         "lint": "eslint ."
     },
     "dependencies": {
+        "@azure/arm-appcontainers": "^3.0.0",
         "@azure/functions": "^4.7.2",
+        "@azure/identity": "^4.13.1",
         "mongoose": "^9.6.2"
     },
     "devDependencies": {

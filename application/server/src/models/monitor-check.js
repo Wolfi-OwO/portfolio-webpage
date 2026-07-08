@@ -15,6 +15,9 @@ const monitorCheckSchema = new mongoose.Schema(
         statusCode: { type: Number },
         latencyMs: { type: Number, required: true },
         error: { type: String },
+        // Set only for container-app monitors — Azure's ARM runningStatus
+        // (e.g. "Running", "Stopped"), independent of any HTTP status code.
+        runningStatus: { type: String },
         // Auto-expire samples after 90 days.
         createdAt: { type: Date, default: Date.now, expires: 90 * 24 * 60 * 60 },
     },

@@ -246,15 +246,22 @@ function MonitorRow({ monitor, admin, onEdit, onDelete }) {
 
                     <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-slate-950 dark:text-white">{monitor.name}</p>
-                        <a
-                            href={monitor.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="group inline-flex min-w-0 max-w-full items-center gap-1 font-mono text-xs text-slate-500 dark:text-slate-400"
-                        >
-                            <span className="truncate underline-offset-2 group-hover:underline">{monitor.url}</span>
-                            <ArrowTopRightOnSquareIcon className="h-3 w-3 shrink-0 opacity-0 transition group-hover:opacity-100" />
-                        </a>
+                        {monitor.url ? (
+                            <a
+                                href={monitor.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group inline-flex min-w-0 max-w-full items-center gap-1 font-mono text-xs text-slate-500 dark:text-slate-400"
+                            >
+                                <span className="truncate underline-offset-2 group-hover:underline">{monitor.url}</span>
+                                <ArrowTopRightOnSquareIcon className="h-3 w-3 shrink-0 opacity-0 transition group-hover:opacity-100" />
+                            </a>
+                        ) : (
+                            // Container-app monitors have no probed URL — show the Azure state instead.
+                            <p className="truncate font-mono text-xs text-slate-500 dark:text-slate-400">
+                                Azure Container App{monitor.runningStatus ? ` · ${monitor.runningStatus}` : ''}
+                            </p>
+                        )}
                     </div>
                 </div>
 
@@ -337,11 +344,13 @@ function MonitorForm({ editing, existingGroups, onSubmit, onCancel }) {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
 
+    const isContainerApp = Boolean(editing?.containerApp?.name);
+
     async function handleSubmit(event) {
         event.preventDefault();
         setError('');
 
-        if (!name.trim() || !url.trim()) {
+        if (!name.trim() || (!url.trim() && !isContainerApp)) {
             setError('Name and URL are required.');
             return;
         }
@@ -370,6 +379,14 @@ function MonitorForm({ editing, existingGroups, onSubmit, onCancel }) {
                 Admin · {editing ? 'Edit Monitor' : 'Add Monitor'}
             </p>
 
+            {isContainerApp && (
+                <p className="basis-full font-mono text-[11px] text-slate-500 dark:text-slate-400">
+                    Container App: {editing.containerApp.name} ({editing.containerApp.resourceGroup}) — auto-discovered.
+                    Status comes from Azure's runningStatus; it is never probed over HTTP (that would wake a
+                    scale-to-zero app). The URL below is only a click-through link.
+                </p>
+            )}
+
             <label className="flex-1 basis-40">
                 <span className="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                     Name
@@ -385,13 +402,13 @@ function MonitorForm({ editing, existingGroups, onSubmit, onCancel }) {
 
             <label className="flex-[2] basis-64">
                 <span className="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-                    URL
+                    URL{isContainerApp ? ' (link only)' : ''}
                 </span>
                 <input
                     type="url"
                     value={url}
                     onChange={e => setUrl(e.target.value)}
-                    placeholder="https://example.com"
+                    placeholder={isContainerApp ? 'https://example.com (display link, not probed)' : 'https://example.com'}
                     className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 font-mono text-sm text-slate-950 placeholder-slate-400 transition focus:border-slate-950 focus:outline-none focus:ring-2 focus:ring-slate-950/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder-slate-500 dark:focus:border-white dark:focus:ring-white/10"
                 />
             </label>
