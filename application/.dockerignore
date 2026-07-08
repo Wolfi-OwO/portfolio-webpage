@@ -1,17 +1,24 @@
-node_modules
-npm-debug.log
-coverage
 .git
 .gitignore
 *.md
-test*
-requests
-.env
-.env.example
+
+# frontend — only the built dist is needed in the image
 client
 !client/dist
-dockerfile
-docker-compose.yaml
-eslint.config.js
-.prettierrc
-results.sarif
+
+# the monitor-checker Azure Function is its own separate deployable
+monitor-checker
+
+# server dev-only files
+server/node_modules
+server/npm-debug.log
+server/coverage
+server/tests
+server/requests
+server/.env
+server/.env.example
+server/dockerfile
+server/docker-compose.yaml
+server/eslint.config.js
+server/.prettierrc
+server/results.sarif

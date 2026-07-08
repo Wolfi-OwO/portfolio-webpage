@@ -101,7 +101,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: application
-          file: application/dockerfile
+          file: application/server/dockerfile
           push: true
           tags: |
             ${{ needs.resolve-metadata.outputs.image }}:${{ needs.resolve-metadata.outputs.tag }}

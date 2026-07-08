@@ -1,5 +1,5 @@
 /* ***************** IMPORT packages *********************** */
-import httpServer from '../../server.js';
+import httpServer from '../../src/server.js';
 import assert from 'assert';
 import request from 'supertest';
 import {

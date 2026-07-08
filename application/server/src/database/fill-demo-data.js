@@ -1,10 +1,15 @@
 import { setupDatabaseConnection } from './database.js';
 import { logger } from '../utils/logger.js';
 import { promises as fsp } from 'fs';
+import path from 'path';
 import mongoose from 'mongoose';
 import { ProjectModel } from '../models/project.js';
 import { TechnologyModel } from '../models/technology.js';
 import { MonitorModel } from '../models/monitor.js';
+
+// dirname-relative (not cwd-relative) so this works regardless of where `npm run
+// fill-demo-data` is invoked from.
+const DATA_DIR = path.join(import.meta.dirname, 'data');
 
 const MONGODB_CONNECTION_STRING =
     process.env.MONGODB_CONNECTION_STRING || 'mongodb://127.0.0.1/portfolio-app';
@@ -41,7 +46,7 @@ async function logResults(name, fillFunction) {
 
 async function fillProjectsData() {
     const allProjects = JSON.parse(
-        await fsp.readFile('./database/data/projects.json', 'utf-8'),
+        await fsp.readFile(path.join(DATA_DIR, 'projects.json'), 'utf-8'),
     );
 
     const preparedProjects = [];
@@ -93,7 +98,7 @@ async function fillProjectsData() {
 
 async function fillMonitorsData() {
     const allMonitors = JSON.parse(
-        await fsp.readFile('./database/data/monitors.json', 'utf-8'),
+        await fsp.readFile(path.join(DATA_DIR, 'monitors.json'), 'utf-8'),
     );
 
     return processDocuments(allMonitors, MonitorModel.create.bind(MonitorModel));

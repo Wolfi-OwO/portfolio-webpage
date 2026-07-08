@@ -9,11 +9,15 @@ RUN apk upgrade --no-cache
 
 # Install server dependencies first (better layer caching — deps only
 # reinstall when package*.json changes, not on every source edit)
-COPY package*.json ./
-RUN npm ci --omit=dev --only=production
+COPY server/package*.json ./server/
+RUN cd server && npm ci --omit=dev --only=production
 
-# Copy backend source code (.dockerignore keeps dev-only files out)
-COPY . .
+# Copy backend source (.dockerignore keeps dev-only files out) and the
+# pre-built client bundle (produced by a separate CI step). Kept at the same
+# relative nesting as the source repo — server/src/server.js walks up to
+# ../../client/dist, so the container layout has to match.
+COPY server/. ./server/
+COPY client/dist ./client/dist
 
 # ═══════════════════════════════════════════════════════════════════════════
 # OCI IMAGE METADATA — build args with defaults, overridable via --build-arg
@@ -92,4 +96,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
 STOPSIGNAL SIGINT
 
 # Start Express
-CMD ["node", "server.js"]
+CMD ["node", "server/src/server.js"]

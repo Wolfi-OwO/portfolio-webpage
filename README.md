@@ -60,10 +60,10 @@ To run the website locally, follow these steps:
 2. Install dependencies (Server and Client):
 
    ```bash
-    cd application
+    cd application/server
     npm install
 
-    cd client
+    cd ../client
     npm install
     ```
 
@@ -73,19 +73,20 @@ To run the website locally, follow these steps:
     docker run -d -p 27017:27017 --name portfolio-mongo mongo
    ```
 
-4. Build the client application:
+4. Build the client application (from `application/client`):
 
    ```bash
     npm run build
    ```
 
-5. Start the server:
+5. Start the server (from `application/server`):
 
    ```bash
+    cd ../server
     npm start
    ```
 
-In order to test the backend, you can run the tests using:
+In order to test the backend, you can run the tests using (from `application/server`):
 
 1. Start the mongo database (docker):
 
@@ -168,32 +169,38 @@ The website is built using the following technologies:
 
 ## Project Structure
 
-The root directory `application/` contains the main express app, and `application/client/` the React application. The structure is organized as follows:
+`application/` holds three independent deployables — `server/` (the Express API), `client/` (the React frontend) and `monitor-checker/` (an Azure Function that pings monitored URLs on a schedule) — each with its own `package.json`. The structure is organized as follows:
 
 ```txt
 ├── application
+│   ├── server
+│   │   ├── src
+│   │   │   ├── database
+│   │   │   ├── handlers
+│   │   │   ├── middlewares
+│   │   │   ├── models
+│   │   │   ├── routes
+│   │   │   ├── utils
+│   │   │   └── server.js
+│   │   ├── tests
+│   │   ├── package.json
+│   │   ├── package-lock.json
+│   │   ├── dockerfile
+│   │   └── eslint.config.js
 │   ├── client
-│   ├── handlers
-│   ├── models
-│   ├── routes
-│   ├── tests
-│   ├── utils
-│   ├── package.json
-│   ├── package-lock.json
-│   ├── dockerfile
-│   ├── eslint.config.js
-│   └── server.js
+│   └── monitor-checker
 ├── LICENSE
 └── README.md
 ```
 
-- `client/`: Contains the React frontend application (default vite setup)
-- `handlers/`: Contains request handlers for the backend
-- `models/`: Contains data models and schemas
-- `routes/`: Contains API route definitions
-- `tests/`: Contains unit and integration tests
-- `utils/`: Contains utility functions and helpers
-- `package.json`: Contains project dependencies and scripts
-- `dockerfile`: Contains instructions for building a Docker image of the application
-- `eslint.config.js`: Contains configuration for ESLint code linting
-- `server.js`: Entry point for the backend server
+- `server/src/database/`: MongoDB connection setup and demo-data seeding
+- `server/src/handlers/`: Request handlers for the backend
+- `server/src/middlewares/`: Auth, error-handling and other Express middleware
+- `server/src/models/`: Mongoose data models and schemas
+- `server/src/routes/`: API route definitions
+- `server/src/utils/`: Utility functions and helpers (logging, health checks, the status-page monitor checker)
+- `server/src/server.js`: Entry point for the backend server
+- `server/tests/`: Unit and integration tests
+- `server/dockerfile`: Instructions for building the backend's Docker image
+- `client/`: The React frontend application (default Vite setup)
+- `monitor-checker/`: A standalone Azure Function (Timer Trigger) that performs the actual uptime pings — see below

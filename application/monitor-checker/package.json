@@ -1,0 +1,23 @@
+{
+    "name": "monitor-checker",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "main": "src/functions/*.js",
+    "engines": {
+        "node": ">=22"
+    },
+    "scripts": {
+        "start": "func start",
+        "lint": "eslint ."
+    },
+    "dependencies": {
+        "@azure/functions": "^4.7.2",
+        "mongoose": "^9.6.2"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.39.4",
+        "eslint": "^9.39.4",
+        "globals": "^17.6.0"
+    }
+}

@@ -1,6 +1,6 @@
 /* ***************** IMPORT packages *********************** */
 import request from 'supertest';
-import httpServer from '../../server.js';
+import httpServer from '../../src/server.js';
 import { adminToken } from '../tokens.js';
 
 /* ***************** SETUP demo data *********************** */

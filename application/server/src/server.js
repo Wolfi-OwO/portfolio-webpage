@@ -1,6 +1,9 @@
 'use strict';
 
 const __dirname = import.meta.dirname;
+// server.js lives at server/src/, but the built client lives at ../../client
+// (a sibling of server/ under application/) — not a sibling of src/ itself.
+const CLIENT_DIST = path.join(__dirname, '..', '..', 'client', 'dist');
 
 /* ***************** IMPORT packages *********************** */
 import express from 'express';
@@ -51,7 +54,7 @@ app.use(
 // use build folder of vite as static directory
 // `index: false` — the SPA fallback below picks index.html vs status.html by
 // hostname, so static must not shortcut `/` to index.html on its own.
-app.use(express.static(path.join(__dirname, 'client', 'dist'), { index: false }));
+app.use(express.static(CLIENT_DIST, { index: false }));
 
 // setup routes
 app.use('/auth/', authRouter);
@@ -65,7 +68,7 @@ app.use('/api/status/', statusRouter);
 // The `status.` subdomain gets its own standalone bundle instead of the main app's.
 app.get(/^(?!\/api).*/, (req, res) => {
     const entry = /^status\./i.test(req.hostname) ? 'status.html' : 'index.html';
-    res.sendFile(path.join(__dirname, 'client', 'dist', entry));
+    res.sendFile(path.join(CLIENT_DIST, entry));
 });
 
 // setup error handling middleware

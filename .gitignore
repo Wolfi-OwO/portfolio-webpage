@@ -32,4 +32,5 @@ dist-ssr
 ## application
 
 application/client/dist
-application/coverage
+application/server/coverage
+application/monitor-checker/dist

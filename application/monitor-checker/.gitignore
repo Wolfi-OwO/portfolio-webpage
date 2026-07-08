@@ -1,0 +1,7 @@
+node_modules
+local.settings.json
+bin
+obj
+dist
+.python_packages
+*.zip
