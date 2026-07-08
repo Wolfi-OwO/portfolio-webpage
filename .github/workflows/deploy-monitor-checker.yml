@@ -3,6 +3,12 @@ name: Deploy Monitor Checker
 # Deploys the standalone Azure Function (Timer Trigger) that pings monitored
 # URLs for the status page. Independent of the main app's release process —
 # this only redeploys when monitor-checker/ itself changes.
+#
+# Uses the same GitHub Actions OIDC identity (gh-portfolio-deploy) as the
+# Container App release, but with its own federated credential (trusts pushes
+# to main directly, not the `production` environment) and its own narrowly
+# scoped role assignment (Website Contributor on just this Function App, not
+# the whole resource group).
 
 on:
   push:
@@ -13,6 +19,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write   # required for Azure OIDC login
 
 jobs:
   deploy:
@@ -31,9 +38,20 @@ jobs:
         working-directory: application/monitor-checker
         run: npm ci --omit=dev
 
-      - name: Deploy to Azure Functions
-        uses: Azure/functions-action@v1
+      - name: Zip package
+        working-directory: application/monitor-checker
+        run: zip -rq ../../monitor-checker.zip . -x ".git*"
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
         with:
-          app-name: woofi-monitor-checker
-          package: application/monitor-checker
-          publish-profile: ${{ secrets.AZURE_MONITOR_CHECKER_PUBLISH_PROFILE }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to Azure Functions
+        run: |
+          az functionapp deployment source config-zip \
+            --resource-group portfolio-webpage-rg \
+            --name woofi-monitor-checker \
+            --src monitor-checker.zip
