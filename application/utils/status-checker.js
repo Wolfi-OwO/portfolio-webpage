@@ -5,8 +5,55 @@ import { logger } from './logger.js';
 const CHECK_MS = (Number(process.env.STATUS_CHECK_INTERVAL_SECONDS) || 60) * 1000;
 const REQUEST_TIMEOUT_MS = 10000;
 const DAY = 24 * 60 * 60 * 1000;
-const HISTORY_LENGTH = 90;
+const HISTORY_DAYS = 90;
 const round1 = n => Math.round(n * 10) / 10;
+
+// Discord-style: one bar per calendar day, colored by how much of that day
+// was down — not one bar per raw check (which, at a short check interval,
+// would only cover the last few minutes instead of the last 90 days).
+function severityFor(downRatio) {
+    if (downRatio <= 0) return 'operational';
+    if (downRatio <= 0.1) return 'minor';
+    if (downRatio <= 0.5) return 'major';
+    return 'critical';
+}
+
+async function buildDailyHistory(monitorId) {
+    const todayBucket = Math.floor(Date.now() / DAY);
+    const firstBucket = todayBucket - HISTORY_DAYS + 1;
+
+    const buckets = await MonitorCheckModel.aggregate([
+        { $match: { monitor: monitorId, at: { $gte: firstBucket * DAY } } },
+        {
+            $group: {
+                _id: { $floor: { $divide: ['$at', DAY] } },
+                total: { $sum: 1 },
+                down: { $sum: { $cond: ['$ok', 0, 1] } },
+            },
+        },
+    ]);
+
+    const byDay = new Map(buckets.map(b => [b._id, b]));
+
+    return Array.from({ length: HISTORY_DAYS }, (_, i) => {
+        const dayBucket = firstBucket + i;
+        const bucket = byDay.get(dayBucket);
+        if (!bucket) {
+            return { day: dayBucket * DAY, severity: 'no-data', downPct: null, downMs: 0, totalChecks: 0 };
+        }
+        const downPct = round1((bucket.down / bucket.total) * 100);
+        return {
+            day: dayBucket * DAY,
+            severity: severityFor(bucket.down / bucket.total),
+            downPct,
+            // Each failed check stands in for roughly one check-interval of
+            // downtime — checks are evenly spaced, so this approximates duration
+            // (e.g. "1 hrs 44 mins") without needing to track incident start/end.
+            downMs: bucket.down * CHECK_MS,
+            totalChecks: bucket.total,
+        };
+    });
+}
 
 // ── Probing ───────────────────────────────────────────────────────────────────
 async function checkMonitor(monitor) {
@@ -81,11 +128,7 @@ async function buildMonitorStatus(monitor) {
     const latest = await MonitorCheckModel.findOne({ monitor: monitor._id }).sort({ at: -1 });
     const monitoringSince = first?.at ?? Date.now();
 
-    const history = (
-        await MonitorCheckModel.find({ monitor: monitor._id }).sort({ at: -1 }).limit(HISTORY_LENGTH)
-    )
-        .reverse()
-        .map(s => ({ at: s.at, ok: s.ok }));
+    const history = await buildDailyHistory(monitor._id);
 
     const status = !latest ? 'pending' : latest.ok ? 'operational' : 'down';
 

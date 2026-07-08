@@ -18,12 +18,51 @@ import { authHeaders, isAdmin } from '../../utils/auth.js';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 
 const POLL_MS = 15000;
-const HISTORY_LENGTH = 90;
 
 const BADGE = {
     operational: { label: 'Operational', cls: 'text-emerald-600 dark:text-emerald-400', Icon: CheckCircleIcon },
     down: { label: 'Down', cls: 'text-red-600 dark:text-red-400', Icon: XCircleIcon },
     pending: { label: 'Pending', cls: 'text-amber-600 dark:text-amber-400', Icon: ExclamationTriangleIcon },
+};
+
+// Discord-style severity tiers for a day's bar — the longer a service was
+// down that day, the darker red it gets, instead of a flat binary up/down.
+const SEVERITY = {
+    operational: {
+        label: 'Operational',
+        barCls: 'bg-emerald-500',
+        Icon: CheckCircleIcon,
+        iconCls: 'text-emerald-500',
+        chipCls: 'bg-emerald-50 dark:bg-emerald-500/10',
+    },
+    minor: {
+        label: 'Minor outage',
+        barCls: 'bg-red-300',
+        Icon: ExclamationTriangleIcon,
+        iconCls: 'text-red-400',
+        chipCls: 'bg-red-50 dark:bg-red-500/10',
+    },
+    major: {
+        label: 'Partial outage',
+        barCls: 'bg-red-500',
+        Icon: ExclamationTriangleIcon,
+        iconCls: 'text-red-500',
+        chipCls: 'bg-red-50 dark:bg-red-500/10',
+    },
+    critical: {
+        label: 'Major outage',
+        barCls: 'bg-red-800',
+        Icon: XCircleIcon,
+        iconCls: 'text-red-700 dark:text-red-500',
+        chipCls: 'bg-red-50 dark:bg-red-500/10',
+    },
+    'no-data': {
+        label: 'No data',
+        barCls: 'bg-slate-200 dark:bg-slate-800',
+        Icon: ExclamationTriangleIcon,
+        iconCls: 'text-slate-400',
+        chipCls: 'bg-slate-50 dark:bg-slate-800/50',
+    },
 };
 
 function round1(n) {
@@ -41,16 +80,24 @@ function fmtRelative(at) {
     return `${Math.round(hours / 24)}d ago`;
 }
 
-function fmtDateTime(at) {
-    if (!at) return 'unknown time';
-    return new Date(at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+function fmtDate(ms) {
+    return new Date(ms).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function fmtDuration(ms) {
+    const totalMinutes = Math.round(ms / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (hours && minutes) return `${hours} hrs ${minutes} mins`;
+    if (hours) return `${hours} hrs`;
+    return `${minutes} mins`;
 }
 
 function summarizeHistory(history) {
-    const known = history.filter(Boolean);
+    const known = history.filter(day => day.severity !== 'no-data');
     if (!known.length) return 'No uptime data yet';
-    const okCount = known.filter(entry => entry.ok).length;
-    return `${Math.round((okCount / known.length) * 100)}% operational across the last ${known.length} checks`;
+    const badDays = known.filter(day => day.severity !== 'operational').length;
+    return `${known.length - badDays} of ${known.length} days fully operational`;
 }
 
 function uptimeTone(pct) {
@@ -79,19 +126,41 @@ function StatusDot({ status, size = 'sm' }) {
     );
 }
 
+// One day's bar, with a Discord-style popover card on hover: date, severity
+// (colored chip + icon), and how long it was down that day.
+function DayBar({ day }) {
+    const info = SEVERITY[day.severity] ?? SEVERITY['no-data'];
+
+    return (
+        <div className="group/bar relative flex-1" aria-hidden="true">
+            <div className={`h-7 rounded-[2px] transition-colors ${info.barCls}`} />
+
+            <div className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 w-60 -translate-x-1/2 opacity-0 transition-opacity duration-150 group-hover/bar:opacity-100">
+                <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                    <p className="text-xs font-semibold text-slate-950 dark:text-white">{fmtDate(day.day)}</p>
+
+                    <div className={`mt-2 flex items-center gap-2 rounded-lg px-2.5 py-1.5 ${info.chipCls}`}>
+                        <info.Icon className={`h-4 w-4 shrink-0 ${info.iconCls}`} />
+                        <span className="text-xs font-medium text-slate-800 dark:text-slate-200">{info.label}</span>
+                        {day.downMs > 0 && (
+                            <span className="ml-auto shrink-0 font-mono text-[11px] text-slate-500 dark:text-slate-400">
+                                {fmtDuration(day.downMs)}
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                <div className="absolute left-1/2 top-full h-2.5 w-2.5 -translate-x-1/2 -translate-y-1.5 rotate-45 border-b border-r border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900" />
+            </div>
+        </div>
+    );
+}
+
 function UptimeBar({ history }) {
-    const bars = Array.from({ length: HISTORY_LENGTH }, (_, i) => history[history.length - HISTORY_LENGTH + i]);
     return (
         <div className="flex h-7 items-stretch gap-[2px]" role="img" aria-label={summarizeHistory(history)}>
-            {bars.map((bar, index) => (
-                <div
-                    key={index}
-                    aria-hidden="true"
-                    title={bar ? `${bar.ok ? 'Operational' : 'Down'} · ${fmtDateTime(bar.at)}` : 'No data'}
-                    className={`flex-1 rounded-[2px] transition-colors ${
-                        bar ? (bar.ok ? 'bg-emerald-500' : 'bg-red-500') : 'bg-slate-200 dark:bg-slate-800'
-                    }`}
-                />
+            {history.map((day, index) => (
+                <DayBar key={index} day={day} />
             ))}
         </div>
     );
@@ -99,12 +168,18 @@ function UptimeBar({ history }) {
 
 function UptimeLegend() {
     return (
-        <div className="hidden items-center gap-4 font-mono text-[11px] text-slate-400 dark:text-slate-500 sm:flex">
+        <div className="hidden items-center gap-3 font-mono text-[11px] text-slate-400 dark:text-slate-500 sm:flex">
             <span className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-sm bg-emerald-500" /> operational
             </span>
             <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-sm bg-red-500" /> down
+                <span className="h-2 w-2 rounded-sm bg-red-300" /> minor
+            </span>
+            <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-sm bg-red-500" /> major
+            </span>
+            <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-sm bg-red-800" /> critical
             </span>
             <span className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-sm bg-slate-200 dark:bg-slate-800" /> no data
