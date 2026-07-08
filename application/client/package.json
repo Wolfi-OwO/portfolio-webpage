@@ -2,7 +2,22 @@
   "name": "portfolio-client",
   "private": true,
   "version": "0.0.1",
+  "description": "React frontend for the Woofi Developments portfolio website.",
   "type": "module",
+  "author": "Kofler Phillip",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Wolfi-OwO/portfolio-webpage.git",
+    "directory": "application/client"
+  },
+  "homepage": "https://woofi-developments.at",
+  "bugs": {
+    "url": "https://github.com/Wolfi-OwO/portfolio-webpage/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",

@@ -1,9 +1,20 @@
 {
     "name": "monitor-checker",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "private": true,
+    "description": "Azure Function (Timer Trigger) that pings monitored URLs for the Woofi Developments status page.",
     "type": "module",
     "main": "src/functions/*.js",
+    "author": "Kofler Phillip",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Wolfi-OwO/portfolio-webpage.git",
+        "directory": "application/monitor-checker"
+    },
+    "bugs": {
+        "url": "https://github.com/Wolfi-OwO/portfolio-webpage/issues"
+    },
     "engines": {
         "node": ">=22"
     },

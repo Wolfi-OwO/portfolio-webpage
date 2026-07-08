@@ -19,6 +19,15 @@
   ],
   "author": "Kofler Phillip",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Wolfi-OwO/portfolio-webpage.git",
+    "directory": "application/server"
+  },
+  "homepage": "https://woofi-developments.at",
+  "bugs": {
+    "url": "https://github.com/Wolfi-OwO/portfolio-webpage/issues"
+  },
   "engines": {
     "node": ">=22"
   },
