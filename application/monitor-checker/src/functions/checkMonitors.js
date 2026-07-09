@@ -14,6 +14,11 @@ const monitorSchema = new mongoose.Schema(
         containerApp: {
             resourceGroup: { type: String },
             name: { type: String },
+            // When explicitly false, this checker may fall back to an HTTP probe
+            // of `url` if the Azure control-plane check can't run. Left unset (or
+            // true) for scale-to-zero apps, which must NEVER be probed over HTTP —
+            // a request would wake them. Kept in sync with the server's model.
+            scaleToZero: { type: Boolean },
         },
     },
     { optimisticConcurrency: true, timestamps: true },
@@ -118,7 +123,7 @@ async function syncContainerAppMonitors(discovered) {
     );
 }
 
-async function checkContainerAppMonitor(monitor, client) {
+async function checkContainerAppMonitor(monitor, client, context) {
     const start = Date.now();
     try {
         const { resourceGroup, name } = monitor.containerApp;
@@ -135,6 +140,22 @@ async function checkContainerAppMonitor(monitor, client) {
             runningStatus,
         });
     } catch (err) {
+        // The Azure control-plane check couldn't run — no credentials / Reader
+        // role, an ARM error, or the app no longer exists. As a second option,
+        // fall back to an HTTP probe of the monitor's URL, but ONLY for apps
+        // explicitly marked scaleToZero: false. A scale-to-zero app must never be
+        // probed over HTTP (the request would wake it, defeating the reason we
+        // check it from the control plane), so those just record the failure.
+        if (monitor.url && monitor.containerApp?.scaleToZero === false) {
+            context?.warn?.(
+                `monitor-checker: ARM check failed for "${monitor.name}" (${err.message}); ` +
+                    `falling back to HTTP probe of ${monitor.url}`,
+            );
+            const result = await pingUrl(monitor.url);
+            await MonitorCheckModel.create({ monitor: monitor._id, at: Date.now(), ...result });
+            return;
+        }
+
         await MonitorCheckModel.create({
             monitor: monitor._id,
             at: Date.now(),
@@ -155,7 +176,7 @@ async function runCheckCycle(context) {
     const monitors = await MonitorModel.find();
     const results = await Promise.allSettled(
         monitors.map(monitor =>
-            monitor.containerApp?.name ? checkContainerAppMonitor(monitor, client) : checkMonitor(monitor),
+            monitor.containerApp?.name ? checkContainerAppMonitor(monitor, client, context) : checkMonitor(monitor),
         ),
     );
 

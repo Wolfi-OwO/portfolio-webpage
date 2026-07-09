@@ -28,6 +28,12 @@ const monitorSchema = new mongoose.Schema(
         containerApp: {
             resourceGroup: { type: String },
             name: { type: String },
+            // When explicitly false, the monitor-checker Function may fall back to
+            // an HTTP probe of `url` if the Azure control-plane check can't run.
+            // Leave unset (or true) for scale-to-zero apps, which must NEVER be
+            // probed over HTTP — a request would wake them. Mirrored in the
+            // monitor-checker Function's duplicated schema; keep the two in sync.
+            scaleToZero: { type: Boolean },
         },
     },
     {

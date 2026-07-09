@@ -15,7 +15,6 @@ import path from 'path';
 import { logger } from './utils/logger.js';
 import { setupHealthChecks } from './utils/health-checks.js';
 import { dropCurrentDatabase, setupDatabaseConnection } from './database/database.js'
-import { startStatusChecker } from './utils/status-checker.js';
 
 /* ***************** IMPORT ROUTES **************** */
 import { projectsRouter } from './routes/projects-route.js';
@@ -85,8 +84,9 @@ setupHealthChecks(httpServer);
 setupDatabaseConnection(MONGODB_CONNECTION_STRING, MONGODB_RECREATE)
 httpServer.dropCurrentDatabase = dropCurrentDatabase;
 
-// start periodic monitor checks (uptime tracking for the status page)
-startStatusChecker();
+// Monitor checks are performed entirely by the separate monitor-checker Azure
+// Function (every ~60s, 24/7); this service only reads the samples it writes to
+// serve the status page — see GET /api/status/ → getStatusReport.
 
 // start listening to HTTP requests
 httpServer.listen(PORT, HOSTNAME, () => {

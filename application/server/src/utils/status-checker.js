@@ -1,9 +1,12 @@
 import { MonitorModel } from '../models/monitor.js';
 import { MonitorCheckModel } from '../models/monitor-check.js';
-import { logger } from './logger.js';
 
+// This service no longer probes anything itself: the separate monitor-checker
+// Azure Function performs every check (~once per minute, 24/7) and writes the
+// samples to MongoDB. This module only READS those samples to build the status
+// report. CHECK_MS is the checker's cadence — used to turn sample counts into
+// uptime %/downtime duration — and must match the Function's schedule.
 const CHECK_MS = (Number(process.env.STATUS_CHECK_INTERVAL_SECONDS) || 60) * 1000;
-const REQUEST_TIMEOUT_MS = 10000;
 const DAY = 24 * 60 * 60 * 1000;
 const HISTORY_DAYS = 90;
 const round1 = n => Math.round(n * 10) / 10;
@@ -53,64 +56,6 @@ async function buildDailyHistory(monitorId) {
             totalChecks: bucket.total,
         };
     });
-}
-
-// ── Probing ───────────────────────────────────────────────────────────────────
-async function checkMonitor(monitor) {
-    // Container-app monitors with no URL are checked via Azure's runningStatus
-    // by the separate monitor-checker Function, which has ARM read access this
-    // in-app checker doesn't — nothing to do here.
-    if (!monitor.url) return;
-
-    const start = Date.now();
-    try {
-        const response = await fetch(monitor.url, {
-            method: 'GET',
-            redirect: 'follow',
-            signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-        });
-        await MonitorCheckModel.create({
-            monitor: monitor._id,
-            at: Date.now(),
-            ok: response.ok,
-            statusCode: response.status,
-            latencyMs: Date.now() - start,
-        });
-    } catch (err) {
-        await MonitorCheckModel.create({
-            monitor: monitor._id,
-            at: Date.now(),
-            ok: false,
-            latencyMs: Date.now() - start,
-            error: err.message,
-        });
-    }
-}
-
-async function runCheckCycle() {
-    try {
-        const monitors = await MonitorModel.find();
-        await Promise.all(monitors.map(checkMonitor));
-    } catch (err) {
-        logger.error('Status checker cycle failed', err);
-    }
-}
-
-let timer = null;
-
-/** Begin periodic monitor checks (runs the first cycle immediately). */
-function startStatusChecker() {
-    if (timer) return;
-    void runCheckCycle();
-    timer = setInterval(() => void runCheckCycle(), CHECK_MS);
-    if (typeof timer.unref === 'function') timer.unref();
-}
-
-function stopStatusChecker() {
-    if (timer) {
-        clearInterval(timer);
-        timer = null;
-    }
 }
 
 // ── Reporting ─────────────────────────────────────────────────────────────────
@@ -206,4 +151,4 @@ async function getStatusReport() {
     };
 }
 
-export { startStatusChecker, stopStatusChecker, getStatusReport, checkMonitor };
+export { getStatusReport };
