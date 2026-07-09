@@ -6,6 +6,9 @@ services:
             # server/ and the pre-built client/dist — the Dockerfile lives in server/.
             context: ..
             dockerfile: server/dockerfile
+        # package.json lives at /app/server (the image keeps the repo's
+        # server/ + client/ nesting), so npm must run from there.
+        working_dir: /app/server
         entrypoint: 'npm'
         command: 'run fill-demo-data'
         environment:
