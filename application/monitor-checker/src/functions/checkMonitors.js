@@ -91,9 +91,9 @@ async function checkMonitor(monitor) {
 //    We deliberately NEVER send an HTTP request to a Container App. A
 //    scale-to-zero app treats any inbound request as traffic and wakes up, so
 //    an HTTP probe would (a) always report "operational" and (b) keep the app
-//    from ever scaling back down. runningStatus tells us the real state without
-//    touching the app. (Note: a scaled-to-zero-but-idle app still reports
-//    "Running" — that's correct, the service is available on demand.)
+//    from ever scaling back down. Instead we read the state of the app's live
+//    production revision from ARM without touching the app. A revision idle at
+//    "ScaledToZero" is healthy and available on demand — that's up, not an outage.
 async function discoverContainerApps(client, context) {
     const discovered = [];
     for (const resourceGroup of CONTAINER_APP_RESOURCE_GROUPS) {
@@ -123,20 +123,64 @@ async function syncContainerAppMonitors(discovered) {
     );
 }
 
+// PR/preview revisions are created by the sibling repos' pr-preview workflow
+// with `--revision-suffix pr-<number>-<sha>`, so their names contain "--pr-<n>-".
+// They're throwaway per-PR deployments and must NEVER be taken as the service's
+// health, so we skip them when picking the revision to check.
+const PR_REVISION_RE = /--pr-\d+-/;
+
+// A revision can serve requests when it's actively Running, or idle at
+// ScaledToZero (healthy, spins up on demand — not an outage). Anything else
+// (Stopped/Degraded/Failed/Processing/Unknown), or an Unhealthy health probe,
+// is down. ScaledToZero isn't in the SDK's KnownRevisionRunningState enum but
+// the live ARM API returns it, so we match the string literal.
+const UP_RUNNING_STATES = new Set(['Running', 'ScaledToZero']);
+function revisionIsUp(revision) {
+    return revision.healthState !== 'Unhealthy' && UP_RUNNING_STATES.has(revision.runningState ?? 'Unknown');
+}
+
+// The health of a Container App is the health of its live production revision:
+// the latest ACTIVE, non-PR revision (the one that serves traffic and scales),
+// not the app-level runningStatus (which can't tell a healthy scale-to-zero app
+// from a broken one). Returns null when there's no such revision.
+async function latestProductionRevision(client, resourceGroup, name) {
+    const candidates = [];
+    for await (const rev of client.containerAppsRevisions.listRevisions(resourceGroup, name)) {
+        if (rev.active && !PR_REVISION_RE.test(rev.name ?? '')) candidates.push(rev);
+    }
+    candidates.sort((a, b) => (b.createdTime?.getTime() ?? 0) - (a.createdTime?.getTime() ?? 0));
+    return candidates[0] ?? null;
+}
+
 async function checkContainerAppMonitor(monitor, client, context) {
     const start = Date.now();
     try {
         const { resourceGroup, name } = monitor.containerApp;
-        const containerApp = await client.containerApps.get(resourceGroup, name);
-        const runningStatus = containerApp.runningStatus ?? 'Unknown';
-        const isRunning = runningStatus === 'Running';
+        const revision = await latestProductionRevision(client, resourceGroup, name);
+
+        if (!revision) {
+            await MonitorCheckModel.create({
+                monitor: monitor._id,
+                at: Date.now(),
+                ok: false,
+                latencyMs: Date.now() - start,
+                error: 'No active non-PR revision found',
+                runningStatus: 'Unknown',
+            });
+            return;
+        }
+
+        const runningStatus = revision.runningState ?? 'Unknown';
+        const isUp = revisionIsUp(revision);
 
         await MonitorCheckModel.create({
             monitor: monitor._id,
             at: Date.now(),
-            ok: isRunning,
+            ok: isUp,
             latencyMs: Date.now() - start,
-            error: isRunning ? undefined : `Container App is ${runningStatus}`,
+            error: isUp
+                ? undefined
+                : `Revision ${revision.name} is ${runningStatus} (health: ${revision.healthState ?? 'unknown'})`,
             runningStatus,
         });
     } catch (err) {
