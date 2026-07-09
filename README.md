@@ -18,11 +18,18 @@ My personal developer portfolio: projects, skills, background, and a live status
 ![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?logo=mongodb&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-single_image-2496ED?logo=docker&logoColor=white)
 
+![A walkthrough of the site: profile card with live uptime, projects, contact, and the status page](docs/demo.gif)
+
 </div>
 
-![Homepage — hero, highlights and about section](docs/screenshots/homepage.png)
-
 ## Features
+
+### Home
+
+![Homepage — profile card with a live status line, and what I build](docs/screenshots/homepage.png)
+
+- A profile card that doubles as a service card: it reads the same `/api/status` the status page uses, so the hero reports this site's own live uptime instead of hand-written stats.
+- Social links for GitHub, LinkedIn, Discord and email — Discord copies the handle, since a Discord username isn't a URL.
 
 ### Projects
 
@@ -36,15 +43,17 @@ My personal developer portfolio: projects, skills, background, and a live status
 
 ![Status page — live uptime tracking for monitored services](docs/screenshots/status.png)
 
-- Add any URL as a monitor; a background job checks it on a fixed interval (default 60s) and writes results to MongoDB, building a 24/7 uptime history (90-day retention).
+- Checks run 24/7 in a standalone Azure Function (Timer trigger, once a minute) that writes each result to MongoDB; the web app only *reads* that history, building a 90-day uptime record.
+- Azure Container Apps are checked from the control plane — never over HTTP, because a request would wake a scale-to-zero app. The checker reads the latest active, non-PR revision and reports its running state.
+- A scale-to-zero app that's idle shows as **Idle**, not Down — it's healthy and available on demand, so it doesn't dent uptime.
 - Public, Discord-style status page served on its own `status.` subdomain from a separate, minimal Vite bundle — visiting it doesn't download the whole app just to show uptime.
 - Per-monitor 24h / 7d / 30d uptime percentages and a scrolling history bar.
 
 ### Contact
 
-![Contact page](docs/screenshots/contact.png)
+![Contact page — email, GitHub, LinkedIn and Discord](docs/screenshots/contact.png)
 
-- Direct links for email, GitHub and LinkedIn, plus a quick summary of services offered.
+- One card per channel: email, GitHub, LinkedIn and Discord, plus response time and availability at a glance.
 
 ## Local Development
 

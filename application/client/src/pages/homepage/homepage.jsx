@@ -1,30 +1,92 @@
 import { Link } from 'react-router-dom';
 import { FormattedMessage } from 'react-intl';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
+import { LiveStatusLine, SocialRow } from '../../components/identity.jsx';
+import { IDENTITY } from '../../utils/identity.js';
 
-const highlights = [
+// A set, not a sequence — so no 01/02/03 numbering. The mono key is the label.
+const disciplines = [
     {
+        key: 'frontend',
         titleId: 'homepage.highlightFrontendTitle',
         defaultTitle: 'Frontend Engineering',
         descriptionId: 'homepage.highlightFrontendDescription',
-        defaultDescription:
-            'Building fast, modern interfaces with React, Tailwind CSS, and scalable component systems.',
+        defaultDescription: 'Building fast, modern interfaces with React, Tailwind CSS, and scalable component systems.',
     },
     {
+        key: 'backend',
         titleId: 'homepage.highlightBackendTitle',
         defaultTitle: 'Backend Development',
         descriptionId: 'homepage.highlightBackendDescription',
-        defaultDescription:
-            'Designing reliable APIs, authentication systems, and performant backend architectures.',
+        defaultDescription: 'Designing reliable APIs, authentication systems, and performant backend architectures.',
     },
     {
-        titleId: 'homepage.highlightUxTitle',
-        defaultTitle: 'UI / UX Thinking',
-        descriptionId: 'homepage.highlightUxDescription',
+        key: 'operations',
+        titleId: 'homepage.highlightOpsTitle',
+        defaultTitle: 'Running It in Production',
+        descriptionId: 'homepage.highlightOpsDescription',
         defaultDescription:
-            'Creating interfaces that feel intuitive, polished, and visually balanced across devices.',
+            'Containers on Azure, CI/CD, and uptime monitoring — the part that starts after the code is written.',
     },
 ];
+
+/** Soft accent wash behind the hero. Purely atmospheric, so it never takes focus. */
+function Glow() {
+    return (
+        <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-[radial-gradient(60%_60%_at_50%_0%,var(--glow),transparent_70%)]"
+        />
+    );
+}
+
+// The signature element: a profile card that is also a service card. Identity on
+// top, live production telemetry at the bottom — this site reporting on itself.
+function ProfileCard() {
+    return (
+        <article className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-7 shadow-xl shadow-black/5 sm:p-8">
+            <div className="flex items-start gap-5">
+                <img
+                    src="/profile-image.jpg"
+                    alt={`${IDENTITY.name}, portrait`}
+                    width="160"
+                    height="160"
+                    fetchPriority="high"
+                    className="h-20 w-20 shrink-0 rounded-2xl object-cover ring-1 ring-[var(--line)] sm:h-24 sm:w-24"
+                />
+
+                <div className="min-w-0 pt-0.5">
+                    <h1 className="font-display text-2xl font-bold leading-tight tracking-tight text-[var(--text)] sm:text-3xl">
+                        {IDENTITY.name}
+                    </h1>
+
+                    <p className="font-mono text-sm text-[var(--muted)]">{IDENTITY.handle}</p>
+
+                    <p className="mt-2 text-sm font-medium leading-snug text-[var(--accent)]">
+                        <FormattedMessage id="homepage.role" defaultMessage="Fullstack Developer" />
+                        <br />
+                        <FormattedMessage id="homepage.location" defaultMessage="Carinthia, Austria" />
+                    </p>
+                </div>
+            </div>
+
+            <p className="mt-6 text-[15px] leading-7 text-[var(--muted)]">
+                <FormattedMessage
+                    id="homepage.bio"
+                    defaultMessage="I build full-stack web apps — React on the front, Node and MongoDB behind it — and then actually run them on Azure Container Apps. The line below is live: it's this site reporting on its own uptime."
+                />
+            </p>
+
+            <div className="mt-6">
+                <SocialRow />
+            </div>
+
+            <div className="mt-6 border-t border-[var(--line)] pt-4">
+                <LiveStatusLine />
+            </div>
+        </article>
+    );
+}
 
 export default function Homepage() {
     usePageMeta(
@@ -33,164 +95,65 @@ export default function Homepage() {
     );
 
     return (
-        <div className="space-y-20 py-10 lg:py-14">
-            <section className="mx-auto grid max-w-6xl gap-14 px-6 lg:grid-cols-2 lg:items-center lg:px-8">
-                <div className="space-y-7">
-                    <div className="inline-flex rounded-full border border-slate-200 bg-white px-4 py-1 text-sm font-medium text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
-                        <FormattedMessage id="homepage.badge" defaultMessage="Software Engineer • Portfolio" />
-                    </div>
+        <div className="relative">
+            <Glow />
 
-                    <div className="space-y-5">
-                        <h1 className="text-5xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-6xl">
-                            <FormattedMessage id="homepage.heroTitle" defaultMessage="Hi, I'm Phillip." />
-                        </h1>
+            <div className="relative mx-auto max-w-5xl space-y-20 px-6 py-12 lg:py-20">
+                <section className="flex justify-center">
+                    <ProfileCard />
+                </section>
 
-                        <p className="max-w-xl text-lg leading-8 text-slate-600 dark:text-slate-300">
-                            <FormattedMessage
-                                id="homepage.heroSubtitle"
-                                defaultMessage="I design and develop modern, AI-powered web applications with a strong focus on clean architecture, polished UI, and performant user experiences."
-                            />
-                        </p>
-                    </div>
+                <section className="max-w-3xl">
+                    <h2 className="font-display text-5xl font-bold tracking-tight text-[var(--text)] sm:text-6xl">
+                        <FormattedMessage id="homepage.heyTitle" defaultMessage="Hey!" />
+                    </h2>
 
-                    <div className="flex flex-wrap gap-4">
+                    <p className="mt-6 text-lg leading-8 text-[var(--muted)]">
+                        <FormattedMessage
+                            id="homepage.heyText"
+                            defaultMessage="Online I go by Woofi. I'm an apprentice software developer who got hooked on the whole pipeline — designing an interface, wiring up the API behind it, shipping it to the cloud, and watching whether it stays up."
+                        />
+                    </p>
+
+                    <div className="mt-8 flex flex-wrap gap-3">
                         <Link
                             to="/projects"
-                            className="inline-flex items-center justify-center rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+                            className="inline-flex items-center justify-center rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
                         >
                             <FormattedMessage id="homepage.viewProjects" defaultMessage="View Projects" />
                         </Link>
 
                         <Link
                             to="/contact"
-                            className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800"
+                            className="inline-flex items-center justify-center rounded-full border border-[var(--line)] bg-[var(--surface)] px-6 py-3 text-sm font-semibold text-[var(--text)] transition hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                         >
                             <FormattedMessage id="homepage.contactMe" defaultMessage="Contact Me" />
                         </Link>
                     </div>
+                </section>
 
-                    <div className="flex gap-8 pt-4">
-                        <div>
-                            <p className="text-3xl font-bold text-slate-950 dark:text-white">
-                                <FormattedMessage id="homepage.statsProjectsValue" defaultMessage="10+" />
-                            </p>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                <FormattedMessage id="homepage.statsProjectsLabel" defaultMessage="Projects" />
-                            </p>
-                        </div>
+                <section>
+                    <p className="font-mono text-xs uppercase tracking-[0.28em] text-[var(--muted)]">
+                        <FormattedMessage id="homepage.buildEyebrow" defaultMessage="what i build" />
+                    </p>
 
-                        <div>
-                            <p className="text-3xl font-bold text-slate-950 dark:text-white">
-                                <FormattedMessage id="homepage.statsStackValue" defaultMessage="React" />
-                            </p>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                <FormattedMessage id="homepage.statsStackLabel" defaultMessage="Main Stack" />
-                            </p>
-                        </div>
+                    <div className="mt-6 grid gap-px overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--line)] md:grid-cols-3">
+                        {disciplines.map(item => (
+                            <article key={item.key} className="bg-[var(--surface)] p-7">
+                                <p className="font-mono text-[11px] text-[var(--accent)]">{item.key}</p>
 
-                        <div>
-                            <p className="text-3xl font-bold text-slate-950 dark:text-white">
-                                <FormattedMessage id="homepage.statsDevValue" defaultMessage="Fullstack" />
-                            </p>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                <FormattedMessage id="homepage.statsDevLabel" defaultMessage="Development" />
-                            </p>
-                        </div>
-                    </div>
-                </div>
+                                <h3 className="mt-3 font-display text-lg font-semibold text-[var(--text)]">
+                                    <FormattedMessage id={item.titleId} defaultMessage={item.defaultTitle} />
+                                </h3>
 
-                <div className="relative mx-auto w-fit max-w-md">
-                    <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-tr from-slate-200 to-slate-100 blur-3xl dark:from-slate-800 dark:to-slate-900" />
-
-                    <div className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
-                        <img
-                            src="/profile-image.jpg"
-                            alt="Phillip portrait placeholder"
-                            width="800"
-                            height="1067"
-                            fetchPriority="high"
-                            className="w-96 object-cover"
-                        />
-                    </div>
-                </div>
-            </section>
-
-            <section className="mx-auto max-w-6xl px-6 lg:px-8">
-                <div className="rounded-[2rem] border border-slate-200 bg-white p-10 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-                    <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
-                        <div>
-                            <p className="text-sm uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
-                                <FormattedMessage id="homepage.aboutLabel" defaultMessage="About Me" />
-                            </p>
-
-                            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">
-                                <FormattedMessage
-                                    id="homepage.aboutTitle"
-                                    defaultMessage="Building modern digital products with clean structure and refined user experience."
-                                />
-                            </h2>
-
-                            <p className="mt-6 max-w-xl text-base leading-8 text-slate-600 dark:text-slate-300">
-                                <FormattedMessage
-                                    id="homepage.aboutText"
-                                    defaultMessage="My focus is on developing applications that are visually polished, technically scalable, and intuitive to use. I enjoy transforming ideas into performant products with thoughtful design and maintainable code."
-                                />
-                            </p>
-                        </div>
-
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-900">
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Frontend</p>
-
-                                <p className="mt-2 text-2xl font-semibold text-slate-950 dark:text-white">React & UI</p>
-                            </div>
-
-                            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-900">
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Backend</p>
-
-                                <p className="mt-2 text-2xl font-semibold text-slate-950 dark:text-white">
-                                    APIs & Logic
+                                <p className="mt-3 text-sm leading-7 text-[var(--muted)]">
+                                    <FormattedMessage id={item.descriptionId} defaultMessage={item.defaultDescription} />
                                 </p>
-                            </div>
-
-                            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-900">
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Focus</p>
-
-                                <p className="mt-2 text-2xl font-semibold text-slate-950 dark:text-white">
-                                    Performance
-                                </p>
-                            </div>
-
-                            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-900">
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Style</p>
-
-                                <p className="mt-2 text-2xl font-semibold text-slate-950 dark:text-white">
-                                    Minimal Design
-                                </p>
-                            </div>
-                        </div>
+                            </article>
+                        ))}
                     </div>
-                </div>
-            </section>
-
-            <section className="mx-auto max-w-6xl px-6 lg:px-8">
-                <div className="grid gap-6 md:grid-cols-3">
-                    {highlights.map(item => (
-                        <article
-                            key={item.titleId}
-                            className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-950"
-                        >
-                            <h3 className="text-xl font-semibold text-slate-950 dark:text-white">
-                                <FormattedMessage id={item.titleId} defaultMessage={item.defaultTitle} />
-                            </h3>
-
-                            <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300">
-                                <FormattedMessage id={item.descriptionId} defaultMessage={item.defaultDescription} />
-                            </p>
-                        </article>
-                    ))}
-                </div>
-            </section>
+                </section>
+            </div>
         </div>
     );
 }

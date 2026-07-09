@@ -21,32 +21,25 @@ export default {
     'footer.contact': 'Kontakt',
     'footer.rightsReserved': 'Alle Rechte vorbehalten.',
 
-    'homepage.badge': 'Software Engineer • Portfolio',
-    'homepage.heroTitle': 'Hi, ich bin Phillip.',
-    'homepage.heroSubtitle':
-        'Ich entwickle moderne, KI-gestützte Webanwendungen mit einem starken Fokus auf durchdachte Architektur, poliertes UI und performante User Experience.',
+    'homepage.role': 'Fullstack-Entwickler',
+    'homepage.location': 'Kärnten, Österreich',
+    'homepage.bio':
+        'Ich baue Full-Stack-Webanwendungen – React im Frontend, Node und MongoDB dahinter – und betreibe sie anschließend selbst auf Azure Container Apps. Die Zeile unten ist live: Diese Seite berichtet über ihre eigene Verfügbarkeit.',
+    'homepage.heyTitle': 'Hey!',
+    'homepage.heyText':
+        'Im Internet nennt man mich Woofi. Ich bin angehender Softwareentwickler und habe mich in die gesamte Kette verliebt – ein Interface entwerfen, die API dahinter bauen, in die Cloud ausliefern und beobachten, ob alles läuft.',
     'homepage.viewProjects': 'Projekte ansehen',
     'homepage.contactMe': 'Kontakt aufnehmen',
-    'homepage.statsProjectsValue': '10+',
-    'homepage.statsProjectsLabel': 'Projekte',
-    'homepage.statsStackValue': 'React',
-    'homepage.statsStackLabel': 'Haupt-Stack',
-    'homepage.statsDevValue': 'Fullstack',
-    'homepage.statsDevLabel': 'Entwicklung',
-    'homepage.aboutLabel': 'Über mich',
-    'homepage.aboutTitle':
-        'Moderne digitale Produkte mit klarer Struktur und durchdachter User Experience.',
-    'homepage.aboutText':
-        'Mein Fokus liegt auf Anwendungen, die visuell poliert, technisch skalierbar und intuitiv bedienbar sind. Ich verwandle Ideen gerne in performante Produkte mit durchdachtem Design und wartbarem Code.',
+    'homepage.buildEyebrow': 'was ich baue',
     'homepage.highlightFrontendTitle': 'Frontend Engineering',
     'homepage.highlightFrontendDescription':
         'Schnelle, moderne Oberflächen mit React, Tailwind CSS und skalierbaren Komponentensystemen.',
     'homepage.highlightBackendTitle': 'Backend Development',
     'homepage.highlightBackendDescription':
         'Zuverlässige APIs, Authentifizierungssysteme und performante Backend-Architekturen.',
-    'homepage.highlightUxTitle': 'UI / UX Thinking',
-    'homepage.highlightUxDescription':
-        'Oberflächen, die sich intuitiv, poliert und visuell ausgewogen anfühlen – auf allen Geräten.',
+    'homepage.highlightOpsTitle': 'Betrieb in Produktion',
+    'homepage.highlightOpsDescription':
+        'Container auf Azure, CI/CD und Uptime-Monitoring – der Teil, der beginnt, wenn der Code geschrieben ist.',
 
     'services.title': 'Leistungen',
     'services.subtitle':

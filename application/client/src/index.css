@@ -1,3 +1,39 @@
+/* Type system.
+   display — Bricolage Grotesque: characterful, used with restraint (hero + section heads).
+   body    — Manrope: warm geometric, distinct from the usual Inter default.
+   mono    — JetBrains Mono: the voice the status page already speaks (`system.status()`,
+             uptime figures). Telemetry gets its own face because it *is* different content. */
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* One token set, flipped by the `dark` class the layout already toggles on <html>.
+   Pages reference these via `bg-[var(--surface)]` etc., so light/dark stays in sync
+   without doubling every utility with a `dark:` variant. */
+@layer base {
+    :root {
+        --bg: #f6f7fb;
+        --surface: #ffffff;
+        --surface-2: #f1f3f8;
+        --line: #e2e6ef;
+        --text: #0b1020;
+        --muted: #5b6579;
+        --accent: #2563eb;
+        --live: #059669;
+        --glow: rgba(37, 99, 235, 0.1);
+    }
+
+    html.dark {
+        --bg: #0a0d13;
+        --surface: #111621;
+        --surface-2: #161c29;
+        --line: #212939;
+        --text: #e7ebf3;
+        --muted: #8892a6;
+        --accent: #4c8dff;
+        --live: #34d399;
+        --glow: rgba(76, 141, 255, 0.14);
+    }
+}
