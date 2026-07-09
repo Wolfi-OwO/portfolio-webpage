@@ -45,3 +45,41 @@ services:
             test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
         ports:
             - 27017:27017
+    # Azure Storage emulator — the Functions runtime requires an AzureWebJobsStorage
+    # backend for the Timer trigger's schedule/singleton state. Locally that's Azurite.
+    azurite:
+        image: mcr.microsoft.com/azure-storage/azurite:latest
+        container_name: portfolio-azurite
+        restart: always
+        attach: false
+        command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0
+    # The standalone monitor-checker Azure Function (Timer trigger). Runs the same
+    # image/host as production, checks every monitor once a minute and writes the
+    # samples the web service's status page reads from the shared database.
+    monitor-checker:
+        build:
+            context: ../monitor-checker
+            dockerfile: dockerfile
+        container_name: portfolio-monitor-checker
+        restart: unless-stopped
+        environment:
+            # Same database the web service reads from — checker writes, status page reads.
+            - MONGODB_CONNECTION_STRING=mongodb+srv://woofi:${MONGODB_PASSWORD}@portfolio.lorxr25.mongodb.net/portfolio
+            # Functions runtime storage, served locally by the azurite container
+            # (well-known public Azurite dev account — not a secret).
+            - AzureWebJobsStorage=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1
+            - FUNCTIONS_WORKER_RUNTIME=node
+            - AzureWebJobsFeatureFlags=EnableWorkerIndexing
+            # ARM access for the Container App revision checks. DefaultAzureCredential
+            # reads these (EnvironmentCredential). Without them the control-plane checks
+            # just fail per-monitor (caught) and only plain URL monitors are checked.
+            - AZURE_SUBSCRIPTION_ID=${AZURE_SUBSCRIPTION_ID}
+            - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+            - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+            - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+            - CONTAINER_APP_RESOURCE_GROUPS=${CONTAINER_APP_RESOURCE_GROUPS:-portfolio-webpage-rg,netviz-rg,dsai-5bhif-app}
+        depends_on:
+            azurite:
+                condition: service_started
+            fill-demo-data:
+                condition: service_completed_successfully

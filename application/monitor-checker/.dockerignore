@@ -1,0 +1,8 @@
+node_modules
+local.settings.json
+*.zip
+bin
+obj
+.gitignore
+eslint.config.js
+results.sarif
