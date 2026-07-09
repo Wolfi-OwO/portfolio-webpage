@@ -1,13 +1,19 @@
 version: '3.8'
 services:
     fill-demo-data:
-        build: .
+        build:
+            # Context is the parent (application/) so the image can COPY both
+            # server/ and the pre-built client/dist — the Dockerfile lives in server/.
+            context: ..
+            dockerfile: server/dockerfile
         entrypoint: 'npm'
         command: 'run fill-demo-data'
         environment:
             - MONGODB_CONNECTION_STRING=mongodb+srv://woofi:${MONGODB_PASSWORD}@portfolio.lorxr25.mongodb.net/portfolio
     web:
-        build: .
+        build:
+            context: ..
+            dockerfile: server/dockerfile
         environment:
             - MONGODB_CONNECTION_STRING=mongodb+srv://woofi:${MONGODB_PASSWORD}@portfolio.lorxr25.mongodb.net/portfolio
             - JWT_SECRET=${JWT_SECRET}
