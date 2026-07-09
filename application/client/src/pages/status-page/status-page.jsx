@@ -8,6 +8,7 @@ import {
     CheckCircleIcon,
     ClockIcon,
     ExclamationTriangleIcon,
+    MoonIcon,
     PencilSquareIcon,
     PlusIcon,
     ServerIcon,
@@ -22,6 +23,10 @@ const POLL_MS = 15000;
 const BADGE = {
     operational: { label: 'Operational', cls: 'text-emerald-600 dark:text-emerald-400', Icon: CheckCircleIcon },
     down: { label: 'Down', cls: 'text-red-600 dark:text-red-400', Icon: XCircleIcon },
+    // A scale-to-zero container app that's healthy but idle (0 replicas). Still
+    // "up" — available on demand — so it counts as operational; the distinct
+    // badge just signals it's sleeping rather than actively serving traffic.
+    idle: { label: 'Idle', cls: 'text-emerald-600/80 dark:text-emerald-400/80', Icon: MoonIcon },
     pending: { label: 'Pending', cls: 'text-amber-600 dark:text-amber-400', Icon: ExclamationTriangleIcon },
 };
 
@@ -113,6 +118,12 @@ function StatusDot({ status, size = 'sm' }) {
 
     if (status === 'down') {
         return <span className={`inline-flex shrink-0 ${dim} rounded-full bg-red-500`} />;
+    }
+
+    // Idle (scale-to-zero, healthy but at rest): solid, un-pulsing emerald —
+    // reads as up without the "actively live" pulse.
+    if (status === 'idle') {
+        return <span className={`inline-flex shrink-0 ${dim} rounded-full bg-emerald-500/70`} />;
     }
 
     const tone = status === 'operational' ? 'emerald' : 'amber';
@@ -233,7 +244,12 @@ function OverallBanner({ report, upCount, total }) {
 }
 
 function MonitorRow({ monitor, admin, onEdit, onDelete }) {
-    const badge = BADGE[monitor.status] ?? BADGE.pending;
+    // A healthy scale-to-zero app reports runningStatus "ScaledToZero": still
+    // operational (available on demand), but shown as "Idle" rather than a bright
+    // "Operational" so an idle app reads as neither fully-live nor down.
+    const isIdle = monitor.status === 'operational' && monitor.runningStatus === 'ScaledToZero';
+    const displayStatus = isIdle ? 'idle' : monitor.status;
+    const badge = BADGE[displayStatus] ?? BADGE.pending;
     // Hovering anywhere on the row surfaces why it's down, not just the inline error box below.
     const rowTitle =
         monitor.status === 'down' ? monitor.lastError || 'Down — no further error details available' : undefined;
@@ -242,7 +258,7 @@ function MonitorRow({ monitor, admin, onEdit, onDelete }) {
         <div className="py-5 border-b border-slate-200 last:border-0 dark:border-slate-800" title={rowTitle}>
             <div className="mb-2 flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-2.5">
-                    <StatusDot status={monitor.status} />
+                    <StatusDot status={displayStatus} />
 
                     <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-slate-950 dark:text-white">{monitor.name}</p>
