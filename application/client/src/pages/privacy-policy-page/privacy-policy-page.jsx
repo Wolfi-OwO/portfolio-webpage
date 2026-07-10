@@ -60,7 +60,7 @@ export default function ImprintPage() {
                     >
                         <FormattedMessage
                             id="imprint.contact.text"
-                            defaultMessage="Email: [your email address]"
+                            defaultMessage="Email: KoflerPhillip@outlook.com"
                         />
 
                         <br />
