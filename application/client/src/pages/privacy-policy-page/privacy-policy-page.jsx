@@ -1,74 +1,206 @@
-import { Link } from 'react-router-dom';
+import { FormattedMessage } from 'react-intl';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 
-const lastUpdated = 'May 18, 2026';
+const lastUpdated = '10 July 2026';
 
-export default function PrivacyPolicyPage() {
-    usePageMeta('Privacy Policy', 'Privacy policy for the Woofi Developments portfolio website.');
+export default function ImprintPage() {
+    usePageMeta(
+        'Imprint',
+        'Legal information and imprint of Woofi Developments.',
+    );
 
     return (
         <div className="space-y-14 py-10 lg:py-14">
-            <section className="mx-auto max-w-6xl px-6 lg:px-8">
+            <section className="mx-auto max-w-4xl px-6 lg:px-8">
                 <div className="max-w-2xl space-y-4">
-                    <p className="text-sm uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Legal</p>
+                    <p className="text-sm uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+                        <FormattedMessage
+                            id="imprint.label"
+                            defaultMessage="Legal"
+                        />
+                    </p>
 
                     <h1 className="text-4xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-5xl">
-                        Privacy Policy
+                        <FormattedMessage
+                            id="imprint.title"
+                            defaultMessage="Imprint"
+                        />
                     </h1>
 
-                    <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">
-                        Last updated: {lastUpdated}
+                    <p className="text-sm text-slate-600 dark:text-slate-300">
+                        <FormattedMessage
+                            id="imprint.updated"
+                            defaultMessage="Last updated: {date}"
+                            values={{ date: lastUpdated }}
+                        />
                     </p>
                 </div>
             </section>
 
-            <section className="mx-auto max-w-6xl px-6 lg:px-8">
-                <div className="space-y-10 rounded-[2rem] border border-slate-200 bg-white p-10 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-                    <div>
-                        <h2 className="text-xl font-semibold text-slate-950 dark:text-white">Data collection</h2>
 
-                        <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
-                            This website is a personal portfolio and does not include user accounts or a contact form.
-                            I do not intentionally collect personal data through this site.
-                        </p>
-                    </div>
+            <section className="mx-auto max-w-4xl px-6 lg:px-8">
+                <div className="space-y-10 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-950">
 
-                    <div>
-                        <h2 className="text-xl font-semibold text-slate-950 dark:text-white">Local storage</h2>
+                    <Section
+                        title="imprint.operator.title"
+                        defaultTitle="Website operator"
+                    >
+                        <FormattedMessage
+                            id="imprint.operator.text"
+                            defaultMessage={
+                                'Phillip Kofler\nSoftware Engineer | Fullstack Developer\nVillach, Carinthia\nAustria'
+                            }
+                        />
+                    </Section>
 
-                        <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
-                            To remember your preferred theme (light, dark, or system), the site stores a single value
-                            in your browser&apos;s local storage under the key <span className="font-semibold">theme</span>
-                            . You can remove it any time by clearing site data in your browser.
-                        </p>
-                    </div>
 
-                    <div>
-                        <h2 className="text-xl font-semibold text-slate-950 dark:text-white">External links</h2>
+                    <Section
+                        title="imprint.contact.title"
+                        defaultTitle="Contact"
+                    >
+                        <FormattedMessage
+                            id="imprint.contact.text"
+                            defaultMessage="Email: [your email address]"
+                        />
 
-                        <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
-                            This website may link to third-party sites (for example, project demos). Those sites have
-                            their own privacy policies and practices.
-                        </p>
-                    </div>
+                        <br />
 
-                    <div>
-                        <h2 className="text-xl font-semibold text-slate-950 dark:text-white">Contact</h2>
+                        <FormattedMessage
+                            id="imprint.linkedin"
+                            defaultMessage="LinkedIn profile"
+                        />
+                        :
+                        <br />
 
-                        <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
-                            Questions about this policy? Reach out via the{' '}
-                            <Link
-                                to="/contact"
-                                className="font-semibold text-slate-900 underline underline-offset-4 transition hover:text-slate-700 dark:text-white dark:hover:text-slate-200"
-                            >
-                                contact page
-                            </Link>
-                            .
-                        </p>
-                    </div>
+                        <a
+                            href="https://www.linkedin.com/in/kofler-phillip-8666ab338/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline underline-offset-4"
+                        >
+                            linkedin.com/in/kofler-phillip-8666ab338
+                        </a>
+                    </Section>
+
+
+                    <Section
+                        title="imprint.activity.title"
+                        defaultTitle="Business activity"
+                    >
+                        <FormattedMessage
+                            id="imprint.activity.text"
+                            defaultMessage="Software development, web development and digital solutions."
+                        />
+                    </Section>
+
+
+                    <Section
+                        title="imprint.services.title"
+                        defaultTitle="Services"
+                    >
+                        <FormattedMessage
+                            id="imprint.services.text"
+                            defaultMessage="Development of modern web applications, REST APIs, dashboards, cloud-based applications and customized software solutions."
+                        />
+                    </Section>
+
+
+                    <Section
+                        title="imprint.background.title"
+                        defaultTitle="Professional background"
+                    >
+                        <FormattedMessage
+                            id="imprint.background.text"
+                            defaultMessage="Phillip Kofler is a Software Engineer with experience in REST APIs, dashboard development and modern software engineering practices. Previous experience includes software development and technical IT support at Infineon Technologies."
+                        />
+                    </Section>
+
+
+                    <Section
+                        title="imprint.education.title"
+                        defaultTitle="Education"
+                    >
+                        <FormattedMessage
+                            id="imprint.education.text"
+                            defaultMessage="Completed Reife- und Diplomprüfung at HTL Villach in Computer and Information Technology Administration and Management."
+                        />
+                    </Section>
+
+
+                    <Section
+                        title="imprint.content.title"
+                        defaultTitle="Responsible for content"
+                    >
+                        <FormattedMessage
+                            id="imprint.content.text"
+                            defaultMessage="Phillip Kofler"
+                        />
+                    </Section>
+
+
+                    <Section
+                        title="imprint.liability.title"
+                        defaultTitle="Liability for content"
+                    >
+                        <FormattedMessage
+                            id="imprint.liability.text"
+                            defaultMessage="The contents of this website are created with care. However, no guarantee can be given regarding accuracy, completeness or currentness."
+                        />
+                    </Section>
+
+
+                    <Section
+                        title="imprint.external.title"
+                        defaultTitle="External links"
+                    >
+                        <FormattedMessage
+                            id="imprint.external.text"
+                            defaultMessage="This website may contain links to external websites. No responsibility is assumed for their content."
+                        />
+                    </Section>
+
+
+                    <Section
+                        title="imprint.copyright.title"
+                        defaultTitle="Copyright"
+                    >
+                        <FormattedMessage
+                            id="imprint.copyright.text"
+                            defaultMessage="All content on this website is protected by copyright. Any use outside legal limits requires prior permission."
+                        />
+                    </Section>
+
+
+                    <Section
+                        title="imprint.privacy.title"
+                        defaultTitle="Privacy"
+                    >
+                        <FormattedMessage
+                            id="imprint.privacy.text"
+                            defaultMessage="Information about the processing of personal data can be found in the privacy policy of this website."
+                        />
+                    </Section>
+
                 </div>
             </section>
         </div>
     );
 }
 
+
+function Section({ title, defaultTitle, children }) {
+    return (
+        <div>
+            <h2 className="text-xl font-semibold text-slate-950 dark:text-white">
+                <FormattedMessage
+                    id={title}
+                    defaultMessage={defaultTitle}
+                />
+            </h2>
+
+            <p className="mt-3 whitespace-pre-line text-sm leading-7 text-slate-600 dark:text-slate-300">
+                {children}
+            </p>
+        </div>
+    );
+}

@@ -589,7 +589,7 @@ export default function StatusPage() {
         : null;
 
     return (
-        <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
+        <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] bg-white text-gray-900 transition-colors duration-300 dark:bg-gray-950 dark:text-white">
             <div className="mx-auto max-w-2xl px-6 py-12 lg:py-16">
                 <div className="mb-6 flex items-center gap-3">
                     <h1 className="text-2xl font-semibold tracking-tight text-[var(--text)] sm:text-3xl">Status</h1>
