@@ -48,10 +48,10 @@ services:
             - 27017:27017
     # Azure Storage emulator — the Functions runtime requires an AzureWebJobsStorage
     # backend for the Timer trigger's schedule/singleton state. Locally that's Azurite.
-    profiles:
-    - production
     azurite:
         image: mcr.microsoft.com/azure-storage/azurite:latest
+        profiles:
+            - production
         container_name: portfolio-azurite
         restart: always
         attach: false

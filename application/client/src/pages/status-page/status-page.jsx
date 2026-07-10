@@ -3,8 +3,6 @@ import {
     ArrowLeftIcon,
     ArrowPathIcon,
     ArrowTopRightOnSquareIcon,
-    BoltIcon,
-    ChartBarIcon,
     CheckCircleIcon,
     ClockIcon,
     ExclamationTriangleIcon,
@@ -21,53 +19,21 @@ import { usePageMeta } from '../../hooks/usePageMeta.js';
 const POLL_MS = 15000;
 
 const BADGE = {
-    operational: { label: 'Operational', cls: 'text-emerald-600 dark:text-emerald-400', Icon: CheckCircleIcon },
-    down: { label: 'Down', cls: 'text-red-600 dark:text-red-400', Icon: XCircleIcon },
-    // A scale-to-zero container app that's healthy but idle (0 replicas). Still
-    // "up" — available on demand — so it counts as operational; the distinct
-    // badge just signals it's sleeping rather than actively serving traffic.
-    idle: { label: 'Idle', cls: 'text-emerald-600/80 dark:text-emerald-400/80', Icon: MoonIcon },
-    pending: { label: 'Pending', cls: 'text-amber-600 dark:text-amber-400', Icon: ExclamationTriangleIcon },
+    operational: { label: 'Operational', color: 'var(--live)', Icon: CheckCircleIcon },
+    down: { label: 'Down', color: 'var(--down)', Icon: XCircleIcon },
+    pending: { label: 'Pending', color: 'var(--muted)', Icon: ExclamationTriangleIcon },
+    // A healthy scale-to-zero app: still up, just resting. Distinct label, same green.
+    idle: { label: 'Idle', color: 'var(--live)', Icon: MoonIcon },
 };
 
-// Discord-style severity tiers for a day's bar — the longer a service was
-// down that day, the darker red it gets, instead of a flat binary up/down.
+// Discord-style severity tiers for a day's bar — the longer a service was down
+// that day, the deeper the red, instead of a flat binary up/down.
 const SEVERITY = {
-    operational: {
-        label: 'Operational',
-        barCls: 'bg-emerald-500',
-        Icon: CheckCircleIcon,
-        iconCls: 'text-emerald-500',
-        chipCls: 'bg-emerald-50 dark:bg-emerald-500/10',
-    },
-    minor: {
-        label: 'Minor outage',
-        barCls: 'bg-red-300',
-        Icon: ExclamationTriangleIcon,
-        iconCls: 'text-red-400',
-        chipCls: 'bg-red-50 dark:bg-red-500/10',
-    },
-    major: {
-        label: 'Partial outage',
-        barCls: 'bg-red-500',
-        Icon: ExclamationTriangleIcon,
-        iconCls: 'text-red-500',
-        chipCls: 'bg-red-50 dark:bg-red-500/10',
-    },
-    critical: {
-        label: 'Major outage',
-        barCls: 'bg-red-800',
-        Icon: XCircleIcon,
-        iconCls: 'text-red-700 dark:text-red-500',
-        chipCls: 'bg-red-50 dark:bg-red-500/10',
-    },
-    'no-data': {
-        label: 'No data',
-        barCls: 'bg-slate-200 dark:bg-slate-800',
-        Icon: ExclamationTriangleIcon,
-        iconCls: 'text-slate-400',
-        chipCls: 'bg-slate-50 dark:bg-slate-800/50',
-    },
+    operational: { label: 'Operational', bar: 'var(--live)', Icon: CheckCircleIcon },
+    minor: { label: 'Minor outage', bar: 'color-mix(in srgb, var(--down) 45%, transparent)', Icon: ExclamationTriangleIcon },
+    major: { label: 'Partial outage', bar: 'color-mix(in srgb, var(--down) 70%, transparent)', Icon: ExclamationTriangleIcon },
+    critical: { label: 'Major outage', bar: 'var(--down)', Icon: XCircleIcon },
+    'no-data': { label: 'No data', bar: 'var(--line)', Icon: ExclamationTriangleIcon },
 };
 
 function round1(n) {
@@ -105,63 +71,71 @@ function summarizeHistory(history) {
     return `${known.length - badDays} of ${known.length} days fully operational`;
 }
 
-function uptimeTone(pct) {
-    if (pct >= 99.9) return 'text-emerald-600 dark:text-emerald-400';
-    if (pct >= 99) return 'text-amber-600 dark:text-amber-400';
-    return 'text-red-600 dark:text-red-400';
+function uptimeColor(pct) {
+    if (pct >= 99.9) return 'var(--live)';
+    if (pct >= 99) return '#c98a1a';
+    return 'var(--down)';
 }
 
-// A small live indicator: pulses for operational/pending, solid for down —
-// so status reads at a glance without relying on color alone (paired with text elsewhere).
+// A monitor's status word, in systems terms: a healthy scale-to-zero app reads
+// "idle", not "down".
+function displayStatus(monitor) {
+    if (monitor.status === 'operational' && monitor.runningStatus === 'ScaledToZero') return 'idle';
+    return monitor.status;
+}
+
+// Live dot: pulses when up, solid when idle (at rest) or down.
 function StatusDot({ status, size = 'sm' }) {
     const dim = size === 'lg' ? 'h-3 w-3' : 'h-2 w-2';
 
     if (status === 'down') {
-        return <span className={`inline-flex shrink-0 ${dim} rounded-full bg-red-500`} />;
+        return <span className={`inline-flex shrink-0 ${dim} rounded-full`} style={{ background: 'var(--down)' }} />;
     }
-
-    // Idle (scale-to-zero, healthy but at rest): solid, un-pulsing emerald —
-    // reads as up without the "actively live" pulse.
     if (status === 'idle') {
-        return <span className={`inline-flex shrink-0 ${dim} rounded-full bg-emerald-500/70`} />;
+        return (
+            <span
+                className={`inline-flex shrink-0 ${dim} rounded-full`}
+                style={{ background: 'color-mix(in srgb, var(--live) 70%, transparent)' }}
+            />
+        );
     }
 
-    const tone = status === 'operational' ? 'emerald' : 'amber';
+    const color = status === 'operational' ? 'var(--live)' : 'var(--muted)';
     return (
         <span className={`relative inline-flex shrink-0 ${dim}`}>
             <span
-                className={`absolute inline-flex h-full w-full motion-safe:animate-ping rounded-full bg-${tone}-400 opacity-75`}
+                className="absolute inline-flex h-full w-full rounded-full opacity-70 motion-safe:animate-ping"
+                style={{ background: color }}
             />
-            <span className={`relative inline-flex ${dim} rounded-full bg-${tone}-500`} />
+            <span className={`relative inline-flex ${dim} rounded-full`} style={{ background: color }} />
         </span>
     );
 }
 
-// One day's bar, with a Discord-style popover card on hover: date, severity
-// (colored chip + icon), and how long it was down that day.
+// One day's bar with a hover popover: date, severity, and downtime that day.
 function DayBar({ day }) {
     const info = SEVERITY[day.severity] ?? SEVERITY['no-data'];
 
     return (
         <div className="group/bar relative flex-1" aria-hidden="true">
-            <div className={`h-7 rounded-[2px] transition-colors ${info.barCls}`} />
+            <div className="h-7 rounded-[2px] transition-colors" style={{ background: info.bar }} />
 
             <div className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 w-60 -translate-x-1/2 opacity-0 transition-opacity duration-150 group-hover/bar:opacity-100">
-                <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-lg dark:border-slate-700 dark:bg-slate-900">
-                    <p className="text-xs font-semibold text-slate-950 dark:text-white">{fmtDate(day.day)}</p>
+                <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-3 shadow-lg">
+                    <p className="text-xs font-semibold text-[var(--text)]">{fmtDate(day.day)}</p>
 
-                    <div className={`mt-2 flex items-center gap-2 rounded-lg px-2.5 py-1.5 ${info.chipCls}`}>
-                        <info.Icon className={`h-4 w-4 shrink-0 ${info.iconCls}`} />
-                        <span className="text-xs font-medium text-slate-800 dark:text-slate-200">{info.label}</span>
+                    <div className="mt-2 flex items-center gap-2 rounded-md border border-[var(--line)] px-2.5 py-1.5">
+                        <info.Icon className="h-4 w-4 shrink-0" style={{ color: info.bar }} />
+                        <span className="text-xs font-medium text-[var(--text)]">{info.label}</span>
                         {day.downMs > 0 && (
-                            <span className="ml-auto shrink-0 font-mono text-[11px] text-slate-500 dark:text-slate-400">
+                            <span className="ml-auto shrink-0 font-mono text-[11px] text-[var(--muted)]">
                                 {fmtDuration(day.downMs)}
                             </span>
                         )}
                     </div>
                 </div>
 
-                <div className="absolute left-1/2 top-full h-2.5 w-2.5 -translate-x-1/2 -translate-y-1.5 rotate-45 border-b border-r border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900" />
+                <div className="absolute left-1/2 top-full h-2.5 w-2.5 -translate-x-1/2 -translate-y-1.5 rotate-45 border-b border-r border-[var(--line)] bg-[var(--surface)]" />
             </div>
         </div>
     );
@@ -178,35 +152,32 @@ function UptimeBar({ history }) {
 }
 
 function UptimeLegend() {
+    const items = [
+        ['operational', SEVERITY.operational.bar],
+        ['minor', SEVERITY.minor.bar],
+        ['major', SEVERITY.major.bar],
+        ['critical', SEVERITY.critical.bar],
+        ['no data', SEVERITY['no-data'].bar],
+    ];
     return (
-        <div className="hidden items-center gap-3 font-mono text-[11px] text-slate-400 dark:text-slate-500 sm:flex">
-            <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-sm bg-emerald-500" /> operational
-            </span>
-            <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-sm bg-red-300" /> minor
-            </span>
-            <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-sm bg-red-500" /> major
-            </span>
-            <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-sm bg-red-800" /> critical
-            </span>
-            <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-sm bg-slate-200 dark:bg-slate-800" /> no data
-            </span>
+        <div className="hidden items-center gap-3 font-mono text-[11px] text-[var(--muted)] sm:flex">
+            {items.map(([label, bar]) => (
+                <span key={label} className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-sm" style={{ background: bar }} /> {label}
+                </span>
+            ))}
         </div>
     );
 }
 
 function StatTile({ label, value, Icon }) {
     return (
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
-            <div className="flex items-center gap-1.5 text-slate-400 dark:text-slate-500">
+        <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
+            <div className="flex items-center gap-1.5 text-[var(--muted)]">
                 <Icon className="h-4 w-4" />
                 <p className="text-xs font-medium uppercase tracking-wider">{label}</p>
             </div>
-            <p className="mt-2 font-mono text-2xl font-semibold text-slate-950 dark:text-white">{value}</p>
+            <p className="mt-2 font-mono text-2xl font-semibold text-[var(--text)]">{value}</p>
         </div>
     );
 }
@@ -214,28 +185,33 @@ function StatTile({ label, value, Icon }) {
 function OverallBanner({ report, upCount, total }) {
     if (!report) {
         return (
-            <div className="mb-6 flex animate-pulse items-center gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-900">
-                <span className="h-3 w-3 shrink-0 rounded-full bg-slate-300 dark:bg-slate-700" />
-                <p className="font-mono text-sm text-slate-400 dark:text-slate-600">Connecting to status service…</p>
+            <div className="mb-6 flex animate-pulse items-center gap-4 rounded-lg border border-[var(--line)] bg-[var(--surface)] p-5">
+                <span className="h-3 w-3 shrink-0 rounded-full bg-[var(--line)]" />
+                <p className="font-mono text-sm text-[var(--muted)]">Connecting to status service…</p>
             </div>
         );
     }
 
     const allOperational = report.status === 'operational';
-    const label = allOperational ? 'All Systems Operational' : upCount === 0 && total > 0 ? 'Major Outage' : 'Partial Outage Detected';
+    const label = allOperational
+        ? 'All systems operational'
+        : upCount === 0 && total > 0
+          ? 'Major outage'
+          : 'Partial outage';
+    const tint = allOperational ? 'var(--live)' : 'var(--down)';
 
     return (
         <div
-            className={`mb-6 flex items-center gap-4 rounded-2xl border p-5 ${
-                allOperational
-                    ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-500/30 dark:bg-emerald-500/10'
-                    : 'border-red-200 bg-red-50 dark:border-red-500/30 dark:bg-red-500/10'
-            }`}
+            className="mb-6 flex items-center gap-4 rounded-lg border p-5"
+            style={{
+                borderColor: `color-mix(in srgb, ${tint} 35%, var(--line))`,
+                background: `color-mix(in srgb, ${tint} 8%, var(--surface))`,
+            }}
         >
             <StatusDot status={report.status} size="lg" />
             <div className="min-w-0 flex-1">
-                <p className="text-base font-semibold text-slate-950 dark:text-white">{label}</p>
-                <p className="font-mono text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-base font-semibold text-[var(--text)]">{label}</p>
+                <p className="font-mono text-xs text-[var(--muted)]">
                     checks every {Math.round(report.checkIntervalMs / 1000)}s
                 </p>
             </div>
@@ -243,50 +219,68 @@ function OverallBanner({ report, upCount, total }) {
     );
 }
 
+// The subtitle line under a monitor name. Container-app monitors read
+// "Azure Container App", plus the URL if one exists, plus a scale-to-zero note.
+function MonitorMeta({ monitor }) {
+    const linkCls =
+        'inline-flex min-w-0 max-w-full items-center gap-1 font-mono text-xs text-[var(--muted)] transition hover:text-[var(--accent)]';
+
+    if (monitor.containerApp?.name) {
+        const scaled = monitor.runningStatus === 'ScaledToZero';
+        return (
+            <p className="truncate font-mono text-xs text-[var(--muted)]">
+                Azure Container App
+                {monitor.url && (
+                    <>
+                        {' · '}
+                        <a href={monitor.url} target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:text-[var(--accent)] hover:underline">
+                            {monitor.url.replace(/^https?:\/\//, '')}
+                        </a>
+                    </>
+                )}
+                {scaled && ' · Scaled To Zero Revisions'}
+            </p>
+        );
+    }
+
+    if (monitor.url) {
+        return (
+            <a href={monitor.url} target="_blank" rel="noopener noreferrer" className={`group ${linkCls}`}>
+                <span className="truncate underline-offset-2 group-hover:underline">
+                    {monitor.url.replace(/^https?:\/\//, '')}
+                </span>
+                <ArrowTopRightOnSquareIcon className="h-3 w-3 shrink-0 opacity-0 transition group-hover:opacity-100" />
+            </a>
+        );
+    }
+
+    return null;
+}
+
 function MonitorRow({ monitor, admin, onEdit, onDelete }) {
-    // A healthy scale-to-zero app reports runningStatus "ScaledToZero": still
-    // operational (available on demand), but shown as "Idle" rather than a bright
-    // "Operational" so an idle app reads as neither fully-live nor down.
-    const isIdle = monitor.status === 'operational' && monitor.runningStatus === 'ScaledToZero';
-    const displayStatus = isIdle ? 'idle' : monitor.status;
-    const badge = BADGE[displayStatus] ?? BADGE.pending;
-    // Hovering anywhere on the row surfaces why it's down, not just the inline error box below.
+    const status = displayStatus(monitor);
+    const badge = BADGE[status] ?? BADGE.pending;
     const rowTitle =
         monitor.status === 'down' ? monitor.lastError || 'Down — no further error details available' : undefined;
 
     return (
-        <div className="py-5 border-b border-slate-200 last:border-0 dark:border-slate-800" title={rowTitle}>
+        <div className="border-b border-[var(--line)] py-5 last:border-0" title={rowTitle}>
             <div className="mb-2 flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-2.5">
-                    <StatusDot status={displayStatus} />
+                    <StatusDot status={status} />
 
                     <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-slate-950 dark:text-white">{monitor.name}</p>
-                        {monitor.url ? (
-                            <a
-                                href={monitor.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="group inline-flex min-w-0 max-w-full items-center gap-1 font-mono text-xs text-slate-500 dark:text-slate-400"
-                            >
-                                <span className="truncate underline-offset-2 group-hover:underline">{monitor.url}</span>
-                                <ArrowTopRightOnSquareIcon className="h-3 w-3 shrink-0 opacity-0 transition group-hover:opacity-100" />
-                            </a>
-                        ) : (
-                            // Container-app monitors have no probed URL — show the Azure state instead.
-                            <p className="truncate font-mono text-xs text-slate-500 dark:text-slate-400">
-                                Azure Container App{monitor.runningStatus ? ` · ${monitor.runningStatus}` : ''}
-                            </p>
-                        )}
+                        <p className="truncate text-sm font-semibold text-[var(--text)]">{monitor.name}</p>
+                        <MonitorMeta monitor={monitor} />
                     </div>
                 </div>
 
                 <div className="flex shrink-0 items-center gap-3">
                     {monitor.latencyMs != null && (
-                        <span className="font-mono text-xs text-slate-400 dark:text-slate-500">{monitor.latencyMs}ms</span>
+                        <span className="font-mono text-xs text-[var(--muted)]">{monitor.latencyMs}ms</span>
                     )}
 
-                    <span className={`flex items-center gap-1.5 text-xs font-medium ${badge.cls}`}>
+                    <span className="flex items-center gap-1.5 text-xs font-medium" style={{ color: badge.color }}>
                         <badge.Icon className="h-4 w-4" /> {badge.label}
                     </span>
 
@@ -297,7 +291,7 @@ function MonitorRow({ monitor, admin, onEdit, onDelete }) {
                                 onClick={() => onEdit(monitor)}
                                 aria-label={`Edit ${monitor.name}`}
                                 title="Edit"
-                                className="cursor-pointer rounded-full p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+                                className="cursor-pointer rounded-md p-1.5 text-[var(--muted)] transition hover:bg-[var(--surface-2)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                             >
                                 <PencilSquareIcon className="h-4 w-4" />
                             </button>
@@ -306,7 +300,7 @@ function MonitorRow({ monitor, admin, onEdit, onDelete }) {
                                 onClick={() => onDelete(monitor)}
                                 aria-label={`Remove ${monitor.name}`}
                                 title="Remove"
-                                className="cursor-pointer rounded-full p-1.5 text-slate-500 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40 dark:text-slate-400 dark:hover:bg-red-500/10 dark:hover:text-red-300"
+                                className="cursor-pointer rounded-md p-1.5 text-[var(--muted)] transition hover:text-[var(--down)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                             >
                                 <TrashIcon className="h-4 w-4" />
                             </button>
@@ -319,11 +313,11 @@ function MonitorRow({ monitor, admin, onEdit, onDelete }) {
 
             <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 font-mono text-[11px]">
                 <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                    <span className={uptimeTone(monitor.uptime.d30)}>{monitor.uptime.d30}% · 30d</span>
-                    <span className={uptimeTone(monitor.uptime.d7)}>{monitor.uptime.d7}% · 7d</span>
-                    <span className={uptimeTone(monitor.uptime.h24)}>{monitor.uptime.h24}% · 24h</span>
+                    <span style={{ color: uptimeColor(monitor.uptime.d30) }}>{monitor.uptime.d30}% · 30d</span>
+                    <span style={{ color: uptimeColor(monitor.uptime.d7) }}>{monitor.uptime.d7}% · 7d</span>
+                    <span style={{ color: uptimeColor(monitor.uptime.h24) }}>{monitor.uptime.h24}% · 24h</span>
                 </span>
-                <span className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                <span className="flex items-center gap-1.5 text-[var(--muted)]">
                     <ClockIcon className="h-3.5 w-3.5" />
                     {monitor.status === 'pending' ? 'Checking…' : `checked ${fmtRelative(monitor.lastCheckedAt)}`}
                 </span>
@@ -332,7 +326,8 @@ function MonitorRow({ monitor, admin, onEdit, onDelete }) {
             {monitor.status === 'down' && monitor.lastError && (
                 <p
                     title={monitor.lastError}
-                    className="mt-2 truncate rounded-lg bg-red-50 px-3 py-2 font-mono text-[11px] text-red-700 dark:bg-red-500/10 dark:text-red-300"
+                    className="mt-2 truncate rounded-md px-3 py-2 font-mono text-[11px]"
+                    style={{ background: 'color-mix(in srgb, var(--down) 10%, transparent)', color: 'var(--down)' }}
                 >
                     {monitor.lastError}
                 </p>
@@ -343,15 +338,19 @@ function MonitorRow({ monitor, admin, onEdit, onDelete }) {
 
 function MonitorSkeleton() {
     return (
-        <div className="animate-pulse py-5 border-b border-slate-200 last:border-0 dark:border-slate-800">
+        <div className="animate-pulse border-b border-[var(--line)] py-5 last:border-0">
             <div className="mb-3 flex items-center justify-between gap-3">
-                <div className="h-4 w-40 rounded bg-slate-200 dark:bg-slate-800" />
-                <div className="h-4 w-14 rounded bg-slate-200 dark:bg-slate-800" />
+                <div className="h-4 w-40 rounded bg-[var(--surface-2)]" />
+                <div className="h-4 w-14 rounded bg-[var(--surface-2)]" />
             </div>
-            <div className="h-7 rounded bg-slate-100 dark:bg-slate-900" />
+            <div className="h-7 rounded bg-[var(--surface-2)]" />
         </div>
     );
 }
+
+const inputCls =
+    'mt-2 w-full rounded-md border border-[var(--line)] bg-[var(--bg)] px-4 py-2.5 text-sm text-[var(--text)] placeholder-[var(--muted)] transition focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]';
+const labelCls = 'block text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]';
 
 function MonitorForm({ editing, existingGroups, onSubmit, onCancel }) {
     const [name, setName] = useState(editing?.name ?? '');
@@ -389,57 +388,44 @@ function MonitorForm({ editing, existingGroups, onSubmit, onCancel }) {
     return (
         <form
             onSubmit={handleSubmit}
-            className="mb-6 flex flex-wrap items-end gap-3 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900"
+            className="mb-6 flex flex-wrap items-end gap-3 rounded-lg border border-dashed border-[var(--line)] bg-[var(--surface)] p-4"
         >
-            <p className="basis-full font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-600">
-                Admin · {editing ? 'Edit Monitor' : 'Add Monitor'}
+            <p className="basis-full font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
+                Admin · {editing ? 'Edit monitor' : 'Add monitor'}
             </p>
 
             {isContainerApp && (
-                <p className="basis-full font-mono text-[11px] text-slate-500 dark:text-slate-400">
-                    Container App: {editing.containerApp.name} ({editing.containerApp.resourceGroup}) — auto-discovered.
-                    Status comes from Azure's runningStatus; it is never probed over HTTP (that would wake a
-                    scale-to-zero app). The URL below is only a click-through link.
+                <p className="basis-full font-mono text-[11px] text-[var(--muted)]">
+                    Container App: {editing.containerApp.name} ({editing.containerApp.resourceGroup}) — status comes
+                    from Azure's control plane; it is never probed over HTTP. The URL below is only a display link.
                 </p>
             )}
 
             <label className="flex-1 basis-40">
-                <span className="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-                    Name
-                </span>
-                <input
-                    type="text"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    placeholder="My Website"
-                    className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-950 placeholder-slate-400 transition focus:border-slate-950 focus:outline-none focus:ring-2 focus:ring-slate-950/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder-slate-500 dark:focus:border-white dark:focus:ring-white/10"
-                />
+                <span className={labelCls}>Name</span>
+                <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="My Website" className={inputCls} />
             </label>
 
             <label className="flex-[2] basis-64">
-                <span className="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-                    URL{isContainerApp ? ' (link only)' : ''}
-                </span>
+                <span className={labelCls}>URL{isContainerApp ? ' (link only)' : ''}</span>
                 <input
                     type="url"
                     value={url}
                     onChange={e => setUrl(e.target.value)}
-                    placeholder={isContainerApp ? 'https://example.com (display link, not probed)' : 'https://example.com'}
-                    className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 font-mono text-sm text-slate-950 placeholder-slate-400 transition focus:border-slate-950 focus:outline-none focus:ring-2 focus:ring-slate-950/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder-slate-500 dark:focus:border-white dark:focus:ring-white/10"
+                    placeholder={isContainerApp ? 'https://example.com (display link)' : 'https://example.com'}
+                    className={`${inputCls} font-mono`}
                 />
             </label>
 
             <label className="flex-1 basis-40">
-                <span className="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-                    Group (optional)
-                </span>
+                <span className={labelCls}>Group (optional)</span>
                 <input
                     list="monitor-groups"
                     type="text"
                     value={group}
                     onChange={e => setGroup(e.target.value)}
                     placeholder="e.g. ML Visualizer"
-                    className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-950 placeholder-slate-400 transition focus:border-slate-950 focus:outline-none focus:ring-2 focus:ring-slate-950/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder-slate-500 dark:focus:border-white dark:focus:ring-white/10"
+                    className={inputCls}
                 />
                 <datalist id="monitor-groups">
                     {existingGroups?.map(g => <option key={g} value={g} />)}
@@ -451,7 +437,7 @@ function MonitorForm({ editing, existingGroups, onSubmit, onCancel }) {
                     <button
                         type="button"
                         onClick={onCancel}
-                        className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800"
+                        className="inline-flex cursor-pointer items-center rounded-md border border-[var(--line)] px-5 py-2.5 text-sm font-semibold text-[var(--text)] transition hover:border-[var(--accent)]"
                     >
                         Cancel
                     </button>
@@ -460,46 +446,46 @@ function MonitorForm({ editing, existingGroups, onSubmit, onCancel }) {
                 <button
                     type="submit"
                     disabled={submitting}
-                    className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/30 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 dark:focus-visible:ring-white/30"
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-[var(--text)] px-5 py-2.5 text-sm font-semibold text-[var(--bg)] transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                     <PlusIcon className="h-4 w-4" />
-                    {submitting ? 'Saving…' : editing ? 'Save Changes' : 'Add Monitor'}
+                    {submitting ? 'Saving…' : editing ? 'Save changes' : 'Add monitor'}
                 </button>
             </div>
 
-            {error && <p className="w-full text-sm text-red-600 dark:text-red-400">{error}</p>}
+            {error && <p className="w-full text-sm text-[var(--down)]">{error}</p>}
         </form>
     );
 }
 
-// A named group of monitors — shows a summarized (averaged) uptime and a
-// worst-of status up top, with each member's own row nested underneath.
+// A named group of monitors — summarized (averaged) uptime and worst-of status,
+// with each member nested underneath.
 function GroupSection({ group, admin, onEdit, onDelete }) {
     const badge = BADGE[group.status] ?? BADGE.pending;
 
     return (
-        <div className="border-b border-slate-200 py-5 last:border-0 dark:border-slate-800">
+        <div className="border-b border-[var(--line)] py-5 last:border-0">
             <div className="mb-2 flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-2.5">
                     <StatusDot status={group.status} />
-                    <p className="truncate text-sm font-semibold text-slate-950 dark:text-white">{group.name}</p>
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[10px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                    <p className="truncate text-sm font-semibold text-[var(--text)]">{group.name}</p>
+                    <span className="rounded-full border border-[var(--line)] px-2 py-0.5 font-mono text-[10px] font-medium text-[var(--muted)]">
                         {group.monitors.length} services
                     </span>
                 </div>
 
-                <span className={`flex shrink-0 items-center gap-1.5 text-xs font-medium ${badge.cls}`}>
+                <span className="flex shrink-0 items-center gap-1.5 text-xs font-medium" style={{ color: badge.color }}>
                     <badge.Icon className="h-4 w-4" /> {badge.label}
                 </span>
             </div>
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px]">
-                <span className={uptimeTone(group.uptime.d30)}>{group.uptime.d30}% · 30d avg</span>
-                <span className={uptimeTone(group.uptime.d7)}>{group.uptime.d7}% · 7d avg</span>
-                <span className={uptimeTone(group.uptime.h24)}>{group.uptime.h24}% · 24h avg</span>
+                <span style={{ color: uptimeColor(group.uptime.d30) }}>{group.uptime.d30}% · 30d avg</span>
+                <span style={{ color: uptimeColor(group.uptime.d7) }}>{group.uptime.d7}% · 7d avg</span>
+                <span style={{ color: uptimeColor(group.uptime.h24) }}>{group.uptime.h24}% · 24h avg</span>
             </div>
 
-            <div className="mt-3 ml-2 space-y-1 border-l-2 border-slate-100 pl-4 dark:border-slate-900">
+            <div className="mt-3 ml-2 space-y-1 border-l border-[var(--line)] pl-4">
                 {group.monitors.map(monitor => (
                     <MonitorRow key={monitor._id} monitor={monitor} admin={admin} onEdit={onEdit} onDelete={onDelete} />
                 ))}
@@ -523,7 +509,7 @@ export default function StatusPage() {
                 if (data) setReport(data);
             })
             .catch(() => {
-                // status page stays on the last known report if a poll fails
+                // keep the last known report if a poll fails
             });
     }, []);
 
@@ -603,14 +589,14 @@ export default function StatusPage() {
         : null;
 
     return (
-        <div className="space-y-10 py-10 lg:py-14">
-            <section className="mx-auto max-w-4xl px-6 lg:px-8">
+        <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
+            <div className="mx-auto max-w-3xl px-6 py-10 lg:py-14">
                 <div className="mb-6 flex items-center gap-3">
                     <div>
-                        <p className="font-mono text-xs font-semibold uppercase tracking-[0.3em] text-slate-400 dark:text-slate-500">
+                        <p className="font-mono text-xs font-semibold uppercase tracking-[0.3em] text-[var(--muted)]">
                             system.status()
                         </p>
-                        <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950 dark:text-white">Status</h1>
+                        <h1 className="mt-1 text-3xl font-bold tracking-tight text-[var(--text)]">Status</h1>
                     </div>
 
                     <div className="flex-1" />
@@ -620,7 +606,7 @@ export default function StatusPage() {
                         onClick={handleRefresh}
                         aria-label="Refresh"
                         title="Refresh"
-                        className="cursor-pointer rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+                        className="cursor-pointer rounded-md p-2 text-[var(--muted)] transition hover:bg-[var(--surface-2)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                     >
                         <ArrowPathIcon className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`} />
                     </button>
@@ -630,22 +616,14 @@ export default function StatusPage() {
 
                 {report && monitors.length > 0 && (
                     <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                        <StatTile label="Services Up" value={`${upCount}/${monitors.length}`} Icon={ServerIcon} />
-                        <StatTile
-                            label="Avg Uptime · 30d"
-                            value={avgUptime != null ? `${avgUptime}%` : '—'}
-                            Icon={ChartBarIcon}
-                        />
-                        <StatTile
-                            label="Avg Latency"
-                            value={avgLatency != null ? `${avgLatency}ms` : '—'}
-                            Icon={BoltIcon}
-                        />
+                        <StatTile label="Services up" value={`${upCount}/${monitors.length}`} Icon={ServerIcon} />
+                        <StatTile label="Avg uptime · 30d" value={avgUptime != null ? `${avgUptime}%` : '—'} Icon={CheckCircleIcon} />
+                        <StatTile label="Avg latency" value={avgLatency != null ? `${avgLatency}ms` : '—'} Icon={ClockIcon} />
                     </div>
                 )}
 
-                {admin && (
-                    editingMonitor ? (
+                {admin &&
+                    (editingMonitor ? (
                         <MonitorForm
                             key={editingMonitor._id}
                             editing={editingMonitor}
@@ -655,13 +633,12 @@ export default function StatusPage() {
                         />
                     ) : (
                         <MonitorForm key="new" existingGroups={existingGroups} onSubmit={handleCreate} />
-                    )
-                )}
+                    ))}
 
-                <div className="rounded-[2rem] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
-                    <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 dark:border-slate-900">
-                        <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-600">
-                            Monitored Services
+                <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)]">
+                    <div className="flex items-center justify-between border-b border-[var(--line)] px-6 py-4">
+                        <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
+                            Monitored services
                         </p>
                         <UptimeLegend />
                     </div>
@@ -689,8 +666,8 @@ export default function StatusPage() {
 
                         {report && monitors.length === 0 && (
                             <div className="flex flex-col items-center gap-2 py-14 text-center">
-                                <ServerIcon className="h-8 w-8 text-slate-300 dark:text-slate-700" />
-                                <p className="text-sm text-slate-500 dark:text-slate-400">No monitors configured yet.</p>
+                                <ServerIcon className="h-8 w-8 text-[var(--line)]" />
+                                <p className="text-sm text-[var(--muted)]">No monitors configured yet.</p>
                             </div>
                         )}
 
@@ -706,11 +683,11 @@ export default function StatusPage() {
 
                 <a
                     href={`${location.protocol}//${location.host.replace(/^status\./, '')}`}
-                    className="mt-6 inline-flex items-center gap-1.5 text-xs text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                    className="mt-6 inline-flex items-center gap-1.5 text-xs text-[var(--muted)] transition hover:text-[var(--accent)]"
                 >
                     <ArrowLeftIcon className="h-3.5 w-3.5" /> Back to Woofi Developments
                 </a>
-            </section>
+            </div>
         </div>
     );
 }
