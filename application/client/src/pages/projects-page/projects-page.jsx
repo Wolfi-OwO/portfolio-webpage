@@ -140,7 +140,7 @@ export default function ProjectsPage() {
     return (
         <div className="space-y-4 py-1 lg:py-2 w-full">
             <section className="mx-auto flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between px-6">
-                <div className="max-w-2xl space-y-2">
+                <div className="max-w-4xl space-y-2">
                     <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-white">
                         Projects
                     </h1>

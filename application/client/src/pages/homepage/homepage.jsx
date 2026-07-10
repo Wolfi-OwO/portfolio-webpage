@@ -138,7 +138,7 @@ export default function Homepage() {
       {booting && <LoadingScreen onDone={() => setBooting(false)} />}
 
       <div
-        className={`mx-auto max-w-2xl px-6 py-12 lg:py-16 ${booting ? "" : "animate-fade-up"}`}
+        className={`mx-auto max-w-4xl px-6 py-12 lg:py-16 ${booting ? "" : "animate-fade-up"}`}
       >
         <section className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-6 sm:p-8">
           <div className="flex items-start gap-5">

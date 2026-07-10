@@ -121,7 +121,7 @@ export default function ContactPage() {
     );
 
     return (
-        <div className="mx-auto max-w-2xl px-6 py-12 lg:py-16">
+        <div className="mx-auto max-w-4xl px-6 py-12 lg:py-16">
             <h1 className="text-2xl font-semibold tracking-tight text-[var(--text)] sm:text-3xl">
                 <FormattedMessage
                     id="contact.title"

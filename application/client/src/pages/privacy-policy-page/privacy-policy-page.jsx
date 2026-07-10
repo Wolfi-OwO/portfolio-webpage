@@ -11,8 +11,8 @@ export default function ImprintPage() {
 
     return (
         <div className="space-y-14 py-10 lg:py-14">
-            <section className="mx-auto max-w-4xl px-6 lg:px-8">
-                <div className="max-w-2xl space-y-4">
+            <section className="mx-auto max-w-8xl px-6 lg:px-8">
+                <div className="max-w-4xl space-y-4">
                     <p className="text-sm uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
                         <FormattedMessage
                             id="imprint.label"
@@ -38,7 +38,7 @@ export default function ImprintPage() {
             </section>
 
 
-            <section className="mx-auto max-w-4xl px-6 lg:px-8">
+            <section className="mx-auto max-w-8xl px-6 lg:px-8">
                 <div className="space-y-10 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-950">
 
                     <Section
