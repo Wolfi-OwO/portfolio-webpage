@@ -1,33 +1,23 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
-import { LiveStatusLine } from '../../components/identity.jsx';
 import { IDENTITY, SOCIALS } from '../../utils/identity.js';
 
-const channels = [
-    { key: 'email', note: 'Best for project inquiries and freelance work.' },
-    { key: 'github', note: 'Open-source work and personal projects.' },
-    { key: 'linkedin', note: 'Professional network and career updates.' },
-    { key: 'discord', note: 'Quickest for a casual question. Click to copy my handle.' },
-];
+const notes = {
+    email: 'Best for project work. I read it every day.',
+    github: 'Everything I build in the open.',
+    linkedin: 'Work history, if you need it.',
+    discord: 'Fastest for a quick question. Click to copy.',
+};
 
 const facts = [
-    { label: 'Response time', value: '24–48h' },
-    { label: 'Based in', value: 'Austria' },
-    { label: 'Availability', value: 'Open' },
+    ['Reply time', '1-2 days'],
+    ['Based in', 'Carinthia, Austria'],
+    ['Availability', 'Open to work'],
 ];
 
-function ArrowIcon(props) {
-    return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
-            <path d="M7 17 17 7" />
-            <path d="M8 7h9v9" />
-        </svg>
-    );
-}
-
-/** One reachable channel. Links navigate; Discord copies, because a username isn't a URL. */
-function ChannelCard({ social, note }) {
+/** One channel per row. Links navigate; Discord copies, because it isn't a URL. */
+function Channel({ social, note }) {
     const [copied, setCopied] = useState(false);
 
     useEffect(() => {
@@ -36,37 +26,39 @@ function ChannelCard({ social, note }) {
         return () => clearTimeout(id);
     }, [copied]);
 
-    const body = (
+    const inner = (
         <>
-            <div className="flex items-center justify-between">
-                <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--line)] bg-[var(--surface-2)] text-[var(--muted)] transition group-hover:border-[var(--accent)] group-hover:text-[var(--accent)]">
-                    <social.Icon className="h-5 w-5" />
-                </span>
+            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[var(--line)] text-[var(--muted)] transition group-hover:border-[var(--accent)] group-hover:text-[var(--accent)]">
+                <social.Icon className="h-4 w-4" />
+            </span>
 
-                <span className="font-mono text-[11px] text-[var(--muted)] transition group-hover:text-[var(--accent)]">
-                    {social.copy ? (copied ? 'copied' : 'copy') : <ArrowIcon className="h-4 w-4" />}
+            <span className="min-w-0 flex-1">
+                <span className="block text-sm font-medium text-[var(--text)]">{social.label}</span>
+                <span className="mt-0.5 block break-all font-mono text-sm text-[var(--accent)]">
+                    {social.copy && copied ? 'Copied to clipboard' : social.value}
                 </span>
-            </div>
-
-            <p className="mt-6 font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">{social.label}</p>
-            {/* break-all, not truncate — a contact address you can't read in full is useless. */}
-            <p className="mt-1.5 break-all font-display text-lg font-semibold text-[var(--text)]">{social.value}</p>
-            <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{note}</p>
+                <span className="mt-1 block text-sm text-[var(--muted)]">{note}</span>
+            </span>
         </>
     );
 
     const cls =
-        'group flex flex-col rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 text-left transition hover:-translate-y-1 hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] motion-reduce:hover:translate-y-0';
+        'group flex w-full items-start gap-4 border-b border-[var(--line)] py-4 text-left first:pt-0 last:border-0 last:pb-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]';
 
     if (!social.href) {
         return (
             <button
                 type="button"
-                onClick={() => navigator.clipboard.writeText(social.copy).then(() => setCopied(true), () => setCopied(false))}
-                aria-label={`Copy ${social.label} handle ${social.value}`}
+                onClick={() =>
+                    navigator.clipboard.writeText(social.copy).then(
+                        () => setCopied(true),
+                        () => setCopied(false),
+                    )
+                }
+                aria-label={`Copy Discord handle ${social.value}`}
                 className={`${cls} cursor-pointer`}
             >
-                {body}
+                {inner}
             </button>
         );
     }
@@ -78,7 +70,7 @@ function ChannelCard({ social, note }) {
             rel={social.href.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
             className={cls}
         >
-            {body}
+            {inner}
         </a>
     );
 }
@@ -89,72 +81,43 @@ export default function ContactPage() {
         'Get in touch about freelance projects, collaborations, and modern web engineering work. Usually responds within 24-48 hours.',
     );
 
-    const bySocial = key => SOCIALS.find(s => s.key === key);
-
     return (
-        <div className="relative">
-            <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-x-0 top-0 h-[360px] bg-[radial-gradient(60%_60%_at_50%_0%,var(--glow),transparent_70%)]"
-            />
+        <div className="mx-auto max-w-2xl px-6 py-12 lg:py-16">
+            <h1 className="text-2xl font-semibold tracking-tight text-[var(--text)] sm:text-3xl">Get in touch</h1>
 
-            <div className="relative mx-auto max-w-5xl space-y-16 px-6 py-12 lg:py-20">
-                <section className="max-w-3xl">
-                    <p className="font-mono text-xs uppercase tracking-[0.28em] text-[var(--muted)]">get in touch</p>
+            <p className="mt-4 leading-7 text-[var(--muted)]">
+                Freelance work, collaboration, or a question about something I built. Pick whichever channel suits
+                you. I usually reply within a day or two.
+            </p>
 
-                    <h1 className="mt-4 font-display text-5xl font-bold tracking-tight text-[var(--text)] sm:text-6xl">
-                        Let&apos;s build something.
-                    </h1>
+            <section className="mt-8 rounded-lg border border-[var(--line)] bg-[var(--surface)] p-6">
+                {SOCIALS.map(social => (
+                    <Channel key={social.key} social={social} note={notes[social.key]} />
+                ))}
+            </section>
 
-                    <p className="mt-6 text-lg leading-8 text-[var(--muted)]">
-                        Freelance work, collaborations, or just a question about something I&apos;ve built — pick
-                        whichever channel suits you. I usually reply within a day or two.
-                    </p>
-
-                    <div className="mt-8 flex flex-wrap items-center gap-3">
-                        <a
-                            href={`mailto:${IDENTITY.email}`}
-                            className="inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
-                        >
-                            Send an email
-                        </a>
-
-                        <Link
-                            to="/projects"
-                            className="inline-flex items-center rounded-full border border-[var(--line)] bg-[var(--surface)] px-6 py-3 text-sm font-semibold text-[var(--text)] transition hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                        >
-                            View projects
-                        </Link>
+            <dl className="mt-8 grid gap-px overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--line)] sm:grid-cols-3">
+                {facts.map(([label, value]) => (
+                    <div key={label} className="bg-[var(--surface)] p-5">
+                        <dt className="text-xs uppercase tracking-wide text-[var(--muted)]">{label}</dt>
+                        <dd className="mt-1.5 text-sm font-medium text-[var(--text)]">{value}</dd>
                     </div>
-                </section>
+                ))}
+            </dl>
 
-                <section>
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        {channels.map(channel => (
-                            <ChannelCard key={channel.key} social={bySocial(channel.key)} note={channel.note} />
-                        ))}
-                    </div>
-                </section>
-
-                <section className="grid gap-px overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--line)] sm:grid-cols-3">
-                    {facts.map(fact => (
-                        <div key={fact.label} className="bg-[var(--surface)] p-6">
-                            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">
-                                {fact.label}
-                            </p>
-                            <p className="mt-2 font-display text-2xl font-bold text-[var(--text)]">{fact.value}</p>
-                        </div>
-                    ))}
-                </section>
-
-                <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6">
-                    <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--muted)]">
-                        while you&apos;re here
-                    </p>
-                    <div className="mt-3">
-                        <LiveStatusLine />
-                    </div>
-                </section>
+            <div className="mt-10 flex flex-wrap gap-3">
+                <a
+                    href={`mailto:${IDENTITY.email}`}
+                    className="rounded-md bg-[var(--text)] px-4 py-2 text-sm font-medium text-[var(--bg)] transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                >
+                    Send an email
+                </a>
+                <Link
+                    to="/projects"
+                    className="rounded-md border border-[var(--line)] px-4 py-2 text-sm font-medium text-[var(--text)] transition hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                >
+                    View projects
+                </Link>
             </div>
         </div>
     );

@@ -21,25 +21,20 @@ export default {
     'footer.contact': 'Kontakt',
     'footer.rightsReserved': 'Alle Rechte vorbehalten.',
 
-    'homepage.role': 'Fullstack-Entwickler',
-    'homepage.location': 'Kärnten, Österreich',
+    'homepage.role': 'Fullstack-Entwickler / Kärnten, Österreich',
     'homepage.bio':
-        'Ich baue Full-Stack-Webanwendungen – React im Frontend, Node und MongoDB dahinter – und betreibe sie anschließend selbst auf Azure Container Apps. Die Zeile unten ist live: Diese Seite berichtet über ihre eigene Verfügbarkeit.',
-    'homepage.heyTitle': 'Hey!',
-    'homepage.heyText':
-        'Im Internet nennt man mich Woofi. Ich bin angehender Softwareentwickler und habe mich in die gesamte Kette verliebt – ein Interface entwerfen, die API dahinter bauen, in die Cloud ausliefern und beobachten, ob alles läuft.',
+        'Ich bin Softwareentwickler aus Kärnten. 2026 habe ich die HTL Villach mit Reife- und Diplomprüfung im Bereich Informatik abgeschlossen, und bei Infineon Technologies habe ich Praktika als Softwareentwickler gemacht. Ich schreibe Webanwendungen mit React im Frontend und Node dahinter, packe sie in Container und betreibe sie auf Azure.',
     'homepage.viewProjects': 'Projekte ansehen',
     'homepage.contactMe': 'Kontakt aufnehmen',
-    'homepage.buildEyebrow': 'was ich baue',
-    'homepage.highlightFrontendTitle': 'Frontend Engineering',
-    'homepage.highlightFrontendDescription':
-        'Schnelle, moderne Oberflächen mit React, Tailwind CSS und skalierbaren Komponentensystemen.',
-    'homepage.highlightBackendTitle': 'Backend Development',
-    'homepage.highlightBackendDescription':
-        'Zuverlässige APIs, Authentifizierungssysteme und performante Backend-Architekturen.',
-    'homepage.highlightOpsTitle': 'Betrieb in Produktion',
-    'homepage.highlightOpsDescription':
-        'Container auf Azure, CI/CD und Uptime-Monitoring – der Teil, der beginnt, wenn der Code geschrieben ist.',
+    'homepage.workTitle': 'Woran ich arbeite',
+    'homepage.workFrontendTitle': 'Frontend',
+    'homepage.workFrontendBody':
+        'React, Tailwind, Komponentensysteme. Meist Oberflächen, die täglich benutzt werden.',
+    'homepage.workBackendTitle': 'Backend',
+    'homepage.workBackendBody': 'Express und MongoDB. REST-APIs, Auth und das Datenmodell darunter.',
+    'homepage.workOpsTitle': 'Betrieb',
+    'homepage.workOpsBody':
+        'Docker-Images, GitHub Actions, Azure Container Apps. Ich betreibe, was ich baue.',
 
     'services.title': 'Leistungen',
     'services.subtitle':

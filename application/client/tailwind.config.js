@@ -6,7 +6,6 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                display: ['"Bricolage Grotesque"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
                 sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'],
                 mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
             },
