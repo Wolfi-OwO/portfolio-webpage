@@ -175,7 +175,7 @@ function StatTile({ label, value, Icon }) {
         <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
             <div className="flex items-center gap-1.5 text-[var(--muted)]">
                 <Icon className="h-4 w-4" />
-                <p className="text-xs font-medium uppercase tracking-wider">{label}</p>
+                <p className="text-xs font-medium">{label}</p>
             </div>
             <p className="mt-2 font-mono text-2xl font-semibold text-[var(--text)]">{value}</p>
         </div>
@@ -590,14 +590,9 @@ export default function StatusPage() {
 
     return (
         <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
-            <div className="mx-auto max-w-3xl px-6 py-10 lg:py-14">
+            <div className="mx-auto max-w-2xl px-6 py-12 lg:py-16">
                 <div className="mb-6 flex items-center gap-3">
-                    <div>
-                        <p className="font-mono text-xs font-semibold uppercase tracking-[0.3em] text-[var(--muted)]">
-                            system.status()
-                        </p>
-                        <h1 className="mt-1 text-3xl font-bold tracking-tight text-[var(--text)]">Status</h1>
-                    </div>
+                    <h1 className="text-2xl font-semibold tracking-tight text-[var(--text)] sm:text-3xl">Status</h1>
 
                     <div className="flex-1" />
 
@@ -635,15 +630,13 @@ export default function StatusPage() {
                         <MonitorForm key="new" existingGroups={existingGroups} onSubmit={handleCreate} />
                     ))}
 
-                <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)]">
-                    <div className="flex items-center justify-between border-b border-[var(--line)] px-6 py-4">
-                        <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
-                            Monitored services
-                        </p>
+                <div className="mt-2">
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                        <h2 className="text-lg font-semibold text-[var(--text)]">Monitored services</h2>
                         <UptimeLegend />
                     </div>
 
-                    <div className="px-6">
+                    <div>
                         {groups.map(group => (
                             <GroupSection
                                 key={group.name}
