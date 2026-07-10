@@ -8,6 +8,8 @@ services:
             dockerfile: server/dockerfile
         # package.json lives at /app/server (the image keeps the repo's
         # server/ + client/ nesting), so npm must run from there.
+        profiles:
+            - fill-demo-data
         working_dir: /app/server
         entrypoint: 'npm'
         command: 'run fill-demo-data'
@@ -31,9 +33,8 @@ services:
             timeout: 10s
             retries: 3
             start_period: 40s
-        depends_on:
-            fill-demo-data:
-                condition: service_completed_successfully
+        profiles:
+            - production
     mongodb:
         image: mongo:latest
         container_name: portfolio-database
@@ -47,6 +48,8 @@ services:
             - 27017:27017
     # Azure Storage emulator — the Functions runtime requires an AzureWebJobsStorage
     # backend for the Timer trigger's schedule/singleton state. Locally that's Azurite.
+    profiles:
+    - production
     azurite:
         image: mcr.microsoft.com/azure-storage/azurite:latest
         container_name: portfolio-azurite
@@ -62,6 +65,8 @@ services:
             dockerfile: dockerfile
         container_name: portfolio-monitor-checker
         restart: unless-stopped
+        profiles:
+            - production
         environment:
             # Same database the web service reads from — checker writes, status page reads.
             - MONGODB_CONNECTION_STRING=mongodb+srv://woofi:${MONGODB_PASSWORD}@portfolio.lorxr25.mongodb.net/portfolio
@@ -81,5 +86,3 @@ services:
         depends_on:
             azurite:
                 condition: service_started
-            fill-demo-data:
-                condition: service_completed_successfully

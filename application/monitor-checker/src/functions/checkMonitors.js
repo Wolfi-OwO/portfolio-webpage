@@ -40,16 +40,6 @@ const MonitorCheckModel = mongoose.models.MonitorCheck ?? mongoose.model('Monito
 
 const REQUEST_TIMEOUT_MS = 10000;
 
-// Resource groups to auto-discover Container Apps from. Comma-separated so a
-// new one can be added via app setting alone (no redeploy) — it still needs
-// its own Reader role assignment for this Function's managed identity.
-const CONTAINER_APP_RESOURCE_GROUPS = (
-    process.env.CONTAINER_APP_RESOURCE_GROUPS || 'portfolio-webpage-rg,netviz-rg,dsai-5bhif-app'
-)
-    .split(',')
-    .map(rg => rg.trim())
-    .filter(Boolean);
-
 // Consumption-plan instances get reused across invocations while warm, so
 // caching the connection/client on module scope avoids recreating them every tick.
 let connecting = null;
@@ -94,34 +84,10 @@ async function checkMonitor(monitor) {
 //    from ever scaling back down. Instead we read the state of the app's live
 //    production revision from ARM without touching the app. A revision idle at
 //    "ScaledToZero" is healthy and available on demand — that's up, not an outage.
-async function discoverContainerApps(client, context) {
-    const discovered = [];
-    for (const resourceGroup of CONTAINER_APP_RESOURCE_GROUPS) {
-        try {
-            for await (const containerApp of client.containerApps.listByResourceGroup(resourceGroup)) {
-                discovered.push({ resourceGroup, name: containerApp.name });
-            }
-        } catch (err) {
-            context.error(`monitor-checker: failed listing container apps in ${resourceGroup}: ${err.message}`);
-        }
-    }
-    return discovered;
-}
-
-// Creates a Monitor for any newly-seen Container App; never overwrites an
-// existing one, so admin edits (rename, group assignment) stick. This is what
-// makes adding a Container App "zero code changes" — it just shows up.
-async function syncContainerAppMonitors(discovered) {
-    await Promise.all(
-        discovered.map(({ resourceGroup, name }) =>
-            MonitorModel.findOneAndUpdate(
-                { 'containerApp.resourceGroup': resourceGroup, 'containerApp.name': name },
-                { $setOnInsert: { name, containerApp: { resourceGroup, name } } },
-                { upsert: true },
-            ),
-        ),
-    );
-}
+//
+//    Monitors come solely from the seeded list (database/data/monitors.json);
+//    we do NOT auto-discover Container Apps, so each app appears exactly once,
+//    with the name/URL/group the admin defined — no ARM-named duplicates.
 
 // PR/preview revisions are created by the sibling repos' pr-preview workflow
 // with `--revision-suffix pr-<number>-<sha>`, so their names contain "--pr-<n>-".
@@ -214,9 +180,8 @@ async function checkContainerAppMonitor(monitor, client, context) {
 async function runCheckCycle(context) {
     const client = getArmClient();
 
-    const discovered = await discoverContainerApps(client, context);
-    await syncContainerAppMonitors(discovered);
-
+    // Container-app monitors are checked via ARM (credentials), plain-URL
+    // monitors via HTTP — one check per seeded monitor, no discovery.
     const monitors = await MonitorModel.find();
     const results = await Promise.allSettled(
         monitors.map(monitor =>
@@ -226,8 +191,7 @@ async function runCheckCycle(context) {
 
     const failed = results.filter(r => r.status === 'rejected').length;
     context.log(
-        `monitor-checker: checked ${monitors.length} monitor(s), discovered ${discovered.length} container app(s)` +
-            (failed ? `, ${failed} check(s) threw` : ''),
+        `monitor-checker: checked ${monitors.length} monitor(s)` + (failed ? `, ${failed} check(s) threw` : ''),
     );
 }
 
