@@ -15,7 +15,6 @@ export default {
   "language.en": "English",
   "language.de": "Deutsch",
 
-  "footer.about": "Über mich",
   "footer.status": "Status",
   "footer.privacyPolicy": "Datenschutz",
   "footer.contact": "Kontakt",
@@ -24,40 +23,62 @@ export default {
   "homepage.role": "Fullstack-Entwickler / Kärnten, Österreich",
   "homepage.bio":
     "Ich bin Softwareentwickler aus Kärnten. 2026 habe ich die HTL Villach mit Reife- und Diplomprüfung im Bereich Informatik abgeschlossen, und bei Infineon Technologies habe ich Praktika als Softwareentwickler gemacht. Ich schreibe Webanwendungen mit React im Frontend und Node dahinter, packe sie in Container und betreibe sie auf Azure.",
-  "homepage.viewProjects": "Projekte ansehen",
-  "homepage.contactMe": "Kontakt aufnehmen",
-  "homepage.workTitle": "Woran ich arbeite",
-  "homepage.workFrontendTitle": "Frontend",
-  "homepage.workFrontendBody":
-    "React, Tailwind, Komponentensysteme. Meist Oberflächen, die täglich benutzt werden.",
-  "homepage.workBackendTitle": "Backend",
-  "homepage.workBackendBody":
-    "Express und MongoDB. REST-APIs, Auth und das Datenmodell darunter.",
-  "homepage.workOpsTitle": "Betrieb",
-  "homepage.workOpsBody":
-    "Docker-Images, GitHub Actions, Azure Container Apps. Ich betreibe, was ich baue.",
   "homepage.technologies": "Technologien, die ich nutze:",
-  "services.title": "Leistungen",
-  "services.subtitle":
-    "Fullstack-Webentwicklung mit modernen Technologien und einem Blick für KI-gestützte, zukunftsfähige Lösungen.",
-  "services.frontend.title": "Frontend Development",
-  "services.frontend.description":
-    "Moderne, reaktionsschnelle Oberflächen mit React und Tailwind CSS – von responsivem Design bis zu durchdachten Komponentensystemen.",
-  "services.backend.title": "Backend Development",
-  "services.backend.description":
-    "Skalierbare APIs und Services mit Node.js, Express und MongoDB, inklusive Authentifizierung und sauberer Architektur.",
-  "services.cloud.title": "Cloud & DevOps",
-  "services.cloud.description":
-    "Containerisierte Deployments mit Docker und Azure Container Apps sowie automatisierte CI/CD-Pipelines über GitHub Actions.",
-  "services.ai.title": "KI-gestützte Webanwendungen",
-  "services.ai.description":
-    "Next-Gen-Webprojekte mit Fokus auf moderne, KI-unterstützte Features und zukunftsorientierte Entwicklungsansätze.",
 
-  "about.title": "Werdegang",
-  "about.subtitle": "Ausbildung und beruflicher Werdegang.",
-  "about.educationHeading": "Ausbildung",
-  "about.experienceHeading": "Berufserfahrung",
-  "about.plannedBadge": "Geplant",
+  "availability.badge.openToWork": "Open to work",
+  "availability.badge.openForCommissions": "Offen für Aufträge",
+  "availability.heading": "Verfügbarkeit",
+  "availability.intro":
+    "Ich bin offen für Arbeit, will aber beim Zeitplan ehrlich sein: Bis Ende September bin ich im Praktikum, ab Oktober leiste ich meine sechs Monate beim Bundesheer. Kleinere Freelance-Aufträge gehen nebenher — alles Größere startet realistisch im April 2027.",
+  "availability.servicesButton": "Was ich baue und was es kostet",
+  "availability.new": "Neuer Eintrag",
+  "availability.form.new": "Neuer Eintrag",
+  "availability.form.edit": "Eintrag bearbeiten",
+  "availability.error.required": "Titel und Startdatum sind erforderlich.",
+  "availability.error.dateOrder": "Das Enddatum darf nicht vor dem Startdatum liegen.",
+  "availability.today": "heute",
+  "availability.now": "jetzt",
+  "availability.openEnded": "offen",
+  "availability.weeks": "{count, plural, one {# Woche} other {# Wochen}}",
+  "availability.months": "{count, plural, one {# Monat} other {# Monate}}",
+  "availability.kind.work": "Arbeit",
+  "availability.kind.military": "Bundesheer",
+  "availability.kind.education": "Ausbildung",
+  "availability.kind.available": "Verfügbar",
+
+  "activity.heading": "Woran ich gerade baue",
+  "activity.total": "{count} Beiträge seit {since}",
+  "activity.loading": "lädt…",
+  "activity.scrollHint": "← scrollen für frühere Jahre",
+  "activity.startReached": "Anfang der Historie",
+  "activity.contributions": "{count} Beiträge",
+  "activity.unavailable": "nicht verbunden",
+  "activity.recent": "Zuletzt bearbeitet",
+  "activity.less": "weniger",
+  "activity.more": "mehr",
+  "activity.source.all": "Alle",
+  "activity.source.github": "GitHub",
+  "activity.source.gitlab": "GitLab",
+
+  "services.label": "Was ich baue",
+  "services.title": "Leistungen",
+  "services.intro":
+    "Websites, Webanwendungen, Android-Apps in Kotlin und Desktop-Oberflächen mit JavaFX oder .NET. Die Preise unten sind Startpunkte, keine Angebote — was ein Projekt wirklich kostet, hängt davon ab, was es können muss. Das sage ich dir lieber ehrlich nach einem Gespräch, als so zu tun, als wüsste es eine Zahl auf einer Seite.",
+  "services.hourlyRate": "Stundensatz: {rate} € / h",
+  "services.priceFrom": "ab {price} €",
+  "services.byTheHour": "{rate} € / h",
+  "services.new": "Neue Leistung",
+  "services.error.required": "Titel und Beschreibung sind erforderlich.",
+  "services.form.edit": "Leistung bearbeiten",
+  "services.form.new": "Neue Leistung",
+  "services.category.web": "Web",
+  "services.category.mobile": "Mobile",
+  "services.category.desktop": "Desktop",
+  "services.category.other": "Sonstiges",
+  "services.cta.title": "Nicht sicher, was davon du brauchst?",
+  "services.cta.text":
+    "Beschreib mir, was passieren soll, und ich sage dir, was es braucht, um es zu bauen — auch dann, wenn es sich nicht lohnt. Beachte: Bis Ende September bin ich im Praktikum und danach bis April 2027 beim Bundesheer, größere Projekte starten also realistisch danach. Kleinere Arbeiten dazwischen sind möglich.",
+  "services.cta.button": "Kontakt aufnehmen",
 
   "contact.title": "Kontakt aufnehmen",
   "contact.description":
@@ -75,9 +96,6 @@ export default {
   "contact.replyTime": "Antwortzeit",
   "contact.location": "Standort",
   "contact.availability": "Verfügbarkeit",
-
-  "contact.emailButton": "E-Mail senden",
-  "contact.projectsButton": "Projekte ansehen",
 
   "privacy.label": "Rechtliches",
   "privacy.title": "Datenschutzerklärung",
