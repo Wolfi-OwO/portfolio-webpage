@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { FormattedMessage } from 'react-intl';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import { IDENTITY, SOCIALS } from '../../utils/identity.js';
+import AvailabilityTimeline from '../../components/availability-timeline.jsx';
 
 const notes = {
     email: {
@@ -146,6 +147,8 @@ export default function ContactPage() {
                 ))}
             </section>
 
+            <AvailabilityTimeline showIntro={false} showServicesLink={false} />
+
             <dl className="mt-8 grid gap-px overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--line)] sm:grid-cols-3">
                 {facts.map(({ label, value }) => (
                     <div key={label} className="bg-[var(--surface)] p-5">
@@ -159,28 +162,6 @@ export default function ContactPage() {
                     </div>
                 ))}
             </dl>
-
-            <div className="mt-10 flex flex-wrap gap-3">
-                <a
-                    href={`mailto:${IDENTITY.email}`}
-                    className="rounded-md border border-[var(--line)] px-4 py-2 text-sm font-medium text-[var(--text)] transition hover:opacity-90"
-                >
-                    <FormattedMessage
-                        id="contact.emailButton"
-                        defaultMessage="Send an email"
-                    />
-                </a>
-
-                <Link
-                    to="/projects"
-                    className="rounded-md border border-[var(--line)] px-4 py-2 text-sm font-medium text-[var(--text)]  transition hover:opacity-90"
-                >
-                    <FormattedMessage
-                        id="contact.projectsButton"
-                        defaultMessage="View projects"
-                    />
-                </Link>
-            </div>
         </div>
     );
 }

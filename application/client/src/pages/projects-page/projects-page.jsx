@@ -168,7 +168,7 @@ export default function ProjectsPage() {
                 <ProjectForm state={state} dispatch={dispatch} onSubmit={handleSubmit} />
             )}
 
-            <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <section className="grid gap-5 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 4xl:grid-cols-4">
                 {state.projects.map(project => (
                     <ProjectCard
                         key={project._id}
