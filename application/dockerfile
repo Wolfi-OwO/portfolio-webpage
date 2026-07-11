@@ -1,7 +1,7 @@
 # ═══════════════════════════════════════════════════════════════════════════
 # BUILD/RUNTIME STAGE — single-stage build for the Express backend
 # ═══════════════════════════════════════════════════════════════════════════
-FROM node:22-alpine AS backend
+FROM node:26-alpine AS backend
 WORKDIR /app
 
 # Upgrade base packages to get latest security fixes
