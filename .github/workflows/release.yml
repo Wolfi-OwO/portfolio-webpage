@@ -21,7 +21,7 @@ on:
         required: false
 
 permissions:
-  contents: read
+  contents: write # sync-version commits the bumped package.json files back
   id-token: write # required for Azure OIDC login in deploy-to-production
 
 jobs:
@@ -47,6 +47,42 @@ jobs:
           echo "build_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
           echo "Resolved ${IMAGE}:${TAG}"
 
+  sync-version:
+    name: Sync package versions to the tag
+    runs-on: ubuntu-latest
+    needs: resolve-metadata
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The release tag points at a commit, not a branch. Check out the branch
+          # so the version bump has somewhere to land.
+          ref: ${{ github.event.repository.default_branch }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: application/package-lock.json
+
+      # The git tag is the single source of truth for "which version is this?".
+      # Rather than bumping four package.json files by hand (and forgetting one),
+      # the tag is stamped into all of them, lockfiles included.
+      - name: Stamp the version into every package.json
+        working-directory: application
+        run: npm run version:sync -- "${{ needs.resolve-metadata.outputs.tag }}"
+
+      - name: Commit the bump
+        run: |
+          if git diff --quiet; then
+            echo "Versions already match ${{ needs.resolve-metadata.outputs.tag }} — nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add application/package.json application/*/package.json application/package-lock.json application/jobs/package-lock.json
+          git commit -m "chore(release): set version to ${{ needs.resolve-metadata.outputs.tag }}"
+          git push
+
   build-client:
     name: Build client bundle
     runs-on: ubuntu-latest
@@ -57,10 +93,10 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: application/client/package-lock.json
+          cache-dependency-path: application/package-lock.json
 
       - name: Build client bundle
-        working-directory: application/client
+        working-directory: application
         run: |
           npm ci
           npm run build

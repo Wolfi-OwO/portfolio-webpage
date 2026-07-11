@@ -1,0 +1,34 @@
+{
+  "name": "@portfolio/workspace",
+  "version": "6.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Workspace root for the Woofi Developments portfolio. Holds no application code — it ties the deployables together so they share one install, one formatter and one lint command.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Wolfi-OwO/portfolio-webpage.git"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "lint": "npm run lint --workspaces --if-present && npm run lint --prefix jobs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "npm run test --workspaces --if-present",
+    "build": "npm run build --workspace @portfolio/client",
+    "dev": "npm run dev --workspace @portfolio/client",
+    "start": "npm run start --workspace @portfolio/server",
+    "jobs:install": "npm ci --omit=dev --prefix jobs",
+    "version:sync": "node scripts/sync-version.mjs"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.11"
+  }
+}

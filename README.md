@@ -178,10 +178,16 @@ The website is built using the following technologies:
 
 ## Project Structure
 
-`application/` holds three independent deployables — `server/` (the Express API), `client/` (the React frontend) and `monitor-checker/` (an Azure Function that pings monitored URLs on a schedule) — each with its own `package.json`. The structure is organized as follows:
+Everything that runs lives under `application/`, which is an npm workspace. It holds three independent deployables — `server/` (the Express API), `client/` (the React frontend) and `jobs/` (Azure Functions on a timer) — each with its own `package.json`.
 
 ```txt
 ├── application
+│   ├── package.json          workspace root — tooling only, no application code
+│   ├── package-lock.json     one lockfile for server + client
+│   ├── dockerfile
+│   ├── docker-compose.yaml
+│   ├── scripts
+│   │   └── sync-version.mjs  stamps the git tag into every package.json
 │   ├── server
 │   │   ├── src
 │   │   │   ├── database
@@ -192,26 +198,31 @@ The website is built using the following technologies:
 │   │   │   ├── utils
 │   │   │   └── server.js
 │   │   ├── tests
-│   │   ├── package.json
-│   │   ├── package-lock.json
-│   │   └── eslint.config.js
+│   │   └── package.json
 │   ├── client
-│   ├── monitor-checker
-│   ├── dockerfile
-│   └── docker-compose.yaml
+│   │   └── package.json
+│   └── jobs
+│       ├── src/functions     checkMonitors, syncContributions
+│       ├── package.json
+│       └── package-lock.json its own — see below
+├── .github                   workflows, issue/PR templates, dependabot
+├── CONTRIBUTING.md
 ├── LICENSE
 └── README.md
 ```
+
+**Why `jobs/` is not in the workspace.** `server` and `client` share one install and one lockfile — they are built together into a single image. `jobs` is deliberately left out: the Azure Functions deploy zips that folder _including its `node_modules`_, and a hoisted workspace install would hand Azure a package with no dependencies in it. So it keeps its own lockfile and is installed on its own (`npm ci --prefix jobs`).
 
 - `server/src/database/`: MongoDB connection setup and demo-data seeding
 - `server/src/handlers/`: Request handlers for the backend
 - `server/src/middlewares/`: Auth, error-handling and other Express middleware
 - `server/src/models/`: Mongoose data models and schemas
 - `server/src/routes/`: API route definitions
-- `server/src/utils/`: Utility functions and helpers (logging, health checks, the status-page monitor checker)
-- `server/src/server.js`: Entry point for the backend server
+- `server/src/utils/`: Utility functions and helpers (logging, health checks)
+- `server/src/server.js`: Entry point for the backend server — also serves `client/dist`
 - `server/tests/`: Unit and integration tests
-- `dockerfile`: Instructions for building the backend's Docker image (build context is `application/`, so it can copy `server/` and the pre-built `client/dist`)
-- `docker-compose.yaml`: Local stack (web, MongoDB, Azurite, monitor-checker) — run `docker compose` from `application/`
-- `client/`: The React frontend application (default Vite setup)
-- `monitor-checker/`: A standalone Azure Function (Timer Trigger) that performs the actual uptime pings — see below
+- `client/`: The React frontend (Vite, Tailwind, react-intl)
+- `jobs/`: Azure Functions (Timer Triggers) — uptime pings for the status page, and the GitHub/GitLab contribution sync the heatmap reads from
+- `dockerfile`: Builds the backend image. The build context is `application/`, so it can copy the workspace lockfile, `server/` and the pre-built `client/dist`
+- `docker-compose.yaml`: Local stack (web, MongoDB, Azurite, jobs) — run `docker compose` from `application/`
+- `scripts/sync-version.mjs`: Writes the release tag into every `package.json`, so the four never drift apart

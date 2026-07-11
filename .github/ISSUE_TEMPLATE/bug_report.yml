@@ -1,0 +1,42 @@
+name: Bug report
+description: Something behaves differently than it should.
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected instead.
+      placeholder: |
+        The status page shows every monitor as down, but the services are reachable.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      placeholder: |
+        1. Open https://woofi-developments.at/…
+        2. …
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part
+      options:
+        - Client (React frontend)
+        - Server (Express API)
+        - Jobs (Azure Functions)
+        - Deployment / CI
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Logs, screenshots, browser
+      description: Anything that narrows it down. Never paste tokens or connection strings.

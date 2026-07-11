@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: application/server
+        working-directory: application
 
     services:
       mongodb:
@@ -35,12 +35,12 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: application/server/package-lock.json
+          cache-dependency-path: application/package-lock.json
 
       - run: npm ci
 
       - name: Run tests
-        run: npm test
+        run: npm test --workspace @portfolio/server
 
   build:
     name: Build (client)
@@ -48,7 +48,7 @@ jobs:
     needs: test
     defaults:
       run:
-        working-directory: application/client
+        working-directory: application
 
     steps:
       - uses: actions/checkout@v4
@@ -57,7 +57,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: application/client/package-lock.json
+          cache-dependency-path: application/package-lock.json
 
       - run: npm ci
 

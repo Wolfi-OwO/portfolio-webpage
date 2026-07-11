@@ -1,0 +1,68 @@
+version: 2
+
+# One ecosystem entry per manifest. `application/` covers the workspace (server +
+# client, one lockfile); `application/jobs` is listed separately because it sits
+# outside the workspace and keeps its own lockfile.
+updates:
+  - package-ecosystem: npm
+    directory: /application
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: Europe/Vienna
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      # Patch and minor bumps arrive as one PR per week instead of a dozen —
+      # a wall of individual dependency PRs just gets ignored.
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # Major bumps are deliberate migrations, not something to merge on a Monday.
+      - dependency-name: '*'
+        update-types: [version-update:semver-major]
+
+  - package-ecosystem: npm
+    directory: /application/jobs
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: Europe/Vienna
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  # The workflows pin action versions; these go stale silently otherwise.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels:
+      - ci
+    commit-message:
+      prefix: ci
+
+  - package-ecosystem: docker
+    directory: /application
+    schedule:
+      interval: monthly
+    labels:
+      - docker
+    commit-message:
+      prefix: chore

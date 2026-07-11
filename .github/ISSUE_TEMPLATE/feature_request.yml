@@ -1,0 +1,17 @@
+name: Feature request
+description: Suggest something the site should be able to do.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to achieve that is awkward or impossible today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you have in mind
+      description: A rough sketch is fine — it does not have to be a spec.

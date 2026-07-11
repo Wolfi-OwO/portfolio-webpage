@@ -7,15 +7,21 @@ WORKDIR /app
 # Upgrade base packages to get latest security fixes
 RUN apk upgrade --no-cache
 
-# Install server dependencies first (better layer caching — deps only
-# reinstall when package*.json changes, not on every source edit)
-COPY server/package*.json ./server/
-RUN cd server && npm ci --omit=dev --only=production
+# Install dependencies first (better layer caching — deps only reinstall when a
+# manifest changes, not on every source edit).
+#
+# The three packages are one npm workspace, so there is a single lockfile at the
+# root and `npm ci` has to run from there. `--workspace` narrows the install to
+# the server: the client's build-time deps and the jobs' Azure SDK have no
+# business in the runtime image.
+COPY package.json package-lock.json ./
+COPY server/package.json ./server/
+RUN npm ci --omit=dev --workspace @portfolio/server
 
-# Copy backend source (.dockerignore keeps dev-only files out) and the
-# pre-built client bundle (produced by a separate CI step). Kept at the same
-# relative nesting as the source repo — server/src/server.js walks up to
-# ../../client/dist, so the container layout has to match.
+# Copy backend source (.dockerignore keeps dev-only files out) and the pre-built
+# client bundle (produced by a separate CI step). Kept at the same relative
+# nesting as the source repo — server/src/server.js walks up to ../../client/dist,
+# so the container layout has to match.
 COPY server/. ./server/
 COPY client/dist ./client/dist
 

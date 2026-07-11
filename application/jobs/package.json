@@ -1,8 +1,8 @@
 {
-  "name": "monitor-checker",
-  "version": "0.0.1",
+  "name": "@portfolio/jobs",
+  "version": "6.0.0",
   "private": true,
-  "description": "Azure Function (Timer Trigger) that pings monitored URLs for the Woofi Developments status page.",
+  "description": "Azure Functions (Timer triggers) for Woofi Developments: uptime checks for the status page, and the GitHub/GitLab contribution sync the heatmap reads. NOTE: deliberately NOT part of the application/ npm workspace — the Functions deploy zips this folder including its node_modules, and a hoisted install would leave that zip without dependencies. It therefore keeps its own lockfile and is installed on its own.",
   "type": "module",
   "main": "src/functions/*.js",
   "author": "Kofler Phillip",
@@ -10,7 +10,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/Wolfi-OwO/portfolio-webpage.git",
-    "directory": "application/monitor-checker"
+    "directory": "application/jobs"
   },
   "bugs": {
     "url": "https://github.com/Wolfi-OwO/portfolio-webpage/issues"

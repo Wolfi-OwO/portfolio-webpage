@@ -1,7 +1,7 @@
 {
-  "name": "portfolio-client",
+  "name": "@portfolio/client",
   "private": true,
-  "version": "0.0.1",
+  "version": "6.0.0",
   "description": "React frontend for the Woofi Developments portfolio website.",
   "type": "module",
   "author": "Kofler Phillip",

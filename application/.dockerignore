@@ -2,18 +2,25 @@
 .gitignore
 *.md
 
+# The workspace's hoisted dependencies: the image installs its own (production
+# only), so shipping the dev tree would bloat it and could even shadow that install.
+node_modules
+
 # frontend — only the built dist is needed in the image
 client
 !client/dist
 
-# the monitor-checker Azure Function is its own separate deployable
-monitor-checker
+# the background jobs (Azure Functions) are their own deployable
+jobs
 
-# build/dev-only files at the application root
+# build/dev-only files at the workspace root
 .env
 .env.example
 dockerfile
 docker-compose.yaml
+scripts
+.prettierrc.json
+.prettierignore
 
 # server dev-only files
 server/node_modules
@@ -22,4 +29,6 @@ server/coverage
 server/tests
 server/requests
 server/eslint.config.js
+server/.prettierrc.json
+server/.prettierignore
 server/results.sarif

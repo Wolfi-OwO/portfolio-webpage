@@ -64,14 +64,15 @@ services:
     restart: always
     attach: false
     command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0
-  # The standalone monitor-checker Azure Function (Timer trigger). Runs the same
-  # image/host as production, checks every monitor once a minute and writes the
-  # samples the web service's status page reads from the shared database.
-  monitor-checker:
+  # The background jobs (Azure Functions, Timer triggers): one checks every
+  # monitor once a minute and writes the samples the status page reads, the other
+  # syncs the GitHub/GitLab contribution history the heatmap draws from. Same
+  # image and host as production.
+  jobs:
     build:
-      context: ./monitor-checker
+      context: ./jobs
       dockerfile: dockerfile
-    container_name: portfolio-monitor-checker
+    container_name: portfolio-jobs
     restart: unless-stopped
     profiles:
       - production

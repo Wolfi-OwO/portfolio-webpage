@@ -33,4 +33,4 @@ dist-ssr
 
 application/client/dist
 application/server/coverage
-application/monitor-checker/dist
+application/jobs/dist

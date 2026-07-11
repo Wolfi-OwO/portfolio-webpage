@@ -1,4 +1,4 @@
-name: Project Linting
+name: Lint & Format
 
 permissions:
   contents: read
@@ -6,15 +6,20 @@ permissions:
 
 on:
   push:
+  pull_request:
 
 jobs:
+  # The three packages used to have three near-identical jobs. They share one
+  # workspace now, so one install covers server and client; `jobs` is installed
+  # separately because it deliberately sits outside the workspace (see its
+  # package.json for why).
   lint:
-    name: Lint (backend)
+    name: Lint
     runs-on: ubuntu-latest
 
     defaults:
       run:
-        working-directory: application/server
+        working-directory: application
 
     steps:
       - uses: actions/checkout@v4
@@ -22,23 +27,30 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: application/package-lock.json
 
-      - run: npm install
+      - name: Install (workspace + jobs)
+        run: |
+          npm ci
+          npm ci --prefix jobs
 
-      - run: npm run lint
+      - name: Lint every package
+        run: npm run lint
 
       - name: Upload SARIF
+        if: always()
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: application/server/results.sarif
 
-  lint-client:
-    name: Lint (client)
+  format:
+    name: Format
     runs-on: ubuntu-latest
 
     defaults:
       run:
-        working-directory: application/client
+        working-directory: application
 
     steps:
       - uses: actions/checkout@v4
@@ -46,26 +58,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: application/package-lock.json
 
-      - run: npm install
+      - run: npm ci
 
-      - run: npm run lint
-
-  lint-monitor-checker:
-    name: Lint (monitor-checker)
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: application/monitor-checker
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - run: npm install
-
-      - run: npm run lint
+      # Fails the build on unformatted code, so the formatter is a rule rather
+      # than a suggestion. Fix locally with `npm run format`.
+      - name: Check formatting
+        run: npm run format:check
