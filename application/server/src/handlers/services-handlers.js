@@ -127,10 +127,4 @@ async function deleteServiceById(req, res, next) {
     }
 }
 
-export {
-    getAllServices,
-    getServiceById,
-    createNewService,
-    updateServiceById,
-    deleteServiceById,
-};
+export { getAllServices, getServiceById, createNewService, updateServiceById, deleteServiceById };

@@ -25,7 +25,10 @@ export default function AdminLoginPage() {
 
             if (!response.ok) {
                 const payload = await response.json().catch(() => ({}));
-                dispatch({ type: 'SUBMIT_ERROR', payload: payload.message || 'Invalid credentials.' });
+                dispatch({
+                    type: 'SUBMIT_ERROR',
+                    payload: payload.message || 'Invalid credentials.',
+                });
                 return;
             }
 
@@ -81,7 +84,12 @@ export default function AdminLoginPage() {
                                     autoComplete="username"
                                     required
                                     value={username}
-                                    onChange={event => dispatch({ type: 'SET_USERNAME', payload: event.target.value })}
+                                    onChange={(event) =>
+                                        dispatch({
+                                            type: 'SET_USERNAME',
+                                            payload: event.target.value,
+                                        })
+                                    }
                                     className={inputCls}
                                     placeholder="admin"
                                 />
@@ -108,7 +116,12 @@ export default function AdminLoginPage() {
                                     autoComplete="current-password"
                                     required
                                     value={password}
-                                    onChange={event => dispatch({ type: 'SET_PASSWORD', payload: event.target.value })}
+                                    onChange={(event) =>
+                                        dispatch({
+                                            type: 'SET_PASSWORD',
+                                            payload: event.target.value,
+                                        })
+                                    }
                                     className={`${inputCls} pr-12`}
                                     placeholder="••••••••"
                                 />
@@ -155,8 +168,19 @@ export default function AdminLoginPage() {
                                         viewBox="0 0 24 24"
                                         aria-hidden="true"
                                     >
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4Z" />
+                                        <circle
+                                            className="opacity-25"
+                                            cx="12"
+                                            cy="12"
+                                            r="10"
+                                            stroke="currentColor"
+                                            strokeWidth="4"
+                                        />
+                                        <path
+                                            className="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4Z"
+                                        />
                                     </svg>
                                     Signing in…
                                 </span>
@@ -168,7 +192,10 @@ export default function AdminLoginPage() {
 
                     <p className="mt-6 text-center text-xs text-[var(--muted)]">
                         Not an admin?{' '}
-                        <Link to="/" className="font-medium text-[var(--accent)] underline-offset-4 hover:underline">
+                        <Link
+                            to="/"
+                            className="font-medium text-[var(--accent)] underline-offset-4 hover:underline"
+                        >
                             Back to homepage
                         </Link>
                     </p>

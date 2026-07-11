@@ -19,13 +19,17 @@ export function SocialRow() {
 
     return (
         <ul className="flex flex-wrap gap-2">
-            {SOCIALS.map(social => (
+            {SOCIALS.map((social) => (
                 <li key={social.key}>
                     {social.href ? (
                         <a
                             href={social.href}
                             target={social.href.startsWith('mailto:') ? undefined : '_blank'}
-                            rel={social.href.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
+                            rel={
+                                social.href.startsWith('mailto:')
+                                    ? undefined
+                                    : 'noopener noreferrer'
+                            }
                             className={cls}
                         >
                             <social.Icon className="h-4 w-4 shrink-0" />

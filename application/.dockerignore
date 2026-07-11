@@ -22,5 +22,4 @@ server/coverage
 server/tests
 server/requests
 server/eslint.config.js
-server/.prettierrc
 server/results.sarif

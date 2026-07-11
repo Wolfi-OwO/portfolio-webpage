@@ -7,7 +7,7 @@
 /** The entry that contains `now`, or null when nothing is running. */
 function currentEntry(entries, now = new Date()) {
     return (
-        entries.find(entry => {
+        entries.find((entry) => {
             const start = new Date(entry.startDate);
             const end = entry.endDate ? new Date(entry.endDate) : null;
 

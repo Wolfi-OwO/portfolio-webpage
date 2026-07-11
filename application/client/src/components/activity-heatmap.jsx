@@ -24,8 +24,34 @@ const SOURCES = [
 
 // Intl's German short months give "Jan"; Austrian usage is "Jän". Spelled out here
 // rather than fought with locale tags.
-const MONTHS_DE = ['Jän', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
-const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTHS_DE = [
+    'Jän',
+    'Feb',
+    'Mär',
+    'Apr',
+    'Mai',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Okt',
+    'Nov',
+    'Dez',
+];
+const MONTHS_EN = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+];
 
 /**
  * Five buckets, quantised against the busiest day in the window rather than fixed
@@ -71,7 +97,7 @@ function mondayOf(date) {
 function buildGrid(days) {
     if (!days.length) return { weeks: [], months: [], years: [] };
 
-    const byDate = new Map(days.map(day => [day.date, day]));
+    const byDate = new Map(days.map((day) => [day.date, day]));
 
     const first = mondayOf(new Date(days[0].date));
     const last = new Date(days[days.length - 1].date);
@@ -162,41 +188,42 @@ export default function ActivityHeatmap() {
     const anchorRef = useRef(null);
     const loadingRef = useRef(false);
 
-    const load = useCallback(async to => {
-        if (loadingRef.current) return;
+    const load = useCallback(
+        async (to) => {
+            if (loadingRef.current) return;
 
-        loadingRef.current = true;
-        setLoading(true);
+            loadingRef.current = true;
+            setLoading(true);
 
-        const from = new Date(to.getTime() - 364 * DAY_MS);
+            const from = new Date(to.getTime() - 364 * DAY_MS);
 
-        try {
-            const res = await fetch(
-                `/api/activity?from=${isoDay(from)}&to=${isoDay(to)}`,
-            );
+            try {
+                const res = await fetch(`/api/activity?from=${isoDay(from)}&to=${isoDay(to)}`);
 
-            if (!res.ok) throw new Error(`status ${res.status}`);
+                if (!res.ok) throw new Error(`status ${res.status}`);
 
-            const payload = await res.json();
+                const payload = await res.json();
 
-            setWindows(current => {
-                // Guard against a double-fire appending the same year twice.
-                if (current.some(w => w.from === payload.from)) return current;
-                return [...current, payload];
-            });
+                setWindows((current) => {
+                    // Guard against a double-fire appending the same year twice.
+                    if (current.some((w) => w.from === payload.from)) return current;
+                    return [...current, payload];
+                });
 
-            setMeta(current => current || payload);
+                setMeta((current) => current || payload);
 
-            // A window with nothing in it means we have scrolled past the start of
-            // the account's history: stop asking for more.
-            if (payload.days.every(day => day.count === 0)) setExhausted(true);
-        } catch (_err) {
-            if (!meta) setFailed(true);
-        } finally {
-            loadingRef.current = false;
-            setLoading(false);
-        }
-    }, [meta]);
+                // A window with nothing in it means we have scrolled past the start of
+                // the account's history: stop asking for more.
+                if (payload.days.every((day) => day.count === 0)) setExhausted(true);
+            } catch (_err) {
+                if (!meta) setFailed(true);
+            } finally {
+                loadingRef.current = false;
+                setLoading(false);
+            }
+        },
+        [meta],
+    );
 
     useEffect(() => {
         // Queued rather than called straight from the effect body: load() flips the
@@ -217,7 +244,7 @@ export default function ActivityHeatmap() {
 
         return [...merged.values()]
             .sort((a, b) => a.date.localeCompare(b.date))
-            .map(day => ({
+            .map((day) => ({
                 ...day,
                 count: source === 'all' ? day.github + day.gitlab : day[source],
             }));
@@ -288,7 +315,10 @@ export default function ActivityHeatmap() {
         if (scroller.scrollLeft < PREFETCH_PX) {
             anchorRef.current = scroller.scrollWidth - scroller.scrollLeft;
 
-            const oldest = windows.reduce((min, w) => (w.from < min ? w.from : min), windows[0].from);
+            const oldest = windows.reduce(
+                (min, w) => (w.from < min ? w.from : min),
+                windows[0].from,
+            );
             load(new Date(new Date(oldest).getTime() - DAY_MS));
         }
     };
@@ -307,7 +337,7 @@ export default function ActivityHeatmap() {
                 </h2>
 
                 <div className="flex gap-1 rounded-lg border border-[var(--line)] p-0.5">
-                    {SOURCES.map(option => (
+                    {SOURCES.map((option) => (
                         <button
                             key={option.id}
                             type="button"
@@ -419,7 +449,7 @@ export default function ActivityHeatmap() {
                     <div className="relative" style={{ width }}>
                         {/* Year band: |—— 2025 ——|—— 2026 ——| */}
                         <div className="relative h-5">
-                            {years.map(year => (
+                            {years.map((year) => (
                                 <div
                                     key={year.year}
                                     className="absolute top-1 flex items-center gap-1.5 px-1"
@@ -442,7 +472,7 @@ export default function ActivityHeatmap() {
                         {/* Month row. Labels for very narrow months are dropped rather
                             than allowed to overlap their neighbour. */}
                         <div className="relative h-4">
-                            {months.map(month => (
+                            {months.map((month) => (
                                 <span
                                     key={`${month.year}-${month.month}`}
                                     className="absolute font-mono text-2xs text-[var(--muted)]"
@@ -455,7 +485,7 @@ export default function ActivityHeatmap() {
 
                         {/* The grid itself. */}
                         <div className="flex" style={{ gap: GAP }}>
-                            {weeks.map(week => (
+                            {weeks.map((week) => (
                                 <div
                                     key={week.start.toISOString()}
                                     className="flex flex-col"
@@ -479,8 +509,8 @@ export default function ActivityHeatmap() {
                                                 type="button"
                                                 disabled={!target}
                                                 aria-label={`${day.count} · ${day.date}`}
-                                                onMouseEnter={e => showTooltip(e, day)}
-                                                onFocus={e => showTooltip(e, day)}
+                                                onMouseEnter={(e) => showTooltip(e, day)}
+                                                onFocus={(e) => showTooltip(e, day)}
                                                 onMouseLeave={() => setHovered(null)}
                                                 onBlur={() => setHovered(null)}
                                                 onClick={() => {
@@ -584,7 +614,7 @@ function Repos({ repos }) {
             </h3>
 
             <ul className="mt-3 grid gap-px overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--line)] sm:grid-cols-2">
-                {repos.map(repo => {
+                {repos.map((repo) => {
                     const Icon = repo.host === 'gitlab' ? SiGitlab : SiGithub;
 
                     return (

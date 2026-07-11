@@ -39,9 +39,7 @@ async function fillDatabase() {
 async function logResults(name, fillFunction) {
     const { successCnt, errorCnt, errorObjects } = await fillFunction();
 
-    logger.info(
-        `${name} - Successfully imported: ${successCnt}, Errors: ${errorCnt}`,
-    );
+    logger.info(`${name} - Successfully imported: ${successCnt}, Errors: ${errorCnt}`);
 
     if (errorObjects.length > 0) {
         logger.info(`Error details for ${name}:`, errorObjects);
@@ -60,9 +58,7 @@ async function fillProjectsData() {
 
         for (const technology of project.technologies) {
             // 1. Check local cache first
-            let existingTechnology = allTechnologies.find(
-                t => t.tech === technology.tech,
-            );
+            let existingTechnology = allTechnologies.find((t) => t.tech === technology.tech);
 
             // 2. Check database if not in cache
             if (!existingTechnology) {
@@ -125,7 +121,7 @@ async function fillMonitorsData() {
 }
 
 async function processDocuments(documents, createFunction) {
-    const allCreationJobs = documents.map(doc => createFunction(doc));
+    const allCreationJobs = documents.map((doc) => createFunction(doc));
 
     const results = await Promise.allSettled(allCreationJobs);
 
@@ -141,7 +137,7 @@ async function processDocuments(documents, createFunction) {
         .filter(Boolean);
 
     return {
-        successCnt: results.filter(job => job.status === 'fulfilled').length,
+        successCnt: results.filter((job) => job.status === 'fulfilled').length,
         errorCnt: errorObjects.length,
         errorObjects,
     };

@@ -72,7 +72,11 @@ async function updateMonitorById(req, res, next) {
         // Auto-discovered container-app monitors track Azure's runningStatus
         // and don't necessarily have (or need) a URL to check.
         if (!name || (!url && !existing.containerApp?.name)) {
-            return next(new BadRequest('"name" is required, and "url" unless this is a container-app monitor.'));
+            return next(
+                new BadRequest(
+                    '"name" is required, and "url" unless this is a container-app monitor.',
+                ),
+            );
         }
 
         if (url) {

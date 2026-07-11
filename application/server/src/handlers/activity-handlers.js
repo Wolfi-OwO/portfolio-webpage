@@ -1,10 +1,6 @@
 /* ***************** IMPORT packages *********************** */
 import { BadRequest, InternalServerError } from '../middlewares/error-handlers.js';
-import {
-    ContributionDayModel,
-    ForgeRepoModel,
-    SyncStateModel,
-} from '../models/contribution.js';
+import { ContributionDayModel, ForgeRepoModel, SyncStateModel } from '../models/contribution.js';
 
 /* ***************** CONFIG and CONSTS ********************* */
 /* The handles are only needed to build profile links — no request ever calls a
@@ -120,8 +116,8 @@ async function getActivity(req, res, next) {
             SyncStateModel.findOne({ key: 'contributions' }).lean(),
         ]);
 
-        const github = fold(rows.filter(row => row.source === 'github'));
-        const gitlab = fold(rows.filter(row => row.source === 'gitlab'));
+        const github = fold(rows.filter((row) => row.source === 'github'));
+        const gitlab = fold(rows.filter((row) => row.source === 'gitlab'));
 
         const series = [];
         let githubTotal = 0;
@@ -139,7 +135,7 @@ async function getActivity(req, res, next) {
             series.push({ date: key, github: gh, gitlab: gl, count: gh + gl });
         }
 
-        const repos = repoDocs.map(repo => ({
+        const repos = repoDocs.map((repo) => ({
             name: repo.name,
             url: repo.url,
             host: repo.host,
@@ -160,14 +156,14 @@ async function getActivity(req, res, next) {
             repos,
             sources: {
                 github: {
-                    ok: rows.some(row => row.source === 'github'),
+                    ok: rows.some((row) => row.source === 'github'),
                     reason: synced ? null : 'not-synced',
                     total: githubTotal,
                     user: GITHUB_USER,
                     profileUrl: `https://github.com/${GITHUB_USER}`,
                 },
                 gitlab: {
-                    ok: rows.some(row => row.source === 'gitlab'),
+                    ok: rows.some((row) => row.source === 'gitlab'),
                     reason: synced ? null : 'not-synced',
                     total: gitlabTotal,
                     user: GITLAB_USER,

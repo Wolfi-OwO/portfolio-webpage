@@ -30,7 +30,10 @@ function LocaleProvider({ children }) {
         }
     }
 
-    const value = useMemo(() => ({ locale, setLocale, supportedLocales: SUPPORTED_LOCALES }), [locale]);
+    const value = useMemo(
+        () => ({ locale, setLocale, supportedLocales: SUPPORTED_LOCALES }),
+        [locale],
+    );
 
     return (
         <LocaleContext.Provider value={value}>

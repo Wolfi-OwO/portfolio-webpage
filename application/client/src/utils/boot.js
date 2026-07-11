@@ -1,7 +1,10 @@
 export const BOOT_SESSION_KEY = 'boot-seen';
 
 export function prefersReducedMotion() {
-    return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return (
+        typeof window !== 'undefined' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    );
 }
 
 /** Once per tab. Replaying the boot on every visit home would just be in the way. */

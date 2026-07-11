@@ -6,10 +6,10 @@ This project is actively maintained as a personal developer portfolio and learni
 
 Security updates and fixes are applied to the latest version only.
 
-|         Version         |     Supported     |
-| ----------------------- | ----------------- |
-|          latest         | :white_check_mark:|
-| < latest stable version |         :x:       |
+| Version                 | Supported          |
+| ----------------------- | ------------------ |
+| latest                  | :white_check_mark: |
+| < latest stable version | :x:                |
 
 ---
 
@@ -21,7 +21,7 @@ If you discover a security vulnerability in this project, please report it respo
 
 Send an email to:
 
-- **Email:** koflerphillip@outlook.com  
+- **Email:** koflerphillip@outlook.com
 - **Subject:** Security Vulnerability Report — Portfolio Webpage
 
 ---

@@ -75,7 +75,7 @@ export default function LoadingScreen({ onDone }) {
         const next = printed.length;
         if (next >= LINES.length) return undefined;
         const id = setTimeout(
-            () => setPrinted(rows => [...rows, { index: next, at: stamp() }]),
+            () => setPrinted((rows) => [...rows, { index: next, at: stamp() }]),
             LINES[next].after,
         );
         return () => clearTimeout(id);
@@ -102,13 +102,13 @@ export default function LoadingScreen({ onDone }) {
             }`}
         >
             <div className="space-y-0.5 font-mono text-sm leading-relaxed">
-                {printed.map(row => (
+                {printed.map((row) => (
                     <Line key={row.index} line={LINES[row.index]} at={row.at} />
                 ))}
 
                 <span
                     aria-hidden="true"
-                    className="inline-block h-[1.05em] w-[0.6em] translate-y-[0.18em] bg-[var(--text)] animate-caret"
+                    className="animate-caret inline-block h-[1.05em] w-[0.6em] translate-y-[0.18em] bg-[var(--text)]"
                 />
             </div>
         </div>,

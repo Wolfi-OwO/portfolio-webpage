@@ -30,8 +30,16 @@ const BADGE = {
 // that day, the deeper the red, instead of a flat binary up/down.
 const SEVERITY = {
     operational: { label: 'Operational', bar: 'var(--live)', Icon: CheckCircleIcon },
-    minor: { label: 'Minor outage', bar: 'color-mix(in srgb, var(--down) 45%, transparent)', Icon: ExclamationTriangleIcon },
-    major: { label: 'Partial outage', bar: 'color-mix(in srgb, var(--down) 70%, transparent)', Icon: ExclamationTriangleIcon },
+    minor: {
+        label: 'Minor outage',
+        bar: 'color-mix(in srgb, var(--down) 45%, transparent)',
+        Icon: ExclamationTriangleIcon,
+    },
+    major: {
+        label: 'Partial outage',
+        bar: 'color-mix(in srgb, var(--down) 70%, transparent)',
+        Icon: ExclamationTriangleIcon,
+    },
     critical: { label: 'Major outage', bar: 'var(--down)', Icon: XCircleIcon },
     'no-data': { label: 'No data', bar: 'var(--line)', Icon: ExclamationTriangleIcon },
 };
@@ -52,7 +60,11 @@ function fmtRelative(at) {
 }
 
 function fmtDate(ms) {
-    return new Date(ms).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+    return new Date(ms).toLocaleDateString(undefined, {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+    });
 }
 
 function fmtDuration(ms) {
@@ -65,9 +77,9 @@ function fmtDuration(ms) {
 }
 
 function summarizeHistory(history) {
-    const known = history.filter(day => day.severity !== 'no-data');
+    const known = history.filter((day) => day.severity !== 'no-data');
     if (!known.length) return 'No uptime data yet';
-    const badDays = known.filter(day => day.severity !== 'operational').length;
+    const badDays = known.filter((day) => day.severity !== 'operational').length;
     return `${known.length - badDays} of ${known.length} days fully operational`;
 }
 
@@ -89,7 +101,12 @@ function StatusDot({ status, size = 'sm' }) {
     const dim = size === 'lg' ? 'h-3 w-3' : 'h-2 w-2';
 
     if (status === 'down') {
-        return <span className={`inline-flex shrink-0 ${dim} rounded-full`} style={{ background: 'var(--down)' }} />;
+        return (
+            <span
+                className={`inline-flex shrink-0 ${dim} rounded-full`}
+                style={{ background: 'var(--down)' }}
+            />
+        );
     }
     if (status === 'idle') {
         return (
@@ -107,7 +124,10 @@ function StatusDot({ status, size = 'sm' }) {
                 className="absolute inline-flex h-full w-full rounded-full opacity-70 motion-safe:animate-ping"
                 style={{ background: color }}
             />
-            <span className={`relative inline-flex ${dim} rounded-full`} style={{ background: color }} />
+            <span
+                className={`relative inline-flex ${dim} rounded-full`}
+                style={{ background: color }}
+            />
         </span>
     );
 }
@@ -143,7 +163,11 @@ function DayBar({ day }) {
 
 function UptimeBar({ history }) {
     return (
-        <div className="flex h-7 items-stretch gap-[2px]" role="img" aria-label={summarizeHistory(history)}>
+        <div
+            className="flex h-7 items-stretch gap-[2px]"
+            role="img"
+            aria-label={summarizeHistory(history)}
+        >
             {history.map((day, index) => (
                 <DayBar key={index} day={day} />
             ))}
@@ -187,7 +211,9 @@ function OverallBanner({ report, upCount, total }) {
         return (
             <div className="mb-6 flex animate-pulse items-center gap-4 rounded-lg border border-[var(--line)] bg-[var(--surface)] p-5">
                 <span className="h-3 w-3 shrink-0 rounded-full bg-[var(--line)]" />
-                <p className="font-mono text-sm text-[var(--muted)]">Connecting to status service…</p>
+                <p className="font-mono text-sm text-[var(--muted)]">
+                    Connecting to status service…
+                </p>
             </div>
         );
     }
@@ -233,7 +259,12 @@ function MonitorMeta({ monitor }) {
                 {monitor.url && (
                     <>
                         {' · '}
-                        <a href={monitor.url} target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:text-[var(--accent)] hover:underline">
+                        <a
+                            href={monitor.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline-offset-2 hover:text-[var(--accent)] hover:underline"
+                        >
                             {monitor.url.replace(/^https?:\/\//, '')}
                         </a>
                     </>
@@ -245,7 +276,12 @@ function MonitorMeta({ monitor }) {
 
     if (monitor.url) {
         return (
-            <a href={monitor.url} target="_blank" rel="noopener noreferrer" className={`group ${linkCls}`}>
+            <a
+                href={monitor.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`group ${linkCls}`}
+            >
                 <span className="truncate underline-offset-2 group-hover:underline">
                     {monitor.url.replace(/^https?:\/\//, '')}
                 </span>
@@ -261,7 +297,9 @@ function MonitorRow({ monitor, admin, onEdit, onDelete }) {
     const status = displayStatus(monitor);
     const badge = BADGE[status] ?? BADGE.pending;
     const rowTitle =
-        monitor.status === 'down' ? monitor.lastError || 'Down — no further error details available' : undefined;
+        monitor.status === 'down'
+            ? monitor.lastError || 'Down — no further error details available'
+            : undefined;
 
     return (
         <div className="border-b border-[var(--line)] py-5 last:border-0" title={rowTitle}>
@@ -270,17 +308,24 @@ function MonitorRow({ monitor, admin, onEdit, onDelete }) {
                     <StatusDot status={status} />
 
                     <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-[var(--text)]">{monitor.name}</p>
+                        <p className="truncate text-sm font-semibold text-[var(--text)]">
+                            {monitor.name}
+                        </p>
                         <MonitorMeta monitor={monitor} />
                     </div>
                 </div>
 
                 <div className="flex shrink-0 items-center gap-3">
                     {monitor.latencyMs != null && (
-                        <span className="font-mono text-xs text-[var(--muted)]">{monitor.latencyMs}ms</span>
+                        <span className="font-mono text-xs text-[var(--muted)]">
+                            {monitor.latencyMs}ms
+                        </span>
                     )}
 
-                    <span className="flex items-center gap-1.5 text-xs font-medium" style={{ color: badge.color }}>
+                    <span
+                        className="flex items-center gap-1.5 text-xs font-medium"
+                        style={{ color: badge.color }}
+                    >
                         <badge.Icon className="h-4 w-4" /> {badge.label}
                     </span>
 
@@ -313,13 +358,21 @@ function MonitorRow({ monitor, admin, onEdit, onDelete }) {
 
             <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 font-mono text-2xs">
                 <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                    <span style={{ color: uptimeColor(monitor.uptime.d30) }}>{monitor.uptime.d30}% · 30d</span>
-                    <span style={{ color: uptimeColor(monitor.uptime.d7) }}>{monitor.uptime.d7}% · 7d</span>
-                    <span style={{ color: uptimeColor(monitor.uptime.h24) }}>{monitor.uptime.h24}% · 24h</span>
+                    <span style={{ color: uptimeColor(monitor.uptime.d30) }}>
+                        {monitor.uptime.d30}% · 30d
+                    </span>
+                    <span style={{ color: uptimeColor(monitor.uptime.d7) }}>
+                        {monitor.uptime.d7}% · 7d
+                    </span>
+                    <span style={{ color: uptimeColor(monitor.uptime.h24) }}>
+                        {monitor.uptime.h24}% · 24h
+                    </span>
                 </span>
                 <span className="flex items-center gap-1.5 text-[var(--muted)]">
                     <ClockIcon className="h-3.5 w-3.5" />
-                    {monitor.status === 'pending' ? 'Checking…' : `checked ${fmtRelative(monitor.lastCheckedAt)}`}
+                    {monitor.status === 'pending'
+                        ? 'Checking…'
+                        : `checked ${fmtRelative(monitor.lastCheckedAt)}`}
                 </span>
             </div>
 
@@ -327,7 +380,10 @@ function MonitorRow({ monitor, admin, onEdit, onDelete }) {
                 <p
                     title={monitor.lastError}
                     className="mt-2 truncate rounded-md px-3 py-2 font-mono text-2xs"
-                    style={{ background: 'color-mix(in srgb, var(--down) 10%, transparent)', color: 'var(--down)' }}
+                    style={{
+                        background: 'color-mix(in srgb, var(--down) 10%, transparent)',
+                        color: 'var(--down)',
+                    }}
                 >
                     {monitor.lastError}
                 </p>
@@ -396,14 +452,21 @@ function MonitorForm({ editing, existingGroups, onSubmit, onCancel }) {
 
             {isContainerApp && (
                 <p className="basis-full font-mono text-2xs text-[var(--muted)]">
-                    Container App: {editing.containerApp.name} ({editing.containerApp.resourceGroup}) — status comes
-                    from Azure's control plane; it is never probed over HTTP. The URL below is only a display link.
+                    Container App: {editing.containerApp.name} ({editing.containerApp.resourceGroup}
+                    ) — status comes from Azure's control plane; it is never probed over HTTP. The
+                    URL below is only a display link.
                 </p>
             )}
 
             <label className="flex-1 basis-40">
                 <span className={labelCls}>Name</span>
-                <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="My Website" className={inputCls} />
+                <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="My Website"
+                    className={inputCls}
+                />
             </label>
 
             <label className="flex-[2] basis-64">
@@ -411,8 +474,12 @@ function MonitorForm({ editing, existingGroups, onSubmit, onCancel }) {
                 <input
                     type="url"
                     value={url}
-                    onChange={e => setUrl(e.target.value)}
-                    placeholder={isContainerApp ? 'https://example.com (display link)' : 'https://example.com'}
+                    onChange={(e) => setUrl(e.target.value)}
+                    placeholder={
+                        isContainerApp
+                            ? 'https://example.com (display link)'
+                            : 'https://example.com'
+                    }
                     className={`${inputCls} font-mono`}
                 />
             </label>
@@ -423,12 +490,14 @@ function MonitorForm({ editing, existingGroups, onSubmit, onCancel }) {
                     list="monitor-groups"
                     type="text"
                     value={group}
-                    onChange={e => setGroup(e.target.value)}
+                    onChange={(e) => setGroup(e.target.value)}
                     placeholder="e.g. ML Visualizer"
                     className={inputCls}
                 />
                 <datalist id="monitor-groups">
-                    {existingGroups?.map(g => <option key={g} value={g} />)}
+                    {existingGroups?.map((g) => (
+                        <option key={g} value={g} />
+                    ))}
                 </datalist>
             </label>
 
@@ -468,26 +537,43 @@ function GroupSection({ group, admin, onEdit, onDelete }) {
             <div className="mb-2 flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-2.5">
                     <StatusDot status={group.status} />
-                    <p className="truncate text-sm font-semibold text-[var(--text)]">{group.name}</p>
+                    <p className="truncate text-sm font-semibold text-[var(--text)]">
+                        {group.name}
+                    </p>
                     <span className="rounded-full border border-[var(--line)] px-2 py-0.5 font-mono text-2xs font-medium text-[var(--muted)]">
                         {group.monitors.length} services
                     </span>
                 </div>
 
-                <span className="flex shrink-0 items-center gap-1.5 text-xs font-medium" style={{ color: badge.color }}>
+                <span
+                    className="flex shrink-0 items-center gap-1.5 text-xs font-medium"
+                    style={{ color: badge.color }}
+                >
                     <badge.Icon className="h-4 w-4" /> {badge.label}
                 </span>
             </div>
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-2xs">
-                <span style={{ color: uptimeColor(group.uptime.d30) }}>{group.uptime.d30}% · 30d avg</span>
-                <span style={{ color: uptimeColor(group.uptime.d7) }}>{group.uptime.d7}% · 7d avg</span>
-                <span style={{ color: uptimeColor(group.uptime.h24) }}>{group.uptime.h24}% · 24h avg</span>
+                <span style={{ color: uptimeColor(group.uptime.d30) }}>
+                    {group.uptime.d30}% · 30d avg
+                </span>
+                <span style={{ color: uptimeColor(group.uptime.d7) }}>
+                    {group.uptime.d7}% · 7d avg
+                </span>
+                <span style={{ color: uptimeColor(group.uptime.h24) }}>
+                    {group.uptime.h24}% · 24h avg
+                </span>
             </div>
 
-            <div className="mt-3 ml-2 space-y-1 border-l border-[var(--line)] pl-4">
-                {group.monitors.map(monitor => (
-                    <MonitorRow key={monitor._id} monitor={monitor} admin={admin} onEdit={onEdit} onDelete={onDelete} />
+            <div className="ml-2 mt-3 space-y-1 border-l border-[var(--line)] pl-4">
+                {group.monitors.map((monitor) => (
+                    <MonitorRow
+                        key={monitor._id}
+                        monitor={monitor}
+                        admin={admin}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                    />
                 ))}
             </div>
         </div>
@@ -504,8 +590,8 @@ export default function StatusPage() {
 
     const load = useCallback(() => {
         return fetch('/api/status')
-            .then(response => (response.ok ? response.json() : null))
-            .then(data => {
+            .then((response) => (response.ok ? response.json() : null))
+            .then((data) => {
                 if (data) setReport(data);
             })
             .catch(() => {
@@ -570,29 +656,31 @@ export default function StatusPage() {
             window.alert('Failed to remove monitor.');
             return;
         }
-        setEditingMonitor(current => (current?._id === monitor._id ? null : current));
+        setEditingMonitor((current) => (current?._id === monitor._id ? null : current));
         await load();
     }
 
     const groups = report?.groups ?? [];
     const ungrouped = report?.ungrouped ?? [];
-    const monitors = [...groups.flatMap(g => g.monitors), ...ungrouped];
-    const existingGroups = groups.map(g => g.name);
+    const monitors = [...groups.flatMap((g) => g.monitors), ...ungrouped];
+    const existingGroups = groups.map((g) => g.name);
 
-    const upCount = monitors.filter(m => m.status === 'operational').length;
+    const upCount = monitors.filter((m) => m.status === 'operational').length;
     const avgUptime = monitors.length
         ? round1(monitors.reduce((sum, m) => sum + m.uptime.d30, 0) / monitors.length)
         : null;
-    const latencies = monitors.map(m => m.latencyMs).filter(ms => ms != null);
+    const latencies = monitors.map((m) => m.latencyMs).filter((ms) => ms != null);
     const avgLatency = latencies.length
         ? Math.round(latencies.reduce((sum, ms) => sum + ms, 0) / latencies.length)
         : null;
 
     return (
-        <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] bg-white text-gray-900 transition-colors duration-300 dark:bg-gray-950 dark:text-white">
+        <div className="min-h-screen bg-[var(--bg)] bg-white text-[var(--text)] text-gray-900 transition-colors duration-300 dark:bg-gray-950 dark:text-white">
             <div className="mx-auto max-w-4xl px-6 py-12 lg:py-16">
                 <div className="mb-6 flex items-center gap-3">
-                    <h1 className="text-3xl font-semibold tracking-tight text-[var(--text)]">Status</h1>
+                    <h1 className="text-3xl font-semibold tracking-tight text-[var(--text)]">
+                        Status
+                    </h1>
 
                     <div className="flex-1" />
 
@@ -611,9 +699,21 @@ export default function StatusPage() {
 
                 {report && monitors.length > 0 && (
                     <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                        <StatTile label="Services up" value={`${upCount}/${monitors.length}`} Icon={ServerIcon} />
-                        <StatTile label="Avg uptime · 30d" value={avgUptime != null ? `${avgUptime}%` : '—'} Icon={CheckCircleIcon} />
-                        <StatTile label="Avg latency" value={avgLatency != null ? `${avgLatency}ms` : '—'} Icon={ClockIcon} />
+                        <StatTile
+                            label="Services up"
+                            value={`${upCount}/${monitors.length}`}
+                            Icon={ServerIcon}
+                        />
+                        <StatTile
+                            label="Avg uptime · 30d"
+                            value={avgUptime != null ? `${avgUptime}%` : '—'}
+                            Icon={CheckCircleIcon}
+                        />
+                        <StatTile
+                            label="Avg latency"
+                            value={avgLatency != null ? `${avgLatency}ms` : '—'}
+                            Icon={ClockIcon}
+                        />
                     </div>
                 )}
 
@@ -623,21 +723,27 @@ export default function StatusPage() {
                             key={editingMonitor._id}
                             editing={editingMonitor}
                             existingGroups={existingGroups}
-                            onSubmit={values => handleUpdate(editingMonitor, values)}
+                            onSubmit={(values) => handleUpdate(editingMonitor, values)}
                             onCancel={() => setEditingMonitor(null)}
                         />
                     ) : (
-                        <MonitorForm key="new" existingGroups={existingGroups} onSubmit={handleCreate} />
+                        <MonitorForm
+                            key="new"
+                            existingGroups={existingGroups}
+                            onSubmit={handleCreate}
+                        />
                     ))}
 
                 <div className="mt-2">
                     <div className="mb-2 flex items-center justify-between gap-3">
-                        <h2 className="text-lg font-semibold text-[var(--text)]">Monitored services</h2>
+                        <h2 className="text-lg font-semibold text-[var(--text)]">
+                            Monitored services
+                        </h2>
                         <UptimeLegend />
                     </div>
 
                     <div>
-                        {groups.map(group => (
+                        {groups.map((group) => (
                             <GroupSection
                                 key={group.name}
                                 group={group}
@@ -647,7 +753,7 @@ export default function StatusPage() {
                             />
                         ))}
 
-                        {ungrouped.map(monitor => (
+                        {ungrouped.map((monitor) => (
                             <MonitorRow
                                 key={monitor._id}
                                 monitor={monitor}
@@ -660,7 +766,9 @@ export default function StatusPage() {
                         {report && monitors.length === 0 && (
                             <div className="flex flex-col items-center gap-2 py-14 text-center">
                                 <ServerIcon className="h-8 w-8 text-[var(--line)]" />
-                                <p className="text-sm text-[var(--muted)]">No monitors configured yet.</p>
+                                <p className="text-sm text-[var(--muted)]">
+                                    No monitors configured yet.
+                                </p>
                             </div>
                         )}
 

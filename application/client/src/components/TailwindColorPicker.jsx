@@ -23,7 +23,7 @@ function parseColorInput(value) {
 
     const rgb = trimmed.match(/(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/);
     if (rgb) {
-        const toHex = n =>
+        const toHex = (n) =>
             Math.max(0, Math.min(255, Number(n)))
                 .toString(16)
                 .padStart(2, '0');
@@ -35,9 +35,7 @@ function parseColorInput(value) {
 
 function matchFromClasses(classString) {
     if (!classString) return null;
-    const match = classString.match(
-        /bg-([a-z]+)-(50|100|200|300|400|500|600|700|800|900|950)\b/,
-    );
+    const match = classString.match(/bg-([a-z]+)-(50|100|200|300|400|500|600|700|800|900|950)\b/);
     if (!match) return null;
     const [, palette, shade] = match;
     if (!COLORS[palette]?.[shade]) return null;
@@ -54,7 +52,7 @@ export default function TailwindColorPicker({ value, onChange }) {
     useEffect(() => {
         if (!quickOpen) return;
 
-        const handleEscape = event => {
+        const handleEscape = (event) => {
             if (event.key === 'Escape') setQuickOpen(false);
         };
 
@@ -63,8 +61,7 @@ export default function TailwindColorPicker({ value, onChange }) {
         const previousPaddingRight = document.body.style.paddingRight;
 
         // Calculate scrollbar width to prevent layout shift
-        const scrollbarWidth =
-            window.innerWidth - document.documentElement.clientWidth;
+        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
         document.body.style.overflow = 'hidden';
         if (scrollbarWidth > 0) {
             document.body.style.paddingRight = `${scrollbarWidth}px`;
@@ -105,24 +102,24 @@ export default function TailwindColorPicker({ value, onChange }) {
                 <input
                     type="color"
                     value={hex}
-                    onChange={e => applyHex(e.target.value)}
-                    className="h-10 w-14 cursor-pointer overflow-hidden rounded-xl border border-slate-200 bg-white p-0 dark:border-slate-800 dark:bg-slate-900 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-lg [&::-webkit-color-swatch]:border-none [&::-moz-color-swatch]:rounded-lg [&::-moz-color-swatch]:border-none"
+                    onChange={(e) => applyHex(e.target.value)}
+                    className="h-10 w-14 cursor-pointer overflow-hidden rounded-xl border border-slate-200 bg-white p-0 dark:border-slate-800 dark:bg-slate-900 [&::-moz-color-swatch]:rounded-lg [&::-moz-color-swatch]:border-none [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-lg [&::-webkit-color-swatch]:border-none"
                     aria-label="Pick a color"
                 />
 
                 <input
                     type="text"
                     value={textInput}
-                    onChange={e => setTextInput(e.target.value)}
-                    onBlur={e => applyHex(e.target.value)}
-                    onKeyDown={e => {
+                    onChange={(e) => setTextInput(e.target.value)}
+                    onBlur={(e) => applyHex(e.target.value)}
+                    onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                             e.preventDefault();
                             applyHex(textInput);
                         }
                     }}
                     placeholder="#1e90ff or 30, 144, 255"
-                    className="flex-1 min-w-[12rem] rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-950 placeholder-slate-400 transition focus:border-slate-950 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-950/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder-slate-500"
+                    className="min-w-[12rem] flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-950 placeholder-slate-400 transition focus:border-slate-950 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-950/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder-slate-500"
                 />
 
                 <button
@@ -136,9 +133,7 @@ export default function TailwindColorPicker({ value, onChange }) {
                 </button>
             </div>
 
-            {error && (
-                <p className="text-xs text-red-600 dark:text-red-300">{error}</p>
-            )}
+            {error && <p className="text-xs text-red-600 dark:text-red-300">{error}</p>}
 
             <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900">
                 <span
@@ -171,7 +166,7 @@ export default function TailwindColorPicker({ value, onChange }) {
                     role="dialog"
                     aria-modal="true"
                     aria-label="Quick color picks"
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 !mt-0 bg-slate-950/70 backdrop-blur-md"
+                    className="fixed inset-0 z-50 !mt-0 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-md"
                 >
                     <button
                         type="button"
@@ -203,11 +198,8 @@ export default function TailwindColorPicker({ value, onChange }) {
 
                         <div className="overflow-auto px-6 py-5">
                             <div className="space-y-2">
-                                {PALETTES.map(palette => (
-                                    <div
-                                        key={palette.name}
-                                        className="flex items-center gap-3"
-                                    >
+                                {PALETTES.map((palette) => (
+                                    <div key={palette.name} className="flex items-center gap-3">
                                         <span className="w-20 shrink-0 truncate text-xs font-medium text-slate-600 dark:text-slate-300">
                                             {palette.name}
                                         </span>
@@ -224,29 +216,23 @@ export default function TailwindColorPicker({ value, onChange }) {
                                                 '800',
                                                 '900',
                                                 '950',
-                                            ].map(shade => {
-                                                const shadeHex =
-                                                    COLORS[palette.name][shade];
+                                            ].map((shade) => {
+                                                const shadeHex = COLORS[palette.name][shade];
                                                 const active =
-                                                    resolved.palette ===
-                                                        palette.name &&
+                                                    resolved.palette === palette.name &&
                                                     resolved.shade === shade;
                                                 return (
                                                     <button
                                                         key={shade}
                                                         type="button"
                                                         onClick={() => {
-                                                            selectAnchor(
-                                                                palette.name,
-                                                                shade,
-                                                            );
+                                                            selectAnchor(palette.name, shade);
                                                             setQuickOpen(false);
                                                         }}
                                                         aria-label={`${palette.name}-${shade}`}
                                                         title={`${palette.name}-${shade} · ${shadeHex}`}
                                                         style={{
-                                                            backgroundColor:
-                                                                shadeHex,
+                                                            backgroundColor: shadeHex,
                                                         }}
                                                         className={`h-8 w-8 rounded-lg border transition ${
                                                             active

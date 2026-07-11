@@ -48,7 +48,7 @@ function toPayload(form) {
         category: form.category,
         deliverables: form.deliverables
             .split('\n')
-            .map(line => line.trim())
+            .map((line) => line.trim())
             .filter(Boolean),
         priceFrom: Number(form.priceFrom) || 0,
         hourlyRate: Number(form.hourlyRate) || 0,
@@ -76,8 +76,8 @@ export default function ServicesPage() {
         let active = true;
 
         fetch('/api/services')
-            .then(res => (res.ok ? res.json() : []))
-            .then(list => {
+            .then((res) => (res.ok ? res.json() : []))
+            .then((list) => {
                 if (active) setServices(list);
             })
             .catch(() => {
@@ -123,9 +123,9 @@ export default function ServicesPage() {
 
             const saved = await res.json();
 
-            setServices(current => {
+            setServices((current) => {
                 const next = editing
-                    ? current.map(s => (s._id === saved._id ? saved : s))
+                    ? current.map((s) => (s._id === saved._id ? saved : s))
                     : [...current, saved];
 
                 return next.sort((a, b) => a.order - b.order || a.priceFrom - b.priceFrom);
@@ -153,18 +153,18 @@ export default function ServicesPage() {
                 return;
             }
 
-            setServices(current => current.filter(s => s._id !== service._id));
+            setServices((current) => current.filter((s) => s._id !== service._id));
         } catch (_err) {
             setError('Could not reach the server.');
         }
     }
 
     // Visitors only ever see published entries; I see the drafts too, marked as such.
-    const visible = admin ? services : services.filter(s => s.published);
-    const rate = services.find(s => s.hourlyRate)?.hourlyRate;
+    const visible = admin ? services : services.filter((s) => s.published);
+    const rate = services.find((s) => s.hourlyRate)?.hourlyRate;
 
     return (
-        <div className="mx-auto w-full max-w-5xl animate-fade-up">
+        <div className="animate-fade-up mx-auto w-full max-w-5xl">
             <section className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                 <div className="max-w-2xl">
                     <p className="font-mono text-xs uppercase tracking-[0.24em] text-[var(--accent)]">
@@ -225,7 +225,7 @@ export default function ServicesPage() {
             )}
 
             <section className="mt-10 grid gap-5 sm:grid-cols-2">
-                {visible.map(service => (
+                {visible.map((service) => (
                     <ServiceCard
                         key={service._id}
                         service={service}
@@ -272,7 +272,7 @@ export default function ServicesPage() {
 }
 
 function ServiceCard({ service, admin, onEdit, onDelete }) {
-    const category = CATEGORIES.find(c => c.id === service.category);
+    const category = CATEGORIES.find((c) => c.id === service.category);
 
     return (
         <article className="flex flex-col rounded-xl border border-[var(--line)] bg-[var(--surface)] p-6 transition hover:border-[var(--accent)]">
@@ -317,7 +317,7 @@ function ServiceCard({ service, admin, onEdit, onDelete }) {
 
             {service.deliverables?.length > 0 && (
                 <ul className="mt-4 space-y-1.5">
-                    {service.deliverables.map(item => (
+                    {service.deliverables.map((item) => (
                         <li key={item} className="flex gap-2 text-sm text-[var(--text)]">
                             <CheckIcon className="mt-1 h-3.5 w-3.5 shrink-0 text-[var(--live)]" />
                             <span>{item}</span>
@@ -354,7 +354,7 @@ function ServiceCard({ service, admin, onEdit, onDelete }) {
 }
 
 function ServiceForm({ form, setForm, saving, onSubmit, onCancel }) {
-    const set = (key, value) => setForm(current => ({ ...current, [key]: value }));
+    const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
 
     return (
         <form
@@ -384,7 +384,7 @@ function ServiceForm({ form, setForm, saving, onSubmit, onCancel }) {
                 <Field label="Title" required>
                     <input
                         value={form.title}
-                        onChange={e => set('title', e.target.value)}
+                        onChange={(e) => set('title', e.target.value)}
                         className={INPUT}
                     />
                 </Field>
@@ -392,10 +392,10 @@ function ServiceForm({ form, setForm, saving, onSubmit, onCancel }) {
                 <Field label="Category">
                     <select
                         value={form.category}
-                        onChange={e => set('category', e.target.value)}
+                        onChange={(e) => set('category', e.target.value)}
                         className={INPUT}
                     >
-                        {CATEGORIES.map(c => (
+                        {CATEGORIES.map((c) => (
                             <option key={c.id} value={c.id}>
                                 {c.defaultLabel}
                             </option>
@@ -407,7 +407,7 @@ function ServiceForm({ form, setForm, saving, onSubmit, onCancel }) {
             <Field label="Description" required>
                 <textarea
                     value={form.description}
-                    onChange={e => set('description', e.target.value)}
+                    onChange={(e) => set('description', e.target.value)}
                     rows={3}
                     className={INPUT}
                 />
@@ -416,7 +416,7 @@ function ServiceForm({ form, setForm, saving, onSubmit, onCancel }) {
             <Field label="Deliverables (one per line)">
                 <textarea
                     value={form.deliverables}
-                    onChange={e => set('deliverables', e.target.value)}
+                    onChange={(e) => set('deliverables', e.target.value)}
                     rows={4}
                     className={`${INPUT} font-mono text-sm`}
                 />
@@ -428,7 +428,7 @@ function ServiceForm({ form, setForm, saving, onSubmit, onCancel }) {
                         type="number"
                         min="0"
                         value={form.priceFrom}
-                        onChange={e => set('priceFrom', e.target.value)}
+                        onChange={(e) => set('priceFrom', e.target.value)}
                         className={INPUT}
                     />
                 </Field>
@@ -438,7 +438,7 @@ function ServiceForm({ form, setForm, saving, onSubmit, onCancel }) {
                         type="number"
                         min="0"
                         value={form.hourlyRate}
-                        onChange={e => set('hourlyRate', e.target.value)}
+                        onChange={(e) => set('hourlyRate', e.target.value)}
                         className={INPUT}
                     />
                 </Field>
@@ -446,7 +446,7 @@ function ServiceForm({ form, setForm, saving, onSubmit, onCancel }) {
                 <Field label="Duration">
                     <input
                         value={form.duration}
-                        onChange={e => set('duration', e.target.value)}
+                        onChange={(e) => set('duration', e.target.value)}
                         placeholder="2–4 weeks"
                         className={INPUT}
                     />
@@ -456,7 +456,7 @@ function ServiceForm({ form, setForm, saving, onSubmit, onCancel }) {
                     <input
                         type="number"
                         value={form.order}
-                        onChange={e => set('order', e.target.value)}
+                        onChange={(e) => set('order', e.target.value)}
                         className={INPUT}
                     />
                 </Field>
@@ -466,7 +466,7 @@ function ServiceForm({ form, setForm, saving, onSubmit, onCancel }) {
                 <input
                     type="checkbox"
                     checked={form.published}
-                    onChange={e => set('published', e.target.checked)}
+                    onChange={(e) => set('published', e.target.checked)}
                     className="h-4 w-4 rounded border-[var(--line)]"
                 />
                 Published

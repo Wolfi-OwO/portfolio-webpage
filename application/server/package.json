@@ -9,7 +9,9 @@
     "dev": "nodemon src/server.js",
     "fill-demo-data": "node src/database/fill-demo-data.js",
     "test": "cross-env LOG_LEVEL=error MONGODB_CONNECTION_STRING=mongodb://127.0.0.1:50000/portfolio-webpage?retryWrites=false c8 --reporter html --reporter text-summary mocha --require tests/helpers/env-setup.js 'tests/**/*.test.js' --ignore 'tests/**/common.js' --ignore 'tests/helpers/**' --timeout 10000 --exit",
-    "lint": "eslint . -f @microsoft/eslint-formatter-sarif -o results.sarif"
+    "lint": "eslint . -f @microsoft/eslint-formatter-sarif -o results.sarif",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "keywords": [
     "portfolio",
@@ -49,6 +51,7 @@
     "c8": "^11.0.0",
     "eslint": "^9.39.4",
     "mocha": "^11.7.5",
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "prettier": "^3.9.5"
   }
 }

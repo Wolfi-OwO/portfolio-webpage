@@ -22,7 +22,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write   # required for Azure OIDC login in deploy-to-production
+  id-token: write # required for Azure OIDC login in deploy-to-production
 
 jobs:
   resolve-metadata:

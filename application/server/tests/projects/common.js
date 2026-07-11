@@ -6,8 +6,7 @@ import { adminToken } from '../tokens.js';
 /* ***************** SETUP demo data *********************** */
 const exampleProject = {
     title: 'Machine Learning Visualizer',
-    description:
-        'A tutoring site, helping students master basic machine learning algorithms.',
+    description: 'A tutoring site, helping students master basic machine learning algorithms.',
     repositoryUrl: 'https://gitlab.com/woofi4/Projects/5bhif-datascience-webapp.git',
     livedemo: 'https://ml-visualizer.at/',
     technologies: [

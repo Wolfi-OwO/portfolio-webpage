@@ -17,7 +17,7 @@ async function setupDatabaseConnection(connectionString, recreateDatabase) {
         await mongoose.connect(connectionString, {
             serverSelectionTimeoutMS: dbConnectTimeout,
             retryWrites: false,
-            retryReads: false
+            retryReads: false,
         });
 
         logger.info(`DB - Connection to ${connectionString} established.`);

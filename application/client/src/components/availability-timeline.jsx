@@ -1,12 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FormattedDate, FormattedMessage, useIntl } from 'react-intl';
-import {
-    PencilSquareIcon,
-    PlusIcon,
-    TrashIcon,
-    XMarkIcon,
-} from '@heroicons/react/24/outline';
+import { PencilSquareIcon, PlusIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { authHeaders, isAdmin } from '../utils/auth.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -92,13 +87,19 @@ function durationLabel(entry, intl) {
 
     if (days < 45) {
         return intl.formatMessage(
-            { id: 'availability.weeks', defaultMessage: '{count, plural, one {# week} other {# weeks}}' },
+            {
+                id: 'availability.weeks',
+                defaultMessage: '{count, plural, one {# week} other {# weeks}}',
+            },
             { count: Math.max(1, Math.round(days / 7)) },
         );
     }
 
     return intl.formatMessage(
-        { id: 'availability.months', defaultMessage: '{count, plural, one {# month} other {# months}}' },
+        {
+            id: 'availability.months',
+            defaultMessage: '{count, plural, one {# month} other {# months}}',
+        },
         { count: Math.round(days / 30.44) },
     );
 }
@@ -112,14 +113,14 @@ function durationLabel(entry, intl) {
 function layout(entries, now = new Date()) {
     if (!entries.length) return { segments: [], todayPercent: null };
 
-    const starts = entries.map(e => new Date(e.startDate).getTime());
-    const ends = entries.map(e => (e.endDate ? new Date(e.endDate).getTime() : null));
+    const starts = entries.map((e) => new Date(e.startDate).getTime());
+    const ends = entries.map((e) => (e.endDate ? new Date(e.endDate).getTime() : null));
 
     const first = Math.min(...starts);
     const lastClosed = Math.max(...ends.filter(Boolean), first);
     const closedSpan = Math.max(lastClosed - first, DAY_MS);
 
-    const hasOpenEnded = ends.some(end => !end);
+    const hasOpenEnded = ends.some((end) => !end);
     // The open-ended tail extends the rail beyond the last real date.
     const totalSpan = hasOpenEnded ? closedSpan / (1 - OPEN_ENDED_SHARE) : closedSpan;
 
@@ -136,9 +137,7 @@ function layout(entries, now = new Date()) {
 
     const nowMs = now.getTime();
     const todayPercent =
-        nowMs >= first && nowMs <= first + totalSpan
-            ? ((nowMs - first) / totalSpan) * 100
-            : null;
+        nowMs >= first && nowMs <= first + totalSpan ? ((nowMs - first) / totalSpan) * 100 : null;
 
     return { segments, todayPercent };
 }
@@ -173,8 +172,8 @@ export default function AvailabilityTimeline({
         let active = true;
 
         fetch('/api/availability')
-            .then(res => (res.ok ? res.json() : []))
-            .then(list => {
+            .then((res) => (res.ok ? res.json() : []))
+            .then((list) => {
                 if (active) setOwnEntries(list);
             })
             .catch(() => {
@@ -231,9 +230,9 @@ export default function AvailabilityTimeline({
 
             const saved = await res.json();
 
-            setEntries(current => {
+            setEntries((current) => {
                 const next = editing
-                    ? current.map(e => (e._id === saved._id ? saved : e))
+                    ? current.map((e) => (e._id === saved._id ? saved : e))
                     : [...current, saved];
 
                 return next.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
@@ -261,13 +260,13 @@ export default function AvailabilityTimeline({
                 return;
             }
 
-            setEntries(current => current.filter(e => e._id !== entry._id));
+            setEntries((current) => current.filter((e) => e._id !== entry._id));
         } catch (_err) {
             setError('Could not reach the server.');
         }
     }
 
-    const visible = admin ? entries : entries.filter(e => e.published);
+    const visible = admin ? entries : entries.filter((e) => e.published);
     const { segments, todayPercent } = layout(visible);
 
     // Nothing to say and nothing to edit: don't render an empty box.
@@ -327,7 +326,7 @@ export default function AvailabilityTimeline({
                     todayPercent={todayPercent}
                     admin={admin}
                     intl={intl}
-                    onEdit={entry => setForm(toForm(entry))}
+                    onEdit={(entry) => setForm(toForm(entry))}
                     onDelete={handleDelete}
                 />
             )}
@@ -356,7 +355,7 @@ function Rail({ segments, todayPercent, admin, intl, onEdit, onDelete }) {
             <div className="relative">
                 <div className="flex h-2 w-full overflow-hidden rounded-full bg-[var(--line)]">
                     {segments.map(({ entry, width, state, openEnded }) => {
-                        const kind = KINDS.find(k => k.id === entry.kind) || KINDS[0];
+                        const kind = KINDS.find((k) => k.id === entry.kind) || KINDS[0];
 
                         return (
                             <div
@@ -400,7 +399,7 @@ function Rail({ segments, todayPercent, admin, intl, onEdit, onDelete }) {
             {/* The legend: name, duration and dates for each block. */}
             <ol className="mt-4 space-y-px overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--line)]">
                 {segments.map(({ entry, state, openEnded }) => {
-                    const kind = KINDS.find(k => k.id === entry.kind) || KINDS[0];
+                    const kind = KINDS.find((k) => k.id === entry.kind) || KINDS[0];
 
                     return (
                         <li
@@ -459,7 +458,7 @@ function Rail({ segments, todayPercent, admin, intl, onEdit, onDelete }) {
 
                             {state === 'current' && (
                                 <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--live)] px-2 py-0.5 font-mono text-2xs uppercase tracking-wider text-[var(--live)]">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-[var(--live)] animate-live" />
+                                    <span className="animate-live h-1.5 w-1.5 rounded-full bg-[var(--live)]" />
                                     <FormattedMessage id="availability.now" defaultMessage="now" />
                                 </span>
                             )}
@@ -496,7 +495,7 @@ const INPUT =
     'w-full rounded-md border border-[var(--line)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] outline-none transition focus:border-[var(--accent)]';
 
 function EntryForm({ form, setForm, saving, onSubmit, onCancel }) {
-    const set = (key, value) => setForm(current => ({ ...current, [key]: value }));
+    const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
 
     return (
         <form
@@ -506,10 +505,7 @@ function EntryForm({ form, setForm, saving, onSubmit, onCancel }) {
             <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-[var(--text)]">
                     {form._id ? (
-                        <FormattedMessage
-                            id="availability.form.edit"
-                            defaultMessage="Edit entry"
-                        />
+                        <FormattedMessage id="availability.form.edit" defaultMessage="Edit entry" />
                     ) : (
                         <FormattedMessage id="availability.form.new" defaultMessage="New entry" />
                     )}
@@ -529,7 +525,7 @@ function EntryForm({ form, setForm, saving, onSubmit, onCancel }) {
                 <Field label="Title" required>
                     <input
                         value={form.title}
-                        onChange={e => set('title', e.target.value)}
+                        onChange={(e) => set('title', e.target.value)}
                         className={INPUT}
                     />
                 </Field>
@@ -537,10 +533,10 @@ function EntryForm({ form, setForm, saving, onSubmit, onCancel }) {
                 <Field label="Kind">
                     <select
                         value={form.kind}
-                        onChange={e => set('kind', e.target.value)}
+                        onChange={(e) => set('kind', e.target.value)}
                         className={INPUT}
                     >
-                        {KINDS.map(k => (
+                        {KINDS.map((k) => (
                             <option key={k.id} value={k.id}>
                                 {k.defaultLabel}
                             </option>
@@ -552,7 +548,7 @@ function EntryForm({ form, setForm, saving, onSubmit, onCancel }) {
             <Field label="Description">
                 <input
                     value={form.description}
-                    onChange={e => set('description', e.target.value)}
+                    onChange={(e) => set('description', e.target.value)}
                     className={INPUT}
                 />
             </Field>
@@ -562,7 +558,7 @@ function EntryForm({ form, setForm, saving, onSubmit, onCancel }) {
                     <input
                         type="date"
                         value={form.startDate}
-                        onChange={e => set('startDate', e.target.value)}
+                        onChange={(e) => set('startDate', e.target.value)}
                         className={INPUT}
                     />
                 </Field>
@@ -571,7 +567,7 @@ function EntryForm({ form, setForm, saving, onSubmit, onCancel }) {
                     <input
                         type="date"
                         value={form.endDate}
-                        onChange={e => set('endDate', e.target.value)}
+                        onChange={(e) => set('endDate', e.target.value)}
                         className={INPUT}
                     />
                 </Field>
@@ -581,7 +577,7 @@ function EntryForm({ form, setForm, saving, onSubmit, onCancel }) {
                 <input
                     type="checkbox"
                     checked={form.published}
-                    onChange={e => set('published', e.target.checked)}
+                    onChange={(e) => set('published', e.target.checked)}
                     className="h-4 w-4 rounded border-[var(--line)]"
                 />
                 Published

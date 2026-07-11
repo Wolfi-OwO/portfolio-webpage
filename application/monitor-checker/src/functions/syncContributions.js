@@ -147,7 +147,7 @@ async function storeRepos(repos) {
     if (!repos.length) return;
 
     await ForgeRepoModel.bulkWrite(
-        repos.map(repo => ({
+        repos.map((repo) => ({
             updateOne: {
                 filter: { host: repo.host, name: repo.name },
                 update: { $set: repo },
@@ -199,17 +199,18 @@ async function githubYear(year, context) {
     if (!res.ok) throw new Error(`GitHub responded ${res.status}`);
 
     const body = await res.json();
-    if (body.errors?.length) throw new Error(body.errors.map(e => e.message).join('; '));
+    if (body.errors?.length) throw new Error(body.errors.map((e) => e.message).join('; '));
 
     const days = {};
 
-    for (const week of body.data?.user?.contributionsCollection?.contributionCalendar?.weeks || []) {
+    for (const week of body.data?.user?.contributionsCollection?.contributionCalendar?.weeks ||
+        []) {
         for (const day of week.contributionDays) {
             if (day.contributionCount > 0) days[day.date] = day.contributionCount;
         }
     }
 
-    const repos = (body.data?.user?.repositories?.nodes || []).map(repo => ({
+    const repos = (body.data?.user?.repositories?.nodes || []).map((repo) => ({
         host: 'github',
         name: repo.name,
         url: repo.url,
@@ -303,7 +304,7 @@ async function gitlabProjects(user, headers) {
         }
 
         await Promise.all(
-            [...ids].map(async id => {
+            [...ids].map(async (id) => {
                 const res = await fetchWithTimeout(`${GITLAB_HOST}/api/v4/projects/${id}`, {
                     headers,
                 });
@@ -393,10 +394,10 @@ async function runSyncCycle(context) {
                 const projects = user ? await gitlabProjects(user, headers) : [];
 
                 state.phase = 'gitlab-projects';
-                state.gitlabQueue = projects.map(p => p.id);
+                state.gitlabQueue = projects.map((p) => p.id);
 
                 await storeRepos(
-                    projects.slice(0, 20).map(project => ({
+                    projects.slice(0, 20).map((project) => ({
                         host: 'gitlab',
                         name: project.path,
                         url: project.web_url,
@@ -456,7 +457,7 @@ async function runSyncCycle(context) {
                 // of them every minute would be pointless work.
                 const projects = await gitlabProjects(user, headers);
                 const recent = projects
-                    .filter(p => !p.last_activity_at || new Date(p.last_activity_at) >= since)
+                    .filter((p) => !p.last_activity_at || new Date(p.last_activity_at) >= since)
                     .slice(0, REPOS_PER_RUN);
 
                 for (const project of recent) {
@@ -479,7 +480,7 @@ async function runSyncCycle(context) {
                 }
 
                 await storeRepos(
-                    projects.slice(0, 20).map(project => ({
+                    projects.slice(0, 20).map((project) => ({
                         host: 'gitlab',
                         name: project.path,
                         url: project.web_url,

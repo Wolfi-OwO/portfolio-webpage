@@ -1,36 +1,39 @@
 {
-    "name": "monitor-checker",
-    "version": "0.0.1",
-    "private": true,
-    "description": "Azure Function (Timer Trigger) that pings monitored URLs for the Woofi Developments status page.",
-    "type": "module",
-    "main": "src/functions/*.js",
-    "author": "Kofler Phillip",
-    "license": "MIT",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/Wolfi-OwO/portfolio-webpage.git",
-        "directory": "application/monitor-checker"
-    },
-    "bugs": {
-        "url": "https://github.com/Wolfi-OwO/portfolio-webpage/issues"
-    },
-    "engines": {
-        "node": ">=22"
-    },
-    "scripts": {
-        "start": "func start",
-        "lint": "eslint ."
-    },
-    "dependencies": {
-        "@azure/arm-appcontainers": "^3.0.0",
-        "@azure/functions": "^4.7.2",
-        "@azure/identity": "^4.13.1",
-        "mongoose": "^9.6.2"
-    },
-    "devDependencies": {
-        "@eslint/js": "^9.39.4",
-        "eslint": "^9.39.4",
-        "globals": "^17.6.0"
-    }
+  "name": "monitor-checker",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Azure Function (Timer Trigger) that pings monitored URLs for the Woofi Developments status page.",
+  "type": "module",
+  "main": "src/functions/*.js",
+  "author": "Kofler Phillip",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Wolfi-OwO/portfolio-webpage.git",
+    "directory": "application/monitor-checker"
+  },
+  "bugs": {
+    "url": "https://github.com/Wolfi-OwO/portfolio-webpage/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "func start",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@azure/arm-appcontainers": "^3.0.0",
+    "@azure/functions": "^4.7.2",
+    "@azure/identity": "^4.13.1",
+    "mongoose": "^9.6.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "eslint": "^9.39.4",
+    "globals": "^17.6.0",
+    "prettier": "^3.9.5"
+  }
 }

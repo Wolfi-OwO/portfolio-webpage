@@ -36,11 +36,9 @@ async function login(req, res, next) {
             return next(new Unauthorized('Invalid credentials.'));
         }
 
-        const token = jwt.sign(
-            { sub: username, role: 'admin' },
-            JWT_SECRET,
-            { expiresIn: JWT_EXPIRES_IN },
-        );
+        const token = jwt.sign({ sub: username, role: 'admin' }, JWT_SECRET, {
+            expiresIn: JWT_EXPIRES_IN,
+        });
 
         return res.json({ token, expiresIn: JWT_EXPIRES_IN });
     } catch (err) {

@@ -13,7 +13,7 @@ function setupHealthChecks(server) {
         },
         beforeShutdown: () => {
             logger.info('Backend - Stopping with grace period of 5 secs');
-            return new Promise(resolve => {
+            return new Promise((resolve) => {
                 setTimeout(resolve, 5000);
             });
         },

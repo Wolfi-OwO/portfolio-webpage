@@ -14,7 +14,7 @@ import path from 'path';
 /* ***************** IMPORT LIBS *************************** */
 import { logger } from './utils/logger.js';
 import { setupHealthChecks } from './utils/health-checks.js';
-import { dropCurrentDatabase, setupDatabaseConnection } from './database/database.js'
+import { dropCurrentDatabase, setupDatabaseConnection } from './database/database.js';
 
 /* ***************** IMPORT ROUTES **************** */
 import { projectsRouter } from './routes/projects-route.js';
@@ -32,16 +32,19 @@ import { errorHandler } from './middlewares/error-handlers.js';
 /* Take configuration from environment variables or use hardcoded default value */
 const HOSTNAME = process.env.BINDADDRESS || '0.0.0.0';
 const PORT = process.env.PORT || 8080;
-const MONGODB_CONNECTION_STRING = process.env.MONGODB_CONNECTION_STRING || 'mongodb://127.0.0.1/portfolio-app';
+const MONGODB_CONNECTION_STRING =
+    process.env.MONGODB_CONNECTION_STRING || 'mongodb://127.0.0.1/portfolio-app';
 const MONGODB_RECREATE = process.env.MONGODB_RECREATE === 'true';
 
 /* ***************** START UP ******************************* */
 logger.info('Backend - Starting configuration...');
 
 const REQUIRED_ENV_VARS = ['JWT_SECRET', 'ADMIN_USER', 'ADMIN_PASSWORD_HASH'];
-const missingEnvVars = REQUIRED_ENV_VARS.filter(name => !process.env[name]);
+const missingEnvVars = REQUIRED_ENV_VARS.filter((name) => !process.env[name]);
 if (missingEnvVars.length > 0) {
-    logger.error(`Backend - Missing required environment variable(s): ${missingEnvVars.join(', ')}`);
+    logger.error(
+        `Backend - Missing required environment variable(s): ${missingEnvVars.join(', ')}`,
+    );
     process.exit(1);
 }
 
@@ -77,7 +80,7 @@ app.get(/^(?!\/api).*/, (req, res) => {
 });
 
 // setup error handling middleware
-app.use(errorHandler)
+app.use(errorHandler);
 
 // create HTTP server
 logger.info('Backend - Starting up ...');
@@ -87,7 +90,7 @@ const httpServer = createServer(app);
 setupHealthChecks(httpServer);
 
 // setup database connection
-setupDatabaseConnection(MONGODB_CONNECTION_STRING, MONGODB_RECREATE)
+setupDatabaseConnection(MONGODB_CONNECTION_STRING, MONGODB_RECREATE);
 httpServer.dropCurrentDatabase = dropCurrentDatabase;
 
 // Monitor checks are performed entirely by the separate monitor-checker Azure

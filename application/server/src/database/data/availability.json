@@ -1,26 +1,26 @@
 [
-    {
-        "title": "Praktikum",
-        "description": "Praktikum als Softwareentwickler — Vollzeit.",
-        "startDate": "2026-07-13",
-        "endDate": "2026-09-30",
-        "kind": "work",
-        "published": true
-    },
-    {
-        "title": "Bundesheer",
-        "description": "Grundwehrdienst — sechs Monate.",
-        "startDate": "2026-10-05",
-        "endDate": "2027-04-05",
-        "kind": "military",
-        "published": true
-    },
-    {
-        "title": "Wieder verfügbar",
-        "description": "Frei für Vollzeit und größere Freelance-Projekte.",
-        "startDate": "2027-04-06",
-        "endDate": null,
-        "kind": "available",
-        "published": true
-    }
+  {
+    "title": "Praktikum",
+    "description": "Praktikum als Softwareentwickler — Vollzeit.",
+    "startDate": "2026-07-13",
+    "endDate": "2026-09-30",
+    "kind": "work",
+    "published": true
+  },
+  {
+    "title": "Bundesheer",
+    "description": "Grundwehrdienst — sechs Monate.",
+    "startDate": "2026-10-05",
+    "endDate": "2027-04-05",
+    "kind": "military",
+    "published": true
+  },
+  {
+    "title": "Wieder verfügbar",
+    "description": "Frei für Vollzeit und größere Freelance-Projekte.",
+    "startDate": "2027-04-06",
+    "endDate": null,
+    "kind": "available",
+    "published": true
+  }
 ]

@@ -103,7 +103,7 @@ const errorHandler = (error, req, resp, _next) => {
  * Logs an error based on its status code.
  * @param {Error} err - The error object to log
  */
-const log = err => {
+const log = (err) => {
     if (err.status >= 300 && err.status < 500 && process.env.NODE_ENV !== 'production') {
         logger.debug(JSON.stringify(err));
     } else {

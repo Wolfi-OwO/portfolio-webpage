@@ -9,7 +9,7 @@ import { MonitorCheckModel } from '../models/monitor-check.js';
 const CHECK_MS = (Number(process.env.STATUS_CHECK_INTERVAL_SECONDS) || 60) * 1000;
 const DAY = 24 * 60 * 60 * 1000;
 const HISTORY_DAYS = 90;
-const round1 = n => Math.round(n * 10) / 10;
+const round1 = (n) => Math.round(n * 10) / 10;
 
 // Discord-style: one bar per calendar day, colored by how much of that day
 // was down — not one bar per raw check (which, at a short check interval,
@@ -36,13 +36,19 @@ async function buildDailyHistory(monitorId) {
         },
     ]);
 
-    const byDay = new Map(buckets.map(b => [b._id, b]));
+    const byDay = new Map(buckets.map((b) => [b._id, b]));
 
     return Array.from({ length: HISTORY_DAYS }, (_, i) => {
         const dayBucket = firstBucket + i;
         const bucket = byDay.get(dayBucket);
         if (!bucket) {
-            return { day: dayBucket * DAY, severity: 'no-data', downPct: null, downMs: 0, totalChecks: 0 };
+            return {
+                day: dayBucket * DAY,
+                severity: 'no-data',
+                downPct: null,
+                downMs: 0,
+                totalChecks: 0,
+            };
         }
         const downPct = round1((bucket.down / bucket.total) * 100);
         return {
@@ -124,7 +130,7 @@ function buildGroups(statuses) {
 
     const groups = Array.from(byGroup.entries()).map(([name, members]) => ({
         name,
-        status: members.some(m => m.status === 'down') ? 'down' : 'operational',
+        status: members.some((m) => m.status === 'down') ? 'down' : 'operational',
         uptime: {
             h24: avg(members, 'h24'),
             d7: avg(members, 'd7'),
@@ -140,7 +146,7 @@ async function getStatusReport() {
     const monitors = await MonitorModel.find().sort({ createdAt: 1 });
     const statuses = await Promise.all(monitors.map(buildMonitorStatus));
 
-    const status = statuses.some(m => m.status === 'down') ? 'down' : 'operational';
+    const status = statuses.some((m) => m.status === 'down') ? 'down' : 'operational';
     const { groups, ungrouped } = buildGroups(statuses);
 
     return {

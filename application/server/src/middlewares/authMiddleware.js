@@ -5,7 +5,7 @@ const authMiddleware = (req, res, next) => {
     const token = req.header('Authorization')?.split(' ')[1]; // Extracts token from "Bearer <token>"
 
     if (!token) {
-        return next(new Unauthorized())
+        return next(new Unauthorized());
     }
 
     try {
@@ -14,7 +14,7 @@ const authMiddleware = (req, res, next) => {
         req.user = decoded; // Attach user info to request
         next(); // Proceed to route handler
     } catch (error) {
-        next(new Unauthorized(error.message, error))
+        next(new Unauthorized(error.message, error));
     }
 };
 

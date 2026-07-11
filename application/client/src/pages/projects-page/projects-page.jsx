@@ -74,7 +74,9 @@ export default function ProjectsPage() {
 
                 if (!createRes.ok) {
                     const payload = await createRes.json().catch(() => ({}));
-                    throw new Error(payload.message || `Failed to create technology "${selected.tech}".`);
+                    throw new Error(
+                        payload.message || `Failed to create technology "${selected.tech}".`,
+                    );
                 }
 
                 const created = await createRes.json();
@@ -87,13 +89,11 @@ export default function ProjectsPage() {
                 description,
                 repositoryUrl,
                 livedemo: livedemo || undefined,
-                technologies: techIds.map(_id => ({ _id })),
+                technologies: techIds.map((_id) => ({ _id })),
             };
 
             const isEdit = state.formMode === 'edit' && state.editingProjectId;
-            const url = isEdit
-                ? `/api/projects/${state.editingProjectId}`
-                : '/api/projects';
+            const url = isEdit ? `/api/projects/${state.editingProjectId}` : '/api/projects';
             const method = isEdit ? 'PUT' : 'POST';
 
             const projectRes = await fetch(url, {
@@ -104,7 +104,9 @@ export default function ProjectsPage() {
 
             if (!projectRes.ok) {
                 const payload = await projectRes.json().catch(() => ({}));
-                throw new Error(payload.message || `Failed to ${isEdit ? 'update' : 'create'} project.`);
+                throw new Error(
+                    payload.message || `Failed to ${isEdit ? 'update' : 'create'} project.`,
+                );
             }
 
             const saved = await projectRes.json();
@@ -138,17 +140,14 @@ export default function ProjectsPage() {
     }
 
     return (
-        <div className="mx-auto w-full max-w-5xl animate-fade-up space-y-8">
+        <div className="animate-fade-up mx-auto w-full max-w-5xl space-y-8">
             <section className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                 <div className="max-w-xl space-y-3">
-                    <h1 className="text-4xl font-extrabold text-[var(--text)]">
-                        Projects
-                    </h1>
+                    <h1 className="text-4xl font-extrabold text-[var(--text)]">Projects</h1>
 
                     <p className="leading-7 text-[var(--muted)]">
-                        In recent years, I have worked on multiple software
-                        engineering projects ranging from web applications to backend
-                        systems and UI-focused platforms.
+                        In recent years, I have worked on multiple software engineering projects
+                        ranging from web applications to backend systems and UI-focused platforms.
                     </p>
                 </div>
 
@@ -168,8 +167,8 @@ export default function ProjectsPage() {
                 <ProjectForm state={state} dispatch={dispatch} onSubmit={handleSubmit} />
             )}
 
-            <section className="grid gap-5 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 4xl:grid-cols-4">
-                {state.projects.map(project => (
+            <section className="4xl:grid-cols-4 grid gap-5 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
+                {state.projects.map((project) => (
                     <ProjectCard
                         key={project._id}
                         project={project}
@@ -200,7 +199,7 @@ function ProjectCard({ project, admin, onEdit, onDelete }) {
         }
     };
 
-    const onKeyDown = event => {
+    const onKeyDown = (event) => {
         if (!hasRepo) return;
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
@@ -231,7 +230,10 @@ function ProjectCard({ project, admin, onEdit, onDelete }) {
                         <>
                             <button
                                 type="button"
-                                onClick={event => { event.stopPropagation(); onEdit(); }}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    onEdit();
+                                }}
                                 aria-label={`Edit ${project.title}`}
                                 title="Edit"
                                 className="rounded-full p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
@@ -240,7 +242,10 @@ function ProjectCard({ project, admin, onEdit, onDelete }) {
                             </button>
                             <button
                                 type="button"
-                                onClick={event => { event.stopPropagation(); onDelete(); }}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    onDelete();
+                                }}
                                 aria-label={`Delete ${project.title}`}
                                 title="Delete"
                                 className="rounded-full p-1.5 text-slate-500 transition hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-red-500/10 dark:hover:text-red-300"
@@ -259,30 +264,28 @@ function ProjectCard({ project, admin, onEdit, onDelete }) {
                 </div>
             </div>
 
-            <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300 flex-1">
+            <p className="mt-3 flex-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
                 {project.description}
             </p>
 
             {project.livedemo && (
                 <div className="mt-3 flex min-w-0 items-center gap-2 text-sm">
-                    <span className="shrink-0 text-slate-600 dark:text-slate-300">
-                        Live Demo:
-                    </span>
+                    <span className="shrink-0 text-slate-600 dark:text-slate-300">Live Demo:</span>
                     <a
-                        className="truncate font-semibold underline text-blue-600 hover:text-blue-800 dark:text-sky-400 dark:hover:text-sky-300"
+                        className="truncate font-semibold text-blue-600 underline hover:text-blue-800 dark:text-sky-400 dark:hover:text-sky-300"
                         href={project.livedemo}
                         target="_blank"
                         rel="noopener noreferrer"
                         title={project.livedemo}
-                        onClick={event => event.stopPropagation()}
+                        onClick={(event) => event.stopPropagation()}
                     >
                         {liveDemoLabel(project.livedemo)}
                     </a>
                 </div>
             )}
 
-            <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300 flex items-center">
-                <ClockIcon className="h-4 w-4 mr-1"/>
+            <p className="mt-3 flex items-center text-sm leading-6 text-slate-600 dark:text-slate-300">
+                <ClockIcon className="mr-1 h-4 w-4" />
                 <FormattedDate
                     value={project.createdAt}
                     year="numeric"
@@ -319,12 +322,10 @@ function ProjectForm({ state, dispatch, onSubmit }) {
 
     const filtered = useMemo(() => {
         const lower = query.toLowerCase();
-        const selectedNames = new Set(
-            form.selectedTechnologies.map(t => t.tech.toLowerCase()),
-        );
+        const selectedNames = new Set(form.selectedTechnologies.map((t) => t.tech.toLowerCase()));
         return technologies
-            .filter(t => !selectedNames.has(t.tech.toLowerCase()))
-            .filter(t => !lower || t.tech.toLowerCase().includes(lower))
+            .filter((t) => !selectedNames.has(t.tech.toLowerCase()))
+            .filter((t) => !lower || t.tech.toLowerCase().includes(lower))
             .slice(0, 8);
     }, [technologies, query, form.selectedTechnologies]);
 
@@ -332,8 +333,8 @@ function ProjectForm({ state, dispatch, onSubmit }) {
         if (!query) return true;
         const lower = query.toLowerCase();
         return (
-            technologies.some(t => t.tech.toLowerCase() === lower) ||
-            form.selectedTechnologies.some(t => t.tech.toLowerCase() === lower)
+            technologies.some((t) => t.tech.toLowerCase() === lower) ||
+            form.selectedTechnologies.some((t) => t.tech.toLowerCase() === lower)
         );
     }, [technologies, query, form.selectedTechnologies]);
 
@@ -341,7 +342,7 @@ function ProjectForm({ state, dispatch, onSubmit }) {
         dispatch({ type: 'SET_FORM_FIELD', payload: { field, value } });
 
     return (
-        <section className="mx-auto max-w-10xl px-6">
+        <section className="max-w-10xl mx-auto px-6">
             <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950 sm:p-8">
                 <div className="flex items-start justify-between gap-4">
                     <div>
@@ -349,7 +350,9 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                             {isEdit ? 'Edit Project' : 'New Project'}
                         </p>
                         <h2 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">
-                            {isEdit ? 'Update an existing project' : 'Add a project to the portfolio'}
+                            {isEdit
+                                ? 'Update an existing project'
+                                : 'Add a project to the portfolio'}
                         </h2>
                     </div>
 
@@ -369,7 +372,7 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                             <input
                                 type="text"
                                 value={form.title}
-                                onChange={e => setField('title', e.target.value)}
+                                onChange={(e) => setField('title', e.target.value)}
                                 className={inputClass}
                                 placeholder="My awesome project"
                                 required
@@ -380,7 +383,7 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                             <input
                                 type="url"
                                 value={form.repositoryUrl}
-                                onChange={e => setField('repositoryUrl', e.target.value)}
+                                onChange={(e) => setField('repositoryUrl', e.target.value)}
                                 className={inputClass}
                                 placeholder="https://github.com/user/repo"
                                 required
@@ -391,7 +394,7 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                     <Field label="Description" required>
                         <textarea
                             value={form.description}
-                            onChange={e => setField('description', e.target.value)}
+                            onChange={(e) => setField('description', e.target.value)}
                             className={`${inputClass} min-h-[6rem] resize-y`}
                             placeholder="Briefly describe what this project does."
                             required
@@ -402,7 +405,7 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                         <input
                             type="url"
                             value={form.livedemo}
-                            onChange={e => setField('livedemo', e.target.value)}
+                            onChange={(e) => setField('livedemo', e.target.value)}
                             className={inputClass}
                             placeholder="https://example.com (optional)"
                         />
@@ -432,7 +435,10 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                                             <button
                                                 type="button"
                                                 onClick={() =>
-                                                    dispatch({ type: 'REMOVE_SELECTED_TECH', payload: index })
+                                                    dispatch({
+                                                        type: 'REMOVE_SELECTED_TECH',
+                                                        payload: index,
+                                                    })
                                                 }
                                                 aria-label={`Remove ${t.tech}`}
                                                 className="ml-1 inline-flex items-center justify-center rounded-full hover:bg-black/10"
@@ -448,7 +454,7 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                         <div
                             className="relative mt-2"
                             onFocus={() => setTechOpen(true)}
-                            onBlur={e => {
+                            onBlur={(e) => {
                                 if (!e.currentTarget.contains(e.relatedTarget)) {
                                     setTechOpen(false);
                                 }
@@ -457,14 +463,14 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                             <input
                                 type="text"
                                 value={form.techQuery}
-                                onChange={e => setField('techQuery', e.target.value)}
+                                onChange={(e) => setField('techQuery', e.target.value)}
                                 className={inputClass}
                                 placeholder="Search or create a technology..."
                             />
 
                             {techOpen && (filtered.length > 0 || (query && !exactMatchExists)) && (
                                 <div className="absolute z-20 mt-1 max-h-80 w-full overflow-auto rounded-2xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
-                                    {filtered.map(tech => {
+                                    {filtered.map((tech) => {
                                         const { className, style } = chipProps(tech.color);
                                         return (
                                             <button
@@ -488,7 +494,9 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                                                 >
                                                     {tech.tech}
                                                 </span>
-                                                <span className="text-xs text-slate-400 dark:text-slate-500">add</span>
+                                                <span className="text-xs text-slate-400 dark:text-slate-500">
+                                                    add
+                                                </span>
                                             </button>
                                         );
                                     })}
@@ -501,7 +509,10 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                                             onCreate={() =>
                                                 dispatch({
                                                     type: 'ADD_SELECTED_TECH',
-                                                    payload: { tech: query, color: form.newTechColor },
+                                                    payload: {
+                                                        tech: query,
+                                                        color: form.newTechColor,
+                                                    },
                                                 })
                                             }
                                         />
@@ -534,7 +545,13 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                             disabled={submitting}
                             className="inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
                         >
-                            {submitting ? (isEdit ? 'Updating…' : 'Saving…') : (isEdit ? 'Save Changes' : 'Create Project')}
+                            {submitting
+                                ? isEdit
+                                    ? 'Updating…'
+                                    : 'Saving…'
+                                : isEdit
+                                  ? 'Save Changes'
+                                  : 'Create Project'}
                         </button>
                     </div>
                 </form>
@@ -569,11 +586,14 @@ function NewTechRow({ query, color, onColorChange, onCreate }) {
             </div>
 
             <div className="mt-3">
-                <TailwindColorPicker value={color} onChange={value => onColorChange('newTechColor', value)} />
+                <TailwindColorPicker
+                    value={color}
+                    onChange={(value) => onColorChange('newTechColor', value)}
+                />
             </div>
         </div>
     );
-  }
+}
 
 const inputClass =
     'mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-950 placeholder-slate-400 transition focus:border-slate-950 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-950/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder-slate-500 dark:focus:border-white dark:focus:bg-slate-900 dark:focus:ring-white/10';

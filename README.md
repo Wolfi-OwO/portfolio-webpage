@@ -43,7 +43,7 @@ My personal developer portfolio: projects, skills, background, and a live status
 
 ![Status page — live uptime tracking for monitored services](docs/screenshots/status.png)
 
-- Checks run 24/7 in a standalone Azure Function (Timer trigger, once a minute) that writes each result to MongoDB; the web app only *reads* that history, building a 90-day uptime record.
+- Checks run 24/7 in a standalone Azure Function (Timer trigger, once a minute) that writes each result to MongoDB; the web app only _reads_ that history, building a 90-day uptime record.
 - Azure Container Apps are checked from the control plane — never over HTTP, because a request would wake a scale-to-zero app. The checker reads the latest active, non-PR revision and reports its running state.
 - A scale-to-zero app that's idle shows as **Idle**, not Down — it's healthy and available on demand, so it doesn't dent uptime.
 - Public, Discord-style status page served on its own `status.` subdomain from a separate, minimal Vite bundle — visiting it doesn't download the whole app just to show uptime.
@@ -74,7 +74,7 @@ To run the website locally, follow these steps:
 
     cd ../client
     npm install
-    ```
+   ```
 
 3. Start the mongo database (docker):
 
@@ -105,9 +105,9 @@ In order to test the backend, you can run the tests using (from `application/ser
 
 2. Run the tests:
 
-    ```bash
-    npm test
-    ```
+   ```bash
+   npm test
+   ```
 
 ## Authentication
 
@@ -129,19 +129,19 @@ Response:
 
 ### Endpoint matrix
 
-| Method | Path                       | Auth required |
-| ------ | -------------------------- | ------------- |
-| POST   | `/auth/login`              | no            |
-| GET    | `/api/projects`            | no            |
-| GET    | `/api/projects/:id`        | no            |
-| POST   | `/api/projects`            | yes           |
-| PUT    | `/api/projects/:id`        | yes           |
-| DELETE | `/api/projects/:id`        | yes           |
-| GET    | `/api/technologies`        | no            |
-| GET    | `/api/technologies/:id`    | no            |
-| POST   | `/api/technologies`        | yes           |
-| PUT    | `/api/technologies/:id`    | yes           |
-| DELETE | `/api/technologies/:id`    | yes           |
+| Method | Path                    | Auth required |
+| ------ | ----------------------- | ------------- |
+| POST   | `/auth/login`           | no            |
+| GET    | `/api/projects`         | no            |
+| GET    | `/api/projects/:id`     | no            |
+| POST   | `/api/projects`         | yes           |
+| PUT    | `/api/projects/:id`     | yes           |
+| DELETE | `/api/projects/:id`     | yes           |
+| GET    | `/api/technologies`     | no            |
+| GET    | `/api/technologies/:id` | no            |
+| POST   | `/api/technologies`     | yes           |
+| PUT    | `/api/technologies/:id` | yes           |
+| DELETE | `/api/technologies/:id` | yes           |
 
 ### Calling a protected endpoint
 

@@ -1,10 +1,6 @@
 import mongoose from 'mongoose';
 import { TechnologyModel } from '../models/technology.js';
-import {
-    BadRequest,
-    InternalServerError,
-    NotFound,
-} from '../middlewares/error-handlers.js';
+import { BadRequest, InternalServerError, NotFound } from '../middlewares/error-handlers.js';
 import { validateQueryParams } from '../utils/validateQueryParams.js';
 
 /**
@@ -92,11 +88,10 @@ async function createTechnology(req, res, next) {
  */
 async function updateTechnologyById(req, res, next) {
     try {
-        const updated = await TechnologyModel.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true, runValidators: true },
-        );
+        const updated = await TechnologyModel.findByIdAndUpdate(req.params.id, req.body, {
+            new: true,
+            runValidators: true,
+        });
 
         if (!updated) {
             return next(new NotFound(`Technology ${req.params.id} not found.`));

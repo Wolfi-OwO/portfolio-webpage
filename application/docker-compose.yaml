@@ -1,104 +1,105 @@
 version: '3.8'
 services:
-    fill-demo-data:
-        build:
-            # Context is application/ so the image can COPY both server/ and the
-            # pre-built client/dist.
-            context: .
-            dockerfile: dockerfile
-        # package.json lives at /app/server (the image keeps the repo's
-        # server/ + client/ nesting), so npm must run from there.
-        profiles:
-            - fill-demo-data
-        working_dir: /app/server
-        entrypoint: 'npm'
-        command: 'run fill-demo-data'
-        environment:
-            - MONGODB_CONNECTION_STRING=mongodb+srv://woofi:${MONGODB_PASSWORD}@portfolio.lorxr25.mongodb.net/portfolio
-    web:
-        build:
-            context: .
-            dockerfile: dockerfile
-        environment:
-            - MONGODB_CONNECTION_STRING=mongodb+srv://woofi:${MONGODB_PASSWORD}@portfolio.lorxr25.mongodb.net/portfolio
-            - JWT_SECRET=${JWT_SECRET}
-            - JWT_EXPIRES_IN=1h
-            - ADMIN_USER=${ADMIN_USER}
-            - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH}
-            # Forge credentials for the activity heatmap. All optional: without
-            # them /api/activity still answers, just with an empty GitHub half.
-            - GITHUB_USER=${GITHUB_USER:-Wolfi-OwO}
-            - GITHUB_TOKEN=${GITHUB_TOKEN:-}
-            - GITLAB_HOST=${GITLAB_HOST:-https://gitlab.com}
-            - GITLAB_USER=${GITLAB_USER:-Koflerp}
-            - GITLAB_TOKEN=${GITLAB_TOKEN:-}
-        ports:
-            - '8080:8080'
-        healthcheck:
-            test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:8080/api/live']
-            interval: 30s
-            timeout: 10s
-            retries: 3
-            start_period: 40s
-        profiles:
-            - production
-    mongodb:
-        image: mongo:latest
-        container_name: portfolio-database
-        restart: always
-        attach: false
-        environment:
-            MONGO_INITDB_DATABASE: portfolio
-        healthcheck:
-            test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
-        ports:
-            - 27017:27017
-    # Azure Storage emulator — the Functions runtime requires an AzureWebJobsStorage
-    # backend for the Timer trigger's schedule/singleton state. Locally that's Azurite.
-    azurite:
-        image: mcr.microsoft.com/azure-storage/azurite:latest
-        profiles:
-            - production
-        container_name: portfolio-azurite
-        restart: always
-        attach: false
-        command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0
-    # The standalone monitor-checker Azure Function (Timer trigger). Runs the same
-    # image/host as production, checks every monitor once a minute and writes the
-    # samples the web service's status page reads from the shared database.
-    monitor-checker:
-        build:
-            context: ./monitor-checker
-            dockerfile: dockerfile
-        container_name: portfolio-monitor-checker
-        restart: unless-stopped
-        profiles:
-            - production
-        environment:
-            # Same database the web service reads from — checker writes, status page reads.
-            - MONGODB_CONNECTION_STRING=mongodb+srv://woofi:${MONGODB_PASSWORD}@portfolio.lorxr25.mongodb.net/portfolio
-            # Functions runtime storage, served locally by the azurite container
-            # (well-known public Azurite dev account — not a secret).
-            - AzureWebJobsStorage=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1
-            - FUNCTIONS_WORKER_RUNTIME=node
-            - AzureWebJobsFeatureFlags=EnableWorkerIndexing
-            # ARM access for the Container App revision checks. DefaultAzureCredential
-            # reads these (EnvironmentCredential). Without them the control-plane checks
-            # just fail per-monitor (caught) and only plain URL monitors are checked.
-            - AZURE_SUBSCRIPTION_ID=${AZURE_SUBSCRIPTION_ID}
-            - AZURE_TENANT_ID=${AZURE_TENANT_ID}
-            - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
-            - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
-            - CONTAINER_APP_RESOURCE_GROUPS=${CONTAINER_APP_RESOURCE_GROUPS:-portfolio-webpage-rg,netviz-rg,dsai-5bhif-app}
-            # Forge credentials for the syncContributions timer, which fills the
-            # heatmap's data in the database. The tokens are what make private
-            # repositories (and therefore the older history) visible at all.
-            - GITHUB_USER=${GITHUB_USER:-Wolfi-OwO}
-            - GITHUB_TOKEN=${GITHUB_TOKEN:-}
-            - GITLAB_HOST=${GITLAB_HOST:-https://gitlab.com}
-            - GITLAB_USER=${GITLAB_USER:-Koflerp}
-            - GITLAB_TOKEN=${GITLAB_TOKEN:-}
-            - CONTRIBUTIONS_SCHEDULE=${CONTRIBUTIONS_SCHEDULE:-0 * * * * *}
-        depends_on:
-            azurite:
-                condition: service_started
+  fill-demo-data:
+    build:
+      # Context is application/ so the image can COPY both server/ and the
+      # pre-built client/dist.
+      context: .
+      dockerfile: dockerfile
+    # package.json lives at /app/server (the image keeps the repo's
+    # server/ + client/ nesting), so npm must run from there.
+    profiles:
+      - fill-demo-data
+    working_dir: /app/server
+    entrypoint: 'npm'
+    command: 'run fill-demo-data'
+    environment:
+      - MONGODB_CONNECTION_STRING=mongodb+srv://woofi:${MONGODB_PASSWORD}@portfolio.lorxr25.mongodb.net/portfolio
+  web:
+    build:
+      context: .
+      dockerfile: dockerfile
+    environment:
+      - MONGODB_CONNECTION_STRING=mongodb+srv://woofi:${MONGODB_PASSWORD}@portfolio.lorxr25.mongodb.net/portfolio
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=1h
+      - ADMIN_USER=${ADMIN_USER}
+      - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH}
+      # Forge credentials for the activity heatmap. All optional: without
+      # them /api/activity still answers, just with an empty GitHub half.
+      - GITHUB_USER=${GITHUB_USER:-Wolfi-OwO}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - GITLAB_HOST=${GITLAB_HOST:-https://gitlab.com}
+      - GITLAB_USER=${GITLAB_USER:-Koflerp}
+      - GITLAB_TOKEN=${GITLAB_TOKEN:-}
+    ports:
+      - '8080:8080'
+    healthcheck:
+      test:
+        ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:8080/api/live']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    profiles:
+      - production
+  mongodb:
+    image: mongo:latest
+    container_name: portfolio-database
+    restart: always
+    attach: false
+    environment:
+      MONGO_INITDB_DATABASE: portfolio
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+    ports:
+      - 27017:27017
+  # Azure Storage emulator — the Functions runtime requires an AzureWebJobsStorage
+  # backend for the Timer trigger's schedule/singleton state. Locally that's Azurite.
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    profiles:
+      - production
+    container_name: portfolio-azurite
+    restart: always
+    attach: false
+    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0
+  # The standalone monitor-checker Azure Function (Timer trigger). Runs the same
+  # image/host as production, checks every monitor once a minute and writes the
+  # samples the web service's status page reads from the shared database.
+  monitor-checker:
+    build:
+      context: ./monitor-checker
+      dockerfile: dockerfile
+    container_name: portfolio-monitor-checker
+    restart: unless-stopped
+    profiles:
+      - production
+    environment:
+      # Same database the web service reads from — checker writes, status page reads.
+      - MONGODB_CONNECTION_STRING=mongodb+srv://woofi:${MONGODB_PASSWORD}@portfolio.lorxr25.mongodb.net/portfolio
+      # Functions runtime storage, served locally by the azurite container
+      # (well-known public Azurite dev account — not a secret).
+      - AzureWebJobsStorage=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1
+      - FUNCTIONS_WORKER_RUNTIME=node
+      - AzureWebJobsFeatureFlags=EnableWorkerIndexing
+      # ARM access for the Container App revision checks. DefaultAzureCredential
+      # reads these (EnvironmentCredential). Without them the control-plane checks
+      # just fail per-monitor (caught) and only plain URL monitors are checked.
+      - AZURE_SUBSCRIPTION_ID=${AZURE_SUBSCRIPTION_ID}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+      - CONTAINER_APP_RESOURCE_GROUPS=${CONTAINER_APP_RESOURCE_GROUPS:-portfolio-webpage-rg,netviz-rg,dsai-5bhif-app}
+      # Forge credentials for the syncContributions timer, which fills the
+      # heatmap's data in the database. The tokens are what make private
+      # repositories (and therefore the older history) visible at all.
+      - GITHUB_USER=${GITHUB_USER:-Wolfi-OwO}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - GITLAB_HOST=${GITLAB_HOST:-https://gitlab.com}
+      - GITLAB_USER=${GITLAB_USER:-Koflerp}
+      - GITLAB_TOKEN=${GITLAB_TOKEN:-}
+      - CONTRIBUTIONS_SCHEDULE=${CONTRIBUTIONS_SCHEDULE:-0 * * * * *}
+    depends_on:
+      azurite:
+        condition: service_started

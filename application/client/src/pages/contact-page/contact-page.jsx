@@ -57,9 +57,7 @@ function Channel({ social, note }) {
             </span>
 
             <span className="min-w-0 flex-1">
-                <span className="block text-sm font-medium text-[var(--text)]">
-                    {social.label}
-                </span>
+                <span className="block text-sm font-medium text-[var(--text)]">{social.label}</span>
 
                 <span className="mt-0.5 block break-all font-mono text-sm text-[var(--accent)]">
                     {social.copy && copied ? (
@@ -73,10 +71,7 @@ function Channel({ social, note }) {
                 </span>
 
                 <span className="mt-1 block text-sm text-[var(--muted)]">
-                    <FormattedMessage
-                        id={note.id}
-                        defaultMessage={note.defaultMessage}
-                    />
+                    <FormattedMessage id={note.id} defaultMessage={note.defaultMessage} />
                 </span>
             </span>
         </>
@@ -122,12 +117,9 @@ export default function ContactPage() {
     );
 
     return (
-        <div className="mx-auto max-w-5xl animate-fade-up">
+        <div className="animate-fade-up mx-auto max-w-5xl">
             <h1 className="text-4xl font-extrabold text-[var(--text)]">
-                <FormattedMessage
-                    id="contact.title"
-                    defaultMessage="Get in touch"
-                />
+                <FormattedMessage id="contact.title" defaultMessage="Get in touch" />
             </h1>
 
             <p className="mt-4 leading-7 text-[var(--muted)]">
@@ -139,11 +131,7 @@ export default function ContactPage() {
 
             <section className="mt-8 rounded-lg border border-[var(--line)] bg-[var(--surface)] p-6">
                 {SOCIALS.map((social) => (
-                    <Channel
-                        key={social.key}
-                        social={social}
-                        note={notes[social.key]}
-                    />
+                    <Channel key={social.key} social={social} note={notes[social.key]} />
                 ))}
             </section>
 
@@ -156,9 +144,7 @@ export default function ContactPage() {
                             <FormattedMessage id={label} />
                         </dt>
 
-                        <dd className="mt-1.5 text-sm font-medium text-[var(--text)]">
-                            {value}
-                        </dd>
+                        <dd className="mt-1.5 text-sm font-medium text-[var(--text)]">{value}</dd>
                     </div>
                 ))}
             </dl>

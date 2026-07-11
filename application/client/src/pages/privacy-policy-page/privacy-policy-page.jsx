@@ -21,7 +21,7 @@ export default function PrivacyPolicyPage() {
     );
 
     return (
-        <div className="mx-auto max-w-5xl animate-fade-up">
+        <div className="animate-fade-up mx-auto max-w-5xl">
             <p className="font-mono text-xs uppercase tracking-[0.24em] text-[var(--accent)]">
                 <FormattedMessage id="privacy.label" defaultMessage="Legal" />
             </p>
@@ -64,7 +64,10 @@ export default function PrivacyPolicyPage() {
                     />
                     <br />
                     <br />
-                    <FormattedMessage id="privacy.controller.contact" defaultMessage="You can reach me at " />
+                    <FormattedMessage
+                        id="privacy.controller.contact"
+                        defaultMessage="You can reach me at "
+                    />
                     <Mail />
                     <FormattedMessage
                         id="privacy.controller.contactEnd"
@@ -108,7 +111,7 @@ export default function PrivacyPolicyPage() {
                     <FormattedMessage
                         id="privacy.storage.text"
                         defaultMessage={
-                            'This site sets no cookies. It does use your browser\'s local storage for two small settings, so the site behaves the way you left it:\n\n• theme — whether you prefer the light or the dark appearance\n• locale — the language you picked\n\nSession storage additionally remembers that you have already seen the boot animation, so it does not replay on every visit within a tab. All three values stay on your device, are never sent to my server, and you can clear them at any time in your browser settings. Nothing here identifies you.'
+                            "This site sets no cookies. It does use your browser's local storage for two small settings, so the site behaves the way you left it:\n\n• theme — whether you prefer the light or the dark appearance\n• locale — the language you picked\n\nSession storage additionally remembers that you have already seen the boot animation, so it does not replay on every visit within a tab. All three values stay on your device, are never sent to my server, and you can clear them at any time in your browser settings. Nothing here identifies you."
                         }
                     />
                 </Section>

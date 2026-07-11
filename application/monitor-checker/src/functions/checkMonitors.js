@@ -36,7 +36,8 @@ const monitorCheckSchema = new mongoose.Schema({
 });
 
 const MonitorModel = mongoose.models.Monitor ?? mongoose.model('Monitor', monitorSchema);
-const MonitorCheckModel = mongoose.models.MonitorCheck ?? mongoose.model('MonitorCheck', monitorCheckSchema);
+const MonitorCheckModel =
+    mongoose.models.MonitorCheck ?? mongoose.model('MonitorCheck', monitorCheckSchema);
 
 const REQUEST_TIMEOUT_MS = 10000;
 
@@ -52,7 +53,10 @@ function ensureConnected() {
 let armClient = null;
 function getArmClient() {
     if (!armClient) {
-        armClient = new ContainerAppsAPIClient(new DefaultAzureCredential(), process.env.AZURE_SUBSCRIPTION_ID);
+        armClient = new ContainerAppsAPIClient(
+            new DefaultAzureCredential(),
+            process.env.AZURE_SUBSCRIPTION_ID,
+        );
     }
     return armClient;
 }
@@ -102,7 +106,10 @@ const PR_REVISION_RE = /--pr-\d+-/;
 // the live ARM API returns it, so we match the string literal.
 const UP_RUNNING_STATES = new Set(['Running', 'ScaledToZero']);
 function revisionIsUp(revision) {
-    return revision.healthState !== 'Unhealthy' && UP_RUNNING_STATES.has(revision.runningState ?? 'Unknown');
+    return (
+        revision.healthState !== 'Unhealthy' &&
+        UP_RUNNING_STATES.has(revision.runningState ?? 'Unknown')
+    );
 }
 
 // The health of a Container App is the health of its live production revision:
@@ -184,14 +191,17 @@ async function runCheckCycle(context) {
     // monitors via HTTP — one check per seeded monitor, no discovery.
     const monitors = await MonitorModel.find();
     const results = await Promise.allSettled(
-        monitors.map(monitor =>
-            monitor.containerApp?.name ? checkContainerAppMonitor(monitor, client, context) : checkMonitor(monitor),
+        monitors.map((monitor) =>
+            monitor.containerApp?.name
+                ? checkContainerAppMonitor(monitor, client, context)
+                : checkMonitor(monitor),
         ),
     );
 
-    const failed = results.filter(r => r.status === 'rejected').length;
+    const failed = results.filter((r) => r.status === 'rejected').length;
     context.log(
-        `monitor-checker: checked ${monitors.length} monitor(s)` + (failed ? `, ${failed} check(s) threw` : ''),
+        `monitor-checker: checked ${monitors.length} monitor(s)` +
+            (failed ? `, ${failed} check(s) threw` : ''),
     );
 }
 

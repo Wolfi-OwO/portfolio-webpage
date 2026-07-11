@@ -1,27 +1,27 @@
 [
-    {
-        "name": "Network Visualizer",
-        "url": "https://netviz.woofi-developments.at",
-        "group": "Network Visualizer",
-        "containerApp": {
-            "resourceGroup": "netviz-rg",
-            "name": "netviz",
-            "scaleToZero": true
-        }
-    },
-    {
-        "name": "Machine Learning Visualizer",
-        "url": "https://app.ml-visualizer.at",
-        "group": "ML Visualizer",
-        "containerApp": {
-            "resourceGroup": "dsai-5bhif-app",
-            "name": "dsai-containerapp",
-            "scaleToZero": true
-        }
-    },
-    {
-        "name": "Machine Learning Visualizer (Preview)",
-        "url": "https://ml-visualizer.at",
-        "group": "ML Visualizer"
+  {
+    "name": "Network Visualizer",
+    "url": "https://netviz.woofi-developments.at",
+    "group": "Network Visualizer",
+    "containerApp": {
+      "resourceGroup": "netviz-rg",
+      "name": "netviz",
+      "scaleToZero": true
     }
+  },
+  {
+    "name": "Machine Learning Visualizer",
+    "url": "https://app.ml-visualizer.at",
+    "group": "ML Visualizer",
+    "containerApp": {
+      "resourceGroup": "dsai-5bhif-app",
+      "name": "dsai-containerapp",
+      "scaleToZero": true
+    }
+  },
+  {
+    "name": "Machine Learning Visualizer (Preview)",
+    "url": "https://ml-visualizer.at",
+    "group": "ML Visualizer"
+  }
 ]
