@@ -25,6 +25,13 @@ services:
             - JWT_EXPIRES_IN=1h
             - ADMIN_USER=${ADMIN_USER}
             - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH}
+            # Forge credentials for the activity heatmap. All optional: without
+            # them /api/activity still answers, just with an empty GitHub half.
+            - GITHUB_USER=${GITHUB_USER:-Wolfi-OwO}
+            - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+            - GITLAB_HOST=${GITLAB_HOST:-https://gitlab.com}
+            - GITLAB_USER=${GITLAB_USER:-Koflerp}
+            - GITLAB_TOKEN=${GITLAB_TOKEN:-}
         ports:
             - '8080:8080'
         healthcheck:
@@ -83,6 +90,15 @@ services:
             - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
             - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
             - CONTAINER_APP_RESOURCE_GROUPS=${CONTAINER_APP_RESOURCE_GROUPS:-portfolio-webpage-rg,netviz-rg,dsai-5bhif-app}
+            # Forge credentials for the syncContributions timer, which fills the
+            # heatmap's data in the database. The tokens are what make private
+            # repositories (and therefore the older history) visible at all.
+            - GITHUB_USER=${GITHUB_USER:-Wolfi-OwO}
+            - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+            - GITLAB_HOST=${GITLAB_HOST:-https://gitlab.com}
+            - GITLAB_USER=${GITLAB_USER:-Koflerp}
+            - GITLAB_TOKEN=${GITLAB_TOKEN:-}
+            - CONTRIBUTIONS_SCHEDULE=${CONTRIBUTIONS_SCHEDULE:-0 * * * * *}
         depends_on:
             azurite:
                 condition: service_started
