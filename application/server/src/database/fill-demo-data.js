@@ -6,6 +6,8 @@ import mongoose from 'mongoose';
 import { ProjectModel } from '../models/project.js';
 import { TechnologyModel } from '../models/technology.js';
 import { MonitorModel } from '../models/monitor.js';
+import { ServiceModel } from '../models/service.js';
+import { AvailabilityModel } from '../models/availability.js';
 
 // dirname-relative (not cwd-relative) so this works regardless of where `npm run
 // fill-demo-data` is invoked from.
@@ -26,6 +28,8 @@ async function fillDatabase() {
 
     await logResults('Projects', fillProjectsData);
     await logResults('Monitors', fillMonitorsData);
+    await logResults('Services', fillServicesData);
+    await logResults('Availability', fillAvailabilityData);
 
     logger.info('Finished filling database!');
 
@@ -94,6 +98,22 @@ async function fillProjectsData() {
         errorCnt,
         errorObjects,
     };
+}
+
+async function fillServicesData() {
+    const allServices = JSON.parse(
+        await fsp.readFile(path.join(DATA_DIR, 'services.json'), 'utf-8'),
+    );
+
+    return processDocuments(allServices, ServiceModel.create.bind(ServiceModel));
+}
+
+async function fillAvailabilityData() {
+    const allEntries = JSON.parse(
+        await fsp.readFile(path.join(DATA_DIR, 'availability.json'), 'utf-8'),
+    );
+
+    return processDocuments(allEntries, AvailabilityModel.create.bind(AvailabilityModel));
 }
 
 async function fillMonitorsData() {
