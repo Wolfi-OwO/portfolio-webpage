@@ -18,6 +18,9 @@ import { dropCurrentDatabase, setupDatabaseConnection } from './database/databas
 
 /* ***************** IMPORT ROUTES **************** */
 import { projectsRouter } from './routes/projects-route.js';
+import { servicesRouter } from './routes/services-route.js';
+import { availabilityRouter } from './routes/availability-route.js';
+import { activityRouter } from './routes/activity-route.js';
 import { technologiesRouter } from './routes/technologies-route.js';
 import { authRouter } from './routes/auth-route.js';
 import { infoRouter } from './routes/info-route.js';
@@ -59,6 +62,9 @@ app.use(express.static(CLIENT_DIST, { index: false }));
 app.use('/auth/', authRouter);
 app.use('/api/info/', infoRouter);
 app.use('/api/projects/', projectsRouter);
+app.use('/api/services/', servicesRouter);
+app.use('/api/availability/', availabilityRouter);
+app.use('/api/activity/', activityRouter);
 app.use('/api/technologies/', technologiesRouter);
 app.use('/api/monitors/', monitorsRouter);
 app.use('/api/status/', statusRouter);
