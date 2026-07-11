@@ -128,7 +128,7 @@ function DayBar({ day }) {
                         <info.Icon className="h-4 w-4 shrink-0" style={{ color: info.bar }} />
                         <span className="text-xs font-medium text-[var(--text)]">{info.label}</span>
                         {day.downMs > 0 && (
-                            <span className="ml-auto shrink-0 font-mono text-[11px] text-[var(--muted)]">
+                            <span className="ml-auto shrink-0 font-mono text-2xs text-[var(--muted)]">
                                 {fmtDuration(day.downMs)}
                             </span>
                         )}
@@ -160,7 +160,7 @@ function UptimeLegend() {
         ['no data', SEVERITY['no-data'].bar],
     ];
     return (
-        <div className="hidden items-center gap-3 font-mono text-[11px] text-[var(--muted)] sm:flex">
+        <div className="hidden items-center gap-3 font-mono text-2xs text-[var(--muted)] sm:flex">
             {items.map(([label, bar]) => (
                 <span key={label} className="flex items-center gap-1.5">
                     <span className="h-2 w-2 rounded-sm" style={{ background: bar }} /> {label}
@@ -311,7 +311,7 @@ function MonitorRow({ monitor, admin, onEdit, onDelete }) {
 
             <UptimeBar history={monitor.history} />
 
-            <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 font-mono text-[11px]">
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 font-mono text-2xs">
                 <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
                     <span style={{ color: uptimeColor(monitor.uptime.d30) }}>{monitor.uptime.d30}% · 30d</span>
                     <span style={{ color: uptimeColor(monitor.uptime.d7) }}>{monitor.uptime.d7}% · 7d</span>
@@ -326,7 +326,7 @@ function MonitorRow({ monitor, admin, onEdit, onDelete }) {
             {monitor.status === 'down' && monitor.lastError && (
                 <p
                     title={monitor.lastError}
-                    className="mt-2 truncate rounded-md px-3 py-2 font-mono text-[11px]"
+                    className="mt-2 truncate rounded-md px-3 py-2 font-mono text-2xs"
                     style={{ background: 'color-mix(in srgb, var(--down) 10%, transparent)', color: 'var(--down)' }}
                 >
                     {monitor.lastError}
@@ -390,12 +390,12 @@ function MonitorForm({ editing, existingGroups, onSubmit, onCancel }) {
             onSubmit={handleSubmit}
             className="mb-6 flex flex-wrap items-end gap-3 rounded-lg border border-dashed border-[var(--line)] bg-[var(--surface)] p-4"
         >
-            <p className="basis-full font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
+            <p className="basis-full font-mono text-2xs font-semibold uppercase tracking-[0.2em] text-[var(--muted)]">
                 Admin · {editing ? 'Edit monitor' : 'Add monitor'}
             </p>
 
             {isContainerApp && (
-                <p className="basis-full font-mono text-[11px] text-[var(--muted)]">
+                <p className="basis-full font-mono text-2xs text-[var(--muted)]">
                     Container App: {editing.containerApp.name} ({editing.containerApp.resourceGroup}) — status comes
                     from Azure's control plane; it is never probed over HTTP. The URL below is only a display link.
                 </p>
@@ -469,7 +469,7 @@ function GroupSection({ group, admin, onEdit, onDelete }) {
                 <div className="flex min-w-0 items-center gap-2.5">
                     <StatusDot status={group.status} />
                     <p className="truncate text-sm font-semibold text-[var(--text)]">{group.name}</p>
-                    <span className="rounded-full border border-[var(--line)] px-2 py-0.5 font-mono text-[10px] font-medium text-[var(--muted)]">
+                    <span className="rounded-full border border-[var(--line)] px-2 py-0.5 font-mono text-2xs font-medium text-[var(--muted)]">
                         {group.monitors.length} services
                     </span>
                 </div>
@@ -479,7 +479,7 @@ function GroupSection({ group, admin, onEdit, onDelete }) {
                 </span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px]">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-2xs">
                 <span style={{ color: uptimeColor(group.uptime.d30) }}>{group.uptime.d30}% · 30d avg</span>
                 <span style={{ color: uptimeColor(group.uptime.d7) }}>{group.uptime.d7}% · 7d avg</span>
                 <span style={{ color: uptimeColor(group.uptime.h24) }}>{group.uptime.h24}% · 24h avg</span>
@@ -592,7 +592,7 @@ export default function StatusPage() {
         <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] bg-white text-gray-900 transition-colors duration-300 dark:bg-gray-950 dark:text-white">
             <div className="mx-auto max-w-4xl px-6 py-12 lg:py-16">
                 <div className="mb-6 flex items-center gap-3">
-                    <h1 className="text-2xl font-semibold tracking-tight text-[var(--text)] sm:text-3xl">Status</h1>
+                    <h1 className="text-3xl font-semibold tracking-tight text-[var(--text)]">Status</h1>
 
                     <div className="flex-1" />
 

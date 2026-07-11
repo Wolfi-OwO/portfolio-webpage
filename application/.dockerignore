@@ -9,16 +9,18 @@ client
 # the monitor-checker Azure Function is its own separate deployable
 monitor-checker
 
+# build/dev-only files at the application root
+.env
+.env.example
+dockerfile
+docker-compose.yaml
+
 # server dev-only files
 server/node_modules
 server/npm-debug.log
 server/coverage
 server/tests
 server/requests
-server/.env
-server/.env.example
-server/dockerfile
-server/docker-compose.yaml
 server/eslint.config.js
 server/.prettierrc
 server/results.sarif

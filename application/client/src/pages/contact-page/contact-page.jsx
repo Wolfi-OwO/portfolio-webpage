@@ -121,8 +121,8 @@ export default function ContactPage() {
     );
 
     return (
-        <div className="mx-auto max-w-4xl px-6 py-12 lg:py-16">
-            <h1 className="text-2xl font-semibold tracking-tight text-[var(--text)] sm:text-3xl">
+        <div className="mx-auto max-w-5xl animate-fade-up">
+            <h1 className="text-4xl font-extrabold text-[var(--text)]">
                 <FormattedMessage
                     id="contact.title"
                     defaultMessage="Get in touch"
@@ -163,7 +163,7 @@ export default function ContactPage() {
             <div className="mt-10 flex flex-wrap gap-3">
                 <a
                     href={`mailto:${IDENTITY.email}`}
-                    className="rounded-md bg-[var(--text)] px-4 py-2 text-sm font-medium text-[var(--bg)] transition hover:opacity-90"
+                    className="rounded-md border border-[var(--line)] px-4 py-2 text-sm font-medium text-[var(--text)] transition hover:opacity-90"
                 >
                     <FormattedMessage
                         id="contact.emailButton"
@@ -173,7 +173,7 @@ export default function ContactPage() {
 
                 <Link
                     to="/projects"
-                    className="rounded-md border border-[var(--line)] px-4 py-2 text-sm font-medium text-[var(--text)]"
+                    className="rounded-md border border-[var(--line)] px-4 py-2 text-sm font-medium text-[var(--text)]  transition hover:opacity-90"
                 >
                     <FormattedMessage
                         id="contact.projectsButton"

@@ -138,14 +138,14 @@ export default function ProjectsPage() {
     }
 
     return (
-        <div className="space-y-4 py-1 lg:py-2 w-full">
-            <section className="mx-auto flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between px-6">
-                <div className="max-w-4xl space-y-2">
-                    <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-white">
+        <div className="mx-auto w-full max-w-5xl animate-fade-up space-y-8">
+            <section className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                <div className="max-w-xl space-y-3">
+                    <h1 className="text-4xl font-extrabold text-[var(--text)]">
                         Projects
                     </h1>
 
-                    <p className="max-w-xl text-base leading-8 text-slate-600 dark:text-slate-300">
+                    <p className="leading-7 text-[var(--muted)]">
                         In recent years, I have worked on multiple software
                         engineering projects ranging from web applications to backend
                         systems and UI-focused platforms.
@@ -156,7 +156,7 @@ export default function ProjectsPage() {
                     <button
                         type="button"
                         onClick={() => dispatch({ type: 'OPEN_FORM_NEW' })}
-                        className="inline-flex items-center gap-2 self-start rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+                        className="inline-flex items-center gap-2 self-start rounded-lg bg-[var(--text)] px-4 py-2 text-sm font-semibold text-[var(--bg)] transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                     >
                         <PlusIcon className="h-4 w-4" />
                         New Project
@@ -168,7 +168,7 @@ export default function ProjectsPage() {
                 <ProjectForm state={state} dispatch={dispatch} onSubmit={handleSubmit} />
             )}
 
-            <section className="mx-auto grid max-w-10xl gap-6 px-6 sm:grid-cols-2 lg:grid-cols-3">
+            <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {state.projects.map(project => (
                     <ProjectCard
                         key={project._id}
@@ -425,7 +425,7 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                                         >
                                             {t.tech}
                                             {!t._id && (
-                                                <span className="ml-1 rounded-full bg-white/40 px-1.5 text-[10px] uppercase tracking-wider">
+                                                <span className="ml-1 rounded-full bg-white/40 px-1.5 text-2xs uppercase tracking-wider">
                                                     new
                                                 </span>
                                             )}

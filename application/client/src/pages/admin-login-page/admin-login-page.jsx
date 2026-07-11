@@ -51,7 +51,7 @@ export default function AdminLoginPage() {
                             Admin area
                         </p>
 
-                        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--text)] sm:text-3xl">
+                        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--text)]">
                             Sign in
                         </h1>
 

@@ -194,10 +194,11 @@ The website is built using the following technologies:
 │   │   ├── tests
 │   │   ├── package.json
 │   │   ├── package-lock.json
-│   │   ├── dockerfile
 │   │   └── eslint.config.js
 │   ├── client
-│   └── monitor-checker
+│   ├── monitor-checker
+│   ├── dockerfile
+│   └── docker-compose.yaml
 ├── LICENSE
 └── README.md
 ```
@@ -210,6 +211,7 @@ The website is built using the following technologies:
 - `server/src/utils/`: Utility functions and helpers (logging, health checks, the status-page monitor checker)
 - `server/src/server.js`: Entry point for the backend server
 - `server/tests/`: Unit and integration tests
-- `server/dockerfile`: Instructions for building the backend's Docker image
+- `dockerfile`: Instructions for building the backend's Docker image (build context is `application/`, so it can copy `server/` and the pre-built `client/dist`)
+- `docker-compose.yaml`: Local stack (web, MongoDB, Azurite, monitor-checker) — run `docker compose` from `application/`
 - `client/`: The React frontend application (default Vite setup)
 - `monitor-checker/`: A standalone Azure Function (Timer Trigger) that performs the actual uptime pings — see below

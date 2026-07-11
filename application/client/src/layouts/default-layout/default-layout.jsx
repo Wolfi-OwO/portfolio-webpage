@@ -24,6 +24,22 @@ const languageOptions = {
     de: { labelId: 'language.de', defaultLabel: 'Deutsch', short: 'DE' },
 };
 
+// The two bars share one control shape: a hairline-bordered, softly rounded button
+// on a translucent fill. Defined once so the top bar and the dropdowns can't drift.
+const CONTROL =
+    'inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-sm font-medium text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]';
+
+const MENU =
+    'absolute right-0 z-50 mt-2 w-48 overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface)] p-1 [box-shadow:var(--shadow-float)]';
+
+// Shown when /api/info can't be reached — mirrors the server's own defaults.
+const FALLBACK_BUILD_INFO = {
+    version: 'dev',
+    repositoryUrl: 'https://github.com/Wolfi-OwO/portfolio-webpage',
+    revision: '',
+    buildDate: '',
+};
+
 export default function DefaultLayout() {
     const intl = useIntl();
     const { locale, setLocale } = useLocale();
@@ -35,6 +51,7 @@ export default function DefaultLayout() {
     const [loggedIn, setLoggedIn] = useState(() => isAdmin());
     const themeDropdownRef = useRef(null);
     const languageDropdownRef = useRef(null);
+    const scrollRef = useRef(null);
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -42,6 +59,12 @@ export default function DefaultLayout() {
         (() => {
             setLoggedIn(isAdmin());
         })();
+    }, [location.pathname]);
+
+    // The window never scrolls — <main> does — so react-router's own scroll
+    // restoration has nothing to reset. Send the scroll container home instead.
+    useEffect(() => {
+        scrollRef.current?.scrollTo({ top: 0 });
     }, [location.pathname]);
 
     async function handleLogout() {
@@ -56,10 +79,14 @@ export default function DefaultLayout() {
         fetch('/api/info')
             .then(res => (res.ok ? res.json() : null))
             .then(info => {
-                if (active && info) setBuildInfo(info);
+                if (active) setBuildInfo(info || FALLBACK_BUILD_INFO);
             })
             .catch(() => {
-                // build info is non-critical: stay silent if the endpoint is unreachable
+                // The backend is the only source of the real build metadata, but a
+                // footer that silently loses its version chip whenever /api/info is
+                // unreachable (dev without the server, a brief outage) just reads as
+                // a bug. Fall back to the same 'dev' the server itself defaults to.
+                if (active) setBuildInfo(FALLBACK_BUILD_INFO);
             });
 
         return () => {
@@ -129,92 +156,83 @@ export default function DefaultLayout() {
     const selectedTheme = themeOptions.find(option => option.id === theme);
 
     const navLinkClasses = ({ isActive }) =>
-        `inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-gray-50 hover:text-slate-900 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-white ${
-            isActive ? 'bg-gray-100 text-slate-900 dark:bg-gray-800 dark:text-white' : ''
+        `inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+            isActive
+                ? 'bg-[color-mix(in_srgb,var(--accent)_14%,transparent)] text-[var(--text)]'
+                : 'text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_6%,transparent)] hover:text-[var(--text)]'
         }`;
 
     return (
-        <div className="min-h-screen flex flex-col bg-white text-gray-900 transition-colors duration-300 dark:bg-gray-950 dark:text-white">
-            <header className="border-b border-gray-200 dark:border-gray-800">
-                <nav className="mx-auto flex h-16 max-w-8xl items-center justify-between px-3">
-                    <div className="flex items-center gap-4">
+        // The whole app is one viewport-tall column that never scrolls itself:
+        // the bars are fixed rows, and only <main> in the middle moves.
+        <div className="relative flex h-dvh flex-col overflow-hidden bg-[var(--bg)] text-[var(--text)] transition-colors duration-300">
+            <div className="app-ground" aria-hidden="true" />
+            <div className="app-glow" aria-hidden="true" />
+
+            {/* Floating top bar: out of flow, so it hovers over the scrolling content.
+                The wrapper is click-through; only the bar itself takes pointer events. */}
+            <header className="pointer-events-none absolute inset-x-0 top-0 z-40 px-4 pt-3 sm:px-6 sm:pt-5">
+                <nav className="pointer-events-auto mx-auto flex h-14 max-w-8xl items-center justify-between gap-3 rounded-2xl border border-[var(--line)] bg-[var(--glass)] pl-3 pr-2 backdrop-blur-xl [box-shadow:var(--shadow-float)]">
+                    <div className="flex min-w-0 items-center gap-1 sm:gap-2">
                         <NavLink
                             to="/"
-                            className="flex items-center gap-2 text-xl font-semibold tracking-tight"
+                            className="mr-1 flex shrink-0 items-center gap-2.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                         >
                             <img
                                 src="/favicon.svg"
                                 alt=""
-                                className="h-8 w-8 rounded-lg"
+                                className="h-7 w-7 rounded-md"
                             />
-                            Woofi-Developments
+                            <span className="hidden text-base font-extrabold tracking-tight sm:inline">
+                                Woofi
+                                <span className="text-[var(--muted)]">-Developments</span>
+                            </span>
                         </NavLink>
 
                         <NavLink to="/projects" className={navLinkClasses}>
                             <FormattedMessage id="nav.projects" defaultMessage="Projects" />
                         </NavLink>
-
-                        {loggedIn ? (
-                            <button
-                                type="button"
-                                onClick={handleLogout}
-                                className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-gray-50 hover:text-slate-900 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-white"
-                            >
-                                <ArrowRightOnRectangleIcon className="h-4 w-4" />
-                                <span>
-                                    <FormattedMessage id="nav.logout" defaultMessage="Logout" />
-                                </span>
-                            </button>
-                        ) : (
-                            <NavLink to="/admin/login" className={navLinkClasses}>
-                                <LockClosedIcon className="h-4 w-4" />
-                                <span>
-                                    <FormattedMessage id="nav.admin" defaultMessage="Admin" />
-                                </span>
-                            </NavLink>
-                        )}
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-1.5">
                         <div className="relative" ref={languageDropdownRef}>
                             <button
                                 type="button"
+                                aria-haspopup="menu"
+                                aria-expanded={openDropdown === 'language'}
                                 onClick={() =>
                                     setOpenDropdown(open => (open === 'language' ? null : 'language'))
                                 }
-                                className="flex cursor-pointer items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm shadow-gray-200/50 transition hover:bg-gray-50 focus:outline-none focus:ring-0 dark:border-gray-700 dark:bg-slate-950 dark:text-gray-200 dark:hover:bg-gray-800"
+                                className={CONTROL}
                             >
-                                <LanguageIcon className="h-5 w-5" />
-                                <span>{languageOptions[locale].short}</span>
+                                <LanguageIcon className="h-4 w-4" />
+                                <span className="font-mono text-xs">
+                                    {languageOptions[locale].short}
+                                </span>
                             </button>
 
                             {openDropdown === 'language' && (
-                                <div className="absolute right-0 z-50 mt-2 w-44 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900">
-                                    {SUPPORTED_LOCALES.map(code => {
-                                        const selected = locale === code;
-                                        return (
-                                            <button
-                                                key={code}
-                                                type="button"
-                                                onClick={() => {
-                                                    setLocale(code);
-                                                    setOpenDropdown(null);
-                                                }}
-                                                className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition hover:bg-gray-50 focus:outline-none focus:ring-0 dark:hover:bg-gray-800 ${
-                                                    selected
-                                                        ? 'bg-gray-100 text-slate-900 dark:bg-gray-800 dark:text-white'
-                                                        : 'text-gray-600 dark:text-gray-300'
-                                                }`}
-                                            >
-                                                <span>
-                                                    {intl.formatMessage({
-                                                        id: languageOptions[code].labelId,
-                                                        defaultMessage: languageOptions[code].defaultLabel,
-                                                    })}
-                                                </span>
-                                            </button>
-                                        );
-                                    })}
+                                <div className={MENU} role="menu">
+                                    {SUPPORTED_LOCALES.map(code => (
+                                        <MenuItem
+                                            key={code}
+                                            selected={locale === code}
+                                            onClick={() => {
+                                                setLocale(code);
+                                                setOpenDropdown(null);
+                                            }}
+                                        >
+                                            <span className="font-mono text-xs text-[var(--accent)]">
+                                                {languageOptions[code].short}
+                                            </span>
+                                            <span>
+                                                {intl.formatMessage({
+                                                    id: languageOptions[code].labelId,
+                                                    defaultMessage: languageOptions[code].defaultLabel,
+                                                })}
+                                            </span>
+                                        </MenuItem>
+                                    ))}
                                 </div>
                             )}
                         </div>
@@ -222,69 +240,100 @@ export default function DefaultLayout() {
                         <div className="relative" ref={themeDropdownRef}>
                             <button
                                 type="button"
+                                aria-haspopup="menu"
+                                aria-expanded={openDropdown === 'theme'}
+                                aria-label={intl.formatMessage({
+                                    id: 'theme.label',
+                                    defaultMessage: 'Theme',
+                                })}
                                 onClick={() =>
                                     setOpenDropdown(open => (open === 'theme' ? null : 'theme'))
                                 }
-                                className="flex cursor-pointer items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm shadow-gray-200/50 transition hover:bg-gray-50 focus:outline-none focus:ring-0 dark:border-gray-700 dark:bg-slate-950 dark:text-gray-200 dark:hover:bg-gray-800"
+                                className={CONTROL}
                             >
-                                {selectedTheme?.Icon && <selectedTheme.Icon className="h-5 w-5" />}
-                                <span>
-                                    <FormattedMessage id="theme.label" defaultMessage="Theme" />
-                                </span>
+                                {selectedTheme?.Icon && <selectedTheme.Icon className="h-4 w-4" />}
                             </button>
 
                             {openDropdown === 'theme' && (
-                                <div className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900">
-                                    {themeOptions.map(({ id, labelId, defaultLabel, Icon }) => {
-                                        const selected = theme === id;
-                                        return (
-                                            <button
-                                                key={id}
-                                                type="button"
-                                                onClick={() => {
-                                                    setTheme(id);
-                                                    setOpenDropdown(null);
-                                                }}
-                                                className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition hover:bg-gray-50 focus:outline-none focus:ring-0 dark:hover:bg-gray-800 ${
-                                                    selected
-                                                        ? 'bg-gray-100 text-slate-900 dark:bg-gray-800 dark:text-white'
-                                                        : 'text-gray-600 dark:text-gray-300'
-                                                }`}
-                                            >
-                                                <Icon className="h-5 w-5" />
-                                                <span>
-                                                    {intl.formatMessage({ id: labelId, defaultMessage: defaultLabel })}
-                                                </span>
-                                            </button>
-                                        );
-                                    })}
+                                <div className={MENU} role="menu">
+                                    {themeOptions.map(({ id, labelId, defaultLabel, Icon }) => (
+                                        <MenuItem
+                                            key={id}
+                                            selected={theme === id}
+                                            onClick={() => {
+                                                setTheme(id);
+                                                setOpenDropdown(null);
+                                            }}
+                                        >
+                                            <Icon className="h-4 w-4 text-[var(--accent)]" />
+                                            <span>
+                                                {intl.formatMessage({ id: labelId, defaultMessage: defaultLabel })}
+                                            </span>
+                                        </MenuItem>
+                                    ))}
                                 </div>
                             )}
                         </div>
+
+                        {loggedIn ? (
+                            <button
+                                type="button"
+                                onClick={handleLogout}
+                                aria-label={intl.formatMessage({
+                                    id: 'nav.logout',
+                                    defaultMessage: 'Logout',
+                                })}
+                                className={CONTROL}
+                            >
+                                <ArrowRightOnRectangleIcon className="h-4 w-4" />
+                            </button>
+                        ) : (
+                            <NavLink
+                                to="/admin/login"
+                                aria-label={intl.formatMessage({
+                                    id: 'nav.admin',
+                                    defaultMessage: 'Admin',
+                                })}
+                                className={CONTROL}
+                            >
+                                <LockClosedIcon className="h-4 w-4" />
+                            </NavLink>
+                        )}
                     </div>
                 </nav>
             </header>
 
-            <main className="w-full flex-1 mx-auto max-w-8xl px-4 py-6">
+            {/* The only scroll container in the app. Top padding clears the floating
+                bar; the bottom bar is a sibling, so it needs no padding of its own. */}
+            <main
+                ref={scrollRef}
+                className="app-scroll relative z-10 flex-1 overflow-y-auto px-4 pb-12 pt-24 sm:px-6 sm:pt-28"
+            >
                 <Outlet />
             </main>
 
-            <footer className="bg-neutral-primary-soft rounded-base shadow-xs border border-gray-200 dark:border-gray-800">
-                <div className="w-full mx-auto px-10 py-5 gap-3 md:grid md:grid-cols-3 md:items-center">
-                    <span className="text-sm text-body sm:text-center md:text-left">
-                        © 2026{' '}
-                        <a href="#" className="hover:underline">
-                            Woofi-Developments
-                        </a>
-                        .{' '}
-                        <FormattedMessage id="footer.rightsReserved" defaultMessage="All Rights Reserved." />
+            {/* Anchored bottom bar: a row of the shell, not a fixed overlay, so it can
+                never cover content the way `position: fixed` would. */}
+            <footer className="relative z-20 shrink-0 border-t border-[var(--line)] bg-[var(--glass)] px-4 backdrop-blur-xl sm:px-6">
+                <div className="mx-auto flex h-14 max-w-8xl items-center justify-between gap-4 text-xs">
+                    <span className="flex shrink-0 flex-col leading-tight text-[var(--muted)]">
+                        <span>
+                            <span className="font-mono">© 2026</span>{' '}
+                            <span className="hidden sm:inline">Woofi-Developments</span>
+                        </span>
+                        <span className="hidden sm:inline">
+                            <FormattedMessage
+                                id="footer.rightsReserved"
+                                defaultMessage="All Rights Reserved."
+                            />
+                        </span>
                     </span>
 
-                    <div className="mt-3 flex justify-center md:mt-0">
+                    <div className="hidden md:block">
                         {buildInfo && <BuildInfo info={buildInfo} />}
                     </div>
 
-                    <ul className="flex flex-wrap items-center mt-3 text-sm font-medium text-body sm:mt-0 md:justify-end">
+                    <ul className="flex shrink-0 items-center gap-4 font-medium text-[var(--muted)]">
                         <li>
                             {/* Status lives on its own `status.` subdomain, not an in-app route.
                                 `window.location` (not the `location` var above, which is react-router's
@@ -292,15 +341,16 @@ export default function DefaultLayout() {
                                 any subdomain (www, etc.) so this resolves the same from every host. */}
                             <a
                                 href={statusUrl()}
-                                className="hover:underline me-4 md:me-6"
+                                className="inline-flex items-center gap-1.5 transition hover:text-[var(--text)]"
                             >
+                                <span className="h-1.5 w-1.5 rounded-full bg-[var(--live)] animate-live" />
                                 <FormattedMessage id="footer.status" defaultMessage="Status" />
                             </a>
                         </li>
                         <li>
                             <NavLink
                                 to="/privacy-policy"
-                                className="hover:underline me-4 md:me-6"
+                                className="transition hover:text-[var(--text)]"
                             >
                                 <FormattedMessage id="footer.privacyPolicy" defaultMessage="Privacy Policy" />
                             </NavLink>
@@ -308,7 +358,7 @@ export default function DefaultLayout() {
                         <li>
                             <NavLink
                                 to="/contact"
-                                className="font-semibold tracking-tight hover:underline"
+                                className="transition hover:text-[var(--text)]"
                             >
                                 <FormattedMessage id="footer.contact" defaultMessage="Contact" />
                             </NavLink>
@@ -317,6 +367,24 @@ export default function DefaultLayout() {
                 </div>
             </footer>
         </div>
+    );
+}
+
+// Shared row for both dropdowns — same shape, same selected treatment.
+function MenuItem({ selected, onClick, children }) {
+    return (
+        <button
+            type="button"
+            role="menuitem"
+            onClick={onClick}
+            className={`flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
+                selected
+                    ? 'bg-[color-mix(in_srgb,var(--accent)_14%,transparent)] text-[var(--text)]'
+                    : 'text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--text)_6%,transparent)] hover:text-[var(--text)]'
+            }`}
+        >
+            {children}
+        </button>
     );
 }
 
@@ -352,13 +420,11 @@ function BuildInfo({ info }) {
     const chip = (
         <span
             title={tooltip || undefined}
-            className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-500 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400"
+            className="inline-flex items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1 font-mono text-2xs text-[var(--muted)]"
         >
-            <CodeBracketIcon className="h-3.5 w-3.5" />
-            <span className="font-medium text-gray-700 dark:text-gray-200">
-                {label}
-            </span>
-            <span className="text-gray-300 dark:text-gray-600">·</span>
+            <CodeBracketIcon className="h-3.5 w-3.5 text-[var(--accent)]" />
+            <span className="text-[var(--text)]">{label}</span>
+            <span className="text-[var(--line)]">·</span>
             <span>{info.version}</span>
         </span>
     );

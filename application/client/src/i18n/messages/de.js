@@ -79,50 +79,68 @@ export default {
   "contact.emailButton": "E-Mail senden",
   "contact.projectsButton": "Projekte ansehen",
 
-  "imprint.label": "Rechtliches",
-  "imprint.title": "Impressum",
-  "imprint.updated": "Zuletzt aktualisiert: {date}",
+  "privacy.label": "Rechtliches",
+  "privacy.title": "Datenschutzerklärung",
+  "privacy.updated": "Zuletzt aktualisiert: {date}",
+  "privacy.intro":
+    "Ich habe diese Seite selbst gebaut und ich betreibe sie selbst — deshalb kann ich dir genau sagen, was hier mit deinen Daten passiert: so wenig wie möglich. Es gibt keine Analyse-Tools, kein Tracking, keine Werbung und kein Cookie-Banner, weil es schlicht nichts gibt, worin du einwilligen müsstest. Was trotzdem verarbeitet wird, warum, und auf welcher Rechtsgrundlage, erkläre ich dir hier Abschnitt für Abschnitt.",
 
-  "imprint.operator.title": "Betreiber der Website",
-  "imprint.operator.text":
-    "Phillip Kofler\nSoftwareingenieur | Fullstack Developer\nVillach, Kärnten\nÖsterreich",
+  "privacy.controller.title": "Wer verantwortlich ist",
+  "privacy.controller.text":
+    "Ich bin der Verantwortliche für die Datenverarbeitung auf dieser Website:\n\nPhillip Kofler\nSoftwareingenieur | Fullstack Developer\nVillach, Kärnten, Österreich",
+  "privacy.controller.contact": "Du erreichst mich unter ",
+  "privacy.controller.contactEnd":
+    " — zu allem, was in diesem Dokument steht, und natürlich auch, wenn du deine Rechte geltend machen möchtest.",
 
-  "imprint.contact.title": "Kontakt",
-  "imprint.contact.text": "E-Mail: KoflerPhillip@outlook.com",
-  "imprint.linkedin": "LinkedIn Profil",
+  "privacy.principle.title": "Die kurze Fassung",
+  "privacy.principle.text":
+    "Ich erhebe keine personenbezogenen Daten über dich, die über das hinausgehen, was ein Webserver zwangsläufig sieht, wenn er deine Anfrage beantwortet. Ich setze keine Cookies. Ich verwende keine Analyse-Tools, keinen Tag Manager, kein Werbenetzwerk und keine Social-Plugins, die nach Hause funken. Ich baue keine Profile, ich verkaufe nichts an niemanden, und es interessiert mich ehrlich gesagt nicht, wer du bist — mir wäre lieber, du siehst dir einfach die Projekte an.",
 
-  "imprint.activity.title": "Tätigkeitsbereich",
-  "imprint.activity.text":
-    "Softwareentwicklung, Webentwicklung und digitale Lösungen.",
+  "privacy.logs.title": "Server-Logfiles",
+  "privacy.logs.text":
+    "Wenn du eine Seite öffnest, schickt dein Browser eine Anfrage an meinen Server, und diese Anfrage wird protokolliert. Ein solcher Eintrag kann deine IP-Adresse enthalten, Datum und Uhrzeit, die aufgerufene URL, den HTTP-Statuscode, die verweisende Seite sowie die Kennung deines Browsers und Betriebssystems (User-Agent).\n\nDas brauche ich, damit die Seite überhaupt funktioniert: um dir die Seite auszuliefern, um Fehler zu finden und um Missbrauch zu bemerken, etwa Brute-Force-Versuche gegen den Admin-Login. Rechtsgrundlage ist mein berechtigtes Interesse am sicheren und störungsfreien Betrieb dieser Website (Art. 6 Abs. 1 lit. f DSGVO). Diese Daten werden mit nichts anderem zusammengeführt, nie zur Identifikation deiner Person verwendet und nur so lange aufbewahrt, wie sie für diese Zwecke nützlich sind — also kurz, danach werden sie gelöscht oder überschrieben.",
 
-  "imprint.services.title": "Leistungsangebot",
-  "imprint.services.text":
-    "Entwicklung moderner Webanwendungen, REST-APIs, Dashboard-Systeme, Cloud-Anwendungen und individueller Softwarelösungen.",
+  "privacy.hosting.title": "Hosting und Infrastruktur",
+  "privacy.hosting.text":
+    "Die Seite läuft als Container auf Microsoft Azure, ihre Inhalte (Projekte, Technologien, Status-Messwerte) liegen in einer MongoDB-Atlas-Datenbank. Beide Anbieter verarbeiten Daten ausschließlich nach meinen Weisungen als Auftragsverarbeiter gemäß Art. 28 DSGVO, und beide bekommen zwangsläufig die oben beschriebenen technischen Verbindungsdaten zu sehen.\n\nIch habe sie wegen ihrer Zuverlässigkeit gewählt, nicht wegen irgendwelcher Daten. In der Datenbank liegen keine Besucherdaten — dort steht nur, was ich selbst über meine Arbeit hineingeschrieben habe.",
 
-  "imprint.background.title": "Beruflicher Hintergrund",
-  "imprint.background.text":
-    "Phillip Kofler ist Softwareingenieur mit Erfahrung in REST-APIs, Dashboard-Entwicklung und moderner Softwareentwicklung. Berufliche Erfahrungen umfassen Softwareentwicklung und technischen IT-Support bei Infineon Technologies.",
+  "privacy.fonts.title": "Schriftarten",
+  "privacy.fonts.text":
+    "Die verwendeten Schriften (Manrope und JetBrains Mono) werden von Google Fonts geladen. Dein Browser fordert die Schriftdateien also von einem Google-Server an, und Google erhält dadurch für die Dauer dieser Anfrage deine IP-Adresse. Rechtsgrundlage ist wiederum mein berechtigtes Interesse an einer einheitlichen Darstellung (Art. 6 Abs. 1 lit. f DSGVO). Ein Cookie wird dabei nicht gesetzt.",
 
-  "imprint.education.title": "Ausbildung",
-  "imprint.education.text":
-    "Abschluss der Reife- und Diplomprüfung an der HTL Villach im Bereich Computer- und Informationstechnologie Administration und Management.",
+  "privacy.storage.title": "Was in deinem Browser gespeichert wird",
+  "privacy.storage.text":
+    "Diese Seite setzt keine Cookies. Sie nutzt aber den lokalen Speicher deines Browsers für zwei kleine Einstellungen, damit die Seite so bleibt, wie du sie verlassen hast:\n\n• theme — ob du die helle oder die dunkle Darstellung bevorzugst\n• locale — die Sprache, die du gewählt hast\n\nZusätzlich merkt sich der Session-Speicher, dass du die Boot-Animation bereits gesehen hast, damit sie nicht bei jedem Aufruf im selben Tab erneut läuft. Alle drei Werte bleiben auf deinem Gerät, werden nie an meinen Server geschickt, und du kannst sie jederzeit in den Einstellungen deines Browsers löschen. Nichts davon identifiziert dich.",
 
-  "imprint.content.title": "Verantwortlich für den Inhalt",
-  "imprint.content.text": "Phillip Kofler",
+  "privacy.contact.title": "Kontakt mit mir",
+  "privacy.contact.text":
+    "Es gibt auf dieser Seite bewusst kein Kontaktformular — ein Formular würde bedeuten, dass ich deine Daten über meinen Server einsammle. Stattdessen verlinke ich meine E-Mail-Adresse und mein LinkedIn-Profil. Wenn du mir schreibst, verarbeite ich das, was du mir schickst (deine Adresse, deinen Namen, wenn du ihn nennst, und den Inhalt deiner Nachricht), ausschließlich, um dir zu antworten — auf Grundlage von Art. 6 Abs. 1 lit. b bzw. lit. f DSGVO. Ich behalte solche Korrespondenz nur so lange, wie es die Sache erfordert, und lösche sie, sobald sie erledigt ist.",
 
-  "imprint.liability.title": "Haftung für Inhalte",
-  "imprint.liability.text":
-    "Die Inhalte dieser Website werden sorgfältig erstellt. Trotzdem kann keine Gewähr für Richtigkeit, Vollständigkeit oder Aktualität übernommen werden.",
+  "privacy.status.title": "Die Statusseite",
+  "privacy.status.text":
+    "Die Statusseite zeigt, ob meine eigenen Dienste erreichbar sind. Die Prüfungen dahinter rufen in regelmäßigen Abständen meine eigenen Deployments auf und speichern das Ergebnis — Antwortzeit und erreichbar/nicht erreichbar — in meiner Datenbank. Gemessen wird meine Infrastruktur, nicht du: Besucherdaten landen dort keine.",
 
-  "imprint.external.title": "Haftung für externe Links",
-  "imprint.external.text":
-    "Diese Website kann Links zu externen Websites enthalten. Für deren Inhalte wird keine Haftung übernommen.",
+  "privacy.admin.title": "Der Admin-Bereich",
+  "privacy.admin.text":
+    "Es gibt eine Login-Route, die nur ich benutze, um die Inhalte der Seite zu pflegen. Sie stellt ein signiertes Token für meinen eigenen Browser aus und speichert keinerlei Daten über Besucher. Passwörter werden nie im Klartext gespeichert, sondern nur als Hash.",
 
-  "imprint.copyright.title": "Urheberrecht",
-  "imprint.copyright.text":
-    "Alle Inhalte dieser Website unterliegen dem Urheberrecht. Eine Nutzung außerhalb der gesetzlichen Grenzen bedarf einer vorherigen Zustimmung.",
+  "privacy.sharing.title": "Weitergabe an Dritte",
+  "privacy.sharing.text":
+    "Ich gebe deine Daten an niemanden weiter. Die Einzigen, die sie überhaupt berühren, sind die oben genannten Auftragsverarbeiter, die sie brauchen, um die Seite online zu halten, sowie Behörden, denen ich gesetzlich Auskunft geben muss. Es gibt keinen Verkauf, keinen Tausch und keine Übermittlung zu Werbezwecken — mit den Daten, die ich habe, wäre das nicht einmal möglich.",
 
-  "imprint.privacy.title": "Datenschutz",
-  "imprint.privacy.text":
-    "Informationen zur Verarbeitung personenbezogener Daten findest du in der Datenschutzerklärung dieser Website.",
+  "privacy.security.title": "Sicherheit",
+  "privacy.security.text":
+    "Der Datenverkehr zu dieser Seite ist per TLS (HTTPS) verschlüsselt. Die Anwendung läuft als unprivilegierter Benutzer in einem Container, Geheimnisse liegen außerhalb des Quellcodes, und ich halte die Abhängigkeiten aktuell. Absolute Sicherheit kann bei einer Übertragung über das Internet niemand garantieren — aber je weniger Daten eine Seite hält, desto weniger kann verloren gehen. Genau deshalb hält diese hier so wenige.",
+
+  "privacy.rights.title": "Deine Rechte",
+  "privacy.rights.text":
+    "Nach der DSGVO hast du das Recht, Auskunft über die Daten zu verlangen, die ich über dich habe, sie berichtigen oder löschen zu lassen, die Verarbeitung einschränken zu lassen, die Daten in einem übertragbaren Format zu erhalten und der Verarbeitung auf Grundlage berechtigter Interessen zu widersprechen.\n\nSchreib mir einfach, ich antworte innerhalb eines Monats. In der Praxis wird die ehrliche Antwort meistens lauten, dass ich außer einer kurzlebigen Logzeile überhaupt nichts über dich habe.\n\nAußerdem hast du das Recht, dich bei einer Aufsichtsbehörde zu beschweren. In Österreich ist das die Datenschutzbehörde in Wien.",
+
+  "privacy.changes.title": "Änderungen dieser Erklärung",
+  "privacy.changes.text":
+    "Wenn ich ändere, was diese Seite tut, ändere ich auch diese Erklärung. Das Datum oben sagt dir, welche Fassung du gerade liest.",
+
+  "privacy.imprint.title": "Impressum",
+  "privacy.imprint.text":
+    "Angaben gemäß §5 ECG und §25 MedienG:\n\nPhillip Kofler\nSoftwareingenieur | Fullstack Developer\nVillach, Kärnten, Österreich\n\nTätigkeitsbereich: Softwareentwicklung, Webentwicklung und digitale Lösungen — moderne Webanwendungen, REST-APIs, Dashboards und cloudbasierte Systeme.\n\nVerantwortlich für den Inhalt dieser Seite: Phillip Kofler. Die Inhalte erstelle ich sorgfältig, eine Gewähr für Richtigkeit, Vollständigkeit oder Aktualität übernehme ich jedoch nicht. Auf die Inhalte verlinkter externer Seiten habe ich keinen Einfluss und übernehme dafür keine Haftung. Alle Inhalte dieser Seite unterliegen dem Urheberrecht; eine Nutzung außerhalb der gesetzlichen Grenzen bedarf vorab meiner Zustimmung.",
 };

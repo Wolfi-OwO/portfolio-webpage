@@ -1,5 +1,4 @@
 export const BOOT_SESSION_KEY = 'boot-seen';
-export const BOOT_DURATION_MS = 1250;
 
 export function prefersReducedMotion() {
     return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;

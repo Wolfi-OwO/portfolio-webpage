@@ -1,39 +1,142 @@
 /* Type.
    mono — JetBrains Mono: the structural voice. Prompts, output, labels, numbers.
-   sans — Manrope: prose only. A console you actually have to read shouldn't set
-          paragraphs in monospace. */
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap');
+   sans — Manrope: prose and headings. Weight 800 with negative tracking is what
+          carries the headlines; there is no second display face. */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* One token set, flipped by the `dark` class the layout toggles on <html>.
-   Deliberately NOT near-black + a neon accent: the background is a warm neutral
-   charcoal, the accent is a muted teal used for prompts, and green is reserved
-   for one thing only — live status, where it encodes real state. */
+   The whole surface is blue: a deep navy ground in dark, a cool paper in light —
+   never neutral grey. The accent is a clear blue used for prompts and headings,
+   and green is reserved for one thing only — live status, where it encodes real
+   state. */
 @layer base {
     :root {
-        --bg: #f2f1ec;
-        --surface: #fbfaf7;
-        --line: #d9d6ce;
-        --text: #1b1a17;
-        --muted: #6e6a62;
-        --accent: #2c5d63;
+        --bg: #eef2f9;
+        --surface: #ffffff;
+        --line: #d2dcec;
+        --text: #0c1526;
+        --muted: #5a6a86;
+        --accent: #1f5fd0;
         --live: #2f7d32;
         --down: #b3261e;
+
+        /* The floating chrome (top bar, bottom bar) sits *over* scrolling content,
+           so it needs a translucent fill that still reads as opaque enough to
+           separate. Paired with backdrop-blur — never used without it. */
+        --glass: rgb(255 255 255 / 0.72);
+        --shadow-float: 0 1px 2px rgb(12 21 38 / 0.05), 0 12px 32px -12px rgb(12 21 38 / 0.22);
     }
 
     html.dark {
-        --bg: #16171b;
-        --surface: #1d1f24;
-        --line: #2e313a;
-        --text: #e4e2dd;
-        --muted: #8d8f97;
-        --accent: #6fb3b8;
+        --bg: #070b18;
+        --surface: #0e1729;
+        --line: #22304c;
+        --text: #e6ecf6;
+        --muted: #8ea0bd;
+        --accent: #6aa5ff;
         --live: #5fbf6a;
         --down: #e5675b;
+
+        --glass: rgb(14 23 41 / 0.72);
+        --shadow-float: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 32px -12px rgb(0 0 0 / 0.6);
     }
+
+    html,
+    body,
+    #root {
+        height: 100%;
+    }
+
+    body {
+        background: var(--bg);
+        color: var(--text);
+    }
+
+    /* Headings are the one place the type actually raises its voice: heavy and
+       tightened, the way a grotesk wants to be set at display sizes. */
+    h1,
+    h2,
+    h3 {
+        letter-spacing: -0.02em;
+    }
+
+    /* The type scale is fluid (see tailwind.config.js), so it already follows the
+       viewport continuously. What it can't smooth is the step a responsive variant
+       makes at its breakpoint — `text-3xl sm:text-4xl` still jumps at 640px. Easing
+       font-size turns that step into a glide. Specificity 0, so any element that
+       declares its own `transition` still wins. */
+    * {
+        transition: font-size 220ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        * {
+            transition: none;
+        }
+    }
+}
+
+/* The page ground: a faint engineering grid, faded out toward the bottom, with a
+   single soft pool of accent light in the upper right. It has to survive having a
+   blurred bar sit on top of it, so both layers stay low-contrast on purpose. */
+.app-ground {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+        linear-gradient(to right, var(--line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+    background-size: 72px 72px;
+    opacity: 0.35;
+    -webkit-mask-image: radial-gradient(90% 60% at 50% 0%, #000 0%, transparent 100%);
+    mask-image: radial-gradient(90% 60% at 50% 0%, #000 0%, transparent 100%);
+}
+
+.app-glow {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(48rem 28rem at 88% -8%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%),
+        radial-gradient(40rem 24rem at 4% 104%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 70%);
+}
+
+/* The middle column is the only scroll container in the app — the bars are fixed
+   siblings, not sticky children. Give it a scrollbar that doesn't look like a
+   default browser part sitting inside a custom shell. */
+.app-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+    overscroll-behavior: contain;
+    /* Reserve the scrollbar on *both* sides. The bars are full-width siblings that
+       have no scrollbar, so without this the middle column's centred container sits
+       a few px left of them — and the three stop lining up. */
+    scrollbar-gutter: stable both-edges;
+}
+
+.app-scroll::-webkit-scrollbar {
+    width: 10px;
+}
+
+.app-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.app-scroll::-webkit-scrollbar-thumb {
+    background-clip: padding-box;
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background-color: var(--line);
+}
+
+.app-scroll::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted);
 }
 
 /* Boot screen. Kept in CSS rather than a JS tween so it can't jank, and so
@@ -60,6 +163,19 @@
     }
 }
 
+/* The one status signal that animates: a slow pulse on the live dot. */
+@keyframes live-pulse {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.45;
+        transform: scale(0.82);
+    }
+}
+
 .animate-caret {
     animation: caret-blink 1.05s steps(1) infinite;
 }
@@ -68,9 +184,14 @@
     animation: fade-up 0.45s ease-out both;
 }
 
+.animate-live {
+    animation: live-pulse 2.4s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .animate-caret,
-    .animate-fade-up {
+    .animate-fade-up,
+    .animate-live {
         animation: none;
     }
 }

@@ -157,11 +157,11 @@ export default function TailwindColorPicker({ value, onChange }) {
                     {resolved.palette}-{resolved.shade}
                 </span>
 
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                <span className="text-2xs text-slate-500 dark:text-slate-400">
                     {resolved.paletteHex}
                 </span>
 
-                <code className="ml-auto truncate text-[11px] text-slate-500 dark:text-slate-400">
+                <code className="ml-auto truncate text-2xs text-slate-500 dark:text-slate-400">
                     {resolved.classes}
                 </code>
             </div>
