@@ -100,7 +100,7 @@ services:
       - GITLAB_HOST=${GITLAB_HOST:-https://gitlab.com}
       - GITLAB_USER=${GITLAB_USER:-Koflerp}
       - GITLAB_TOKEN=${GITLAB_TOKEN:-}
-      - CONTRIBUTIONS_SCHEDULE=${CONTRIBUTIONS_SCHEDULE:-0 * * * * *}
+      - CONTRIBUTIONS_CRON=${CONTRIBUTIONS_CRON:-0 * * * * *}
     depends_on:
       azurite:
         condition: service_started

@@ -509,7 +509,7 @@ async function runSyncCycle(context) {
 }
 
 app.timer('syncContributions', {
-    schedule: process.env.CONTRIBUTIONS_SCHEDULE || '0 * * * * *',
+    schedule: process.env.CONTRIBUTIONS_CRON || '0 * * * * *',
     handler: async (_timer, context) => {
         await runSyncCycle(context);
     },
