@@ -124,7 +124,7 @@ jobs:
       # Scoped ACR token (push/pull only, revocable) — no Azure AD identity
       # or OIDC login needed for this job.
       - name: Log in to ACR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ vars.ACR_NAME }}.azurecr.io
           username: ${{ secrets.ACR_PUSH_USERNAME }}
