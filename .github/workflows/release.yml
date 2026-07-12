@@ -136,6 +136,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: application/package-lock.json
+
+      # sync-version pushes its bump to the default branch, but this job builds
+      # from the *tag*, whose tree was written before that commit existed — so the
+      # tag still carries the previous version. Stamp it again here, into the build
+      # context only (never committed), so the package.json baked into the image
+      # agrees with the tag the image is published under. Without this the image's
+      # own metadata reports the previous release.
+      - name: Stamp the version into the build context
+        working-directory: application
+        run: npm run version:sync -- "${{ needs.resolve-metadata.outputs.tag }}"
+
       - name: Download client bundle
         uses: actions/download-artifact@v8
         with:
