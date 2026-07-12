@@ -47,6 +47,9 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      - dependency-name: '*'
+        update-types: [version-update:semver-major]
 
   # The workflows pin action versions; these go stale silently otherwise.
   - package-ecosystem: github-actions
@@ -57,6 +60,9 @@ updates:
       - ci
     commit-message:
       prefix: ci
+    ignore:
+      - dependency-name: '*'
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: docker
     directory: /application
@@ -66,3 +72,6 @@ updates:
       - docker
     commit-message:
       prefix: chore
+    ignore:
+      - dependency-name: '*'
+        update-types: [version-update:semver-major]
