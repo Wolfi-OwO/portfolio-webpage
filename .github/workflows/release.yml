@@ -32,8 +32,9 @@ jobs:
       tag: ${{ steps.meta.outputs.tag }}
       image: ${{ steps.meta.outputs.image }}
       build_date: ${{ steps.meta.outputs.build_date }}
+      revision_suffix: ${{ steps.meta.outputs.revision_suffix }}
     steps:
-      - name: Compute tag, image & build date
+      - name: Compute tag, image, build date & revision suffix
         id: meta
         run: |
           TAG="${{ github.event.inputs.tag || github.event.release.tag_name || github.ref_name }}"
@@ -42,10 +43,24 @@ jobs:
             exit 1
           fi
           IMAGE="${{ vars.ACR_NAME }}.azurecr.io/${{ vars.IMAGE_NAME }}"
+
+          # Name the revision after the version it runs, so `revision list` reads
+          # `portfolio-app--v6-0-1` instead of an opaque `portfolio-app--0000022`.
+          # A suffix may only hold lowercase alphanumerics and dashes, so the dots
+          # in a semver tag have to go, and any run of separators collapses to one.
+          SUFFIX=$(echo "$TAG" \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed 's/[^a-z0-9]\+/-/g; s/^-\+//; s/-\+$//')
+          if [ -z "$SUFFIX" ]; then
+            echo "::error::Tag '${TAG}' normalises to an empty revision suffix."
+            exit 1
+          fi
+
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
           echo "build_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
-          echo "Resolved ${IMAGE}:${TAG}"
+          echo "revision_suffix=${SUFFIX}" >> "$GITHUB_OUTPUT"
+          echo "Resolved ${IMAGE}:${TAG} (revision suffix: ${SUFFIX})"
 
   sync-version:
     name: Sync package versions to the tag
@@ -175,12 +190,17 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      # The app runs in Single revision mode, so the new revision automatically
+      # takes 100% of the traffic and its predecessor is deprovisioned — there is
+      # never more than one revision serving. The suffix names that revision after
+      # the version it carries, which is what makes `revision list` legible.
       - name: Deploy to Azure Container App
         run: |
           az containerapp update \
             --name "${{ vars.CONTAINERAPP_NAME }}" \
             --resource-group "${{ vars.RESOURCE_GROUP }}" \
-            --image "${{ needs.resolve-metadata.outputs.image }}:${{ needs.resolve-metadata.outputs.tag }}"
+            --image "${{ needs.resolve-metadata.outputs.image }}:${{ needs.resolve-metadata.outputs.tag }}" \
+            --revision-suffix "${{ needs.resolve-metadata.outputs.revision_suffix }}"
 
       - name: Show deployed revision
         run: |
