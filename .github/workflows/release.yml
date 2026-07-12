@@ -139,6 +139,18 @@ jobs:
           context: application
           file: application/dockerfile
           push: true
+          # Push a plain single-platform image manifest, not an OCI index.
+          #
+          # By default Buildx attaches provenance/SBOM attestations, which turns
+          # the push into an index whose children (the real payload and the
+          # attestations) carry no tags of their own. An ACR cleanup that deletes
+          # "untagged" manifests then reaps those children while leaving the
+          # tagged index behind — the tag still resolves, but every pull fails
+          # with MANIFEST_UNKNOWN. That is what took production down and it
+          # destroyed every tag in the repository, so there was nothing to roll
+          # back to. A single manifest has no untagged children to lose.
+          provenance: false
+          sbom: false
           tags: |
             ${{ needs.resolve-metadata.outputs.image }}:${{ needs.resolve-metadata.outputs.tag }}
             ${{ needs.resolve-metadata.outputs.image }}:latest
