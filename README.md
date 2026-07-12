@@ -18,7 +18,9 @@ My personal developer portfolio: projects, skills, background, and a live status
 ![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?logo=mongodb&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-single_image-2496ED?logo=docker&logoColor=white)
 
-![A walkthrough of the site: profile card with live uptime, projects, contact, and the status page](docs/demo.gif)
+![A walkthrough of the site: profile card and activity heatmap, projects, services, contact, and the status page](docs/demo.gif)
+
+<sub>The clip above is 50 fps — the ceiling GIF can actually hold. The same walkthrough recorded at a true 60 fps: <a href="docs/demo.mp4">MP4</a> · <a href="docs/demo.webm">WebM</a></sub>
 
 </div>
 
