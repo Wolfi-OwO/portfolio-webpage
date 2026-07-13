@@ -13,17 +13,17 @@ import { BOOT_SESSION_KEY } from '../utils/boot.js';
  */
 const LINES = [
     { after: 0, kind: 'cmd', text: 'node server/src/server.js' },
-    { after: 620, kind: 'log', text: 'Backend - Starting configuration...' },
-    { after: 430, kind: 'log', text: 'Backend - Starting up ...' },
-    { after: 700, kind: 'log', text: 'DB - Setting up connection using mongodb+srv://***' },
-    { after: 780, kind: 'log', text: 'DB - Connection established.' },
-    { after: 480, kind: 'log', text: 'Backend - Running on port 8080...' },
-    { after: 620, kind: 'ready', text: 'ready' },
+    { after: 480, kind: 'log', text: 'Backend - Starting configuration...' },
+    { after: 340, kind: 'log', text: 'Backend - Starting up ...' },
+    { after: 540, kind: 'log', text: 'DB - Setting up connection using mongodb+srv://***' },
+    { after: 600, kind: 'log', text: 'DB - Connection established.' },
+    { after: 380, kind: 'log', text: 'Backend - Running on port 8080...' },
+    { after: 480, kind: 'ready', text: 'ready' },
 ];
 
 const TOTAL_MS = LINES.reduce((sum, l) => sum + l.after, 0);
 // Let the finished output sit on screen before it fades.
-const HOLD_MS = 900;
+const HOLD_MS = 700;
 const FADE_MS = 320;
 
 /** Wall-clock stamp of the client, in the log format the backend uses: HH:MM:SS.mmm */
