@@ -18,7 +18,7 @@ updates:
       prefix: chore
       include: scope
     groups:
-      # Patch and minor bumps arrive as one PR per week instead of a dozen —
+      # Patch and minor bumps arrive as one PR per month instead of a dozen —
       # a wall of individual dependency PRs just gets ignored.
       minor-and-patch:
         update-types:
