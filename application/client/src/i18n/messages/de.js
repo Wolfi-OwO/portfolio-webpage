@@ -22,7 +22,7 @@ export default {
 
     'homepage.role': 'Fullstack-Entwickler / Kärnten, Österreich',
     'homepage.bio':
-        'Ich bin Softwareentwickler aus Kärnten. 2026 habe ich die HTL Villach mit Reife- und Diplomprüfung im Bereich Informatik abgeschlossen, und bei Infineon Technologies habe ich Praktika als Softwareentwickler gemacht. Ich schreibe Webanwendungen mit React im Frontend und Node dahinter, packe sie in Container und betreibe sie auf Azure.',
+        'Ich bin Softwareentwickler aus Kärnten. 2026 habe ich die HTL Villach mit Reife- und Diplomprüfung im Bereich Informatik abgeschlossen, und bei Infineon Technologies habe ich Praktika als Softwareentwickler gemacht. Ich arbeite an Webanwendungen, an Apps im Allgemeinen — darunter Android und Desktop — und an Projekten aus Data Science und KI. Mehr zu meinem Werdegang auf <link>LinkedIn</link>.',
     'homepage.technologies': 'Technologien, die ich nutze:',
 
     'availability.badge.openToWork': 'Open to work',
