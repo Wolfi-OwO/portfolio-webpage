@@ -7,8 +7,7 @@ updates:
   - package-ecosystem: npm
     directory: /application
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
       time: '06:00'
       timezone: Europe/Vienna
     open-pull-requests-limit: 5
@@ -32,8 +31,7 @@ updates:
   - package-ecosystem: npm
     directory: /application/jobs
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
       time: '06:00'
       timezone: Europe/Vienna
     open-pull-requests-limit: 3
