@@ -197,7 +197,19 @@ export default function Homepage() {
                     <p className="mt-7 max-w-2xl leading-7 text-[var(--muted)]">
                         <FormattedMessage
                             id="homepage.bio"
-                            defaultMessage="I'm a software developer from Carinthia. I graduated from HTL Villach in 2026 with a Reife- und Diplomprüfung in computer science, and I've done software engineering internships at Infineon Technologies. I write web apps with React on the front and Node behind it, put them in containers, and run them on Azure."
+                            defaultMessage="I'm a software developer from Carinthia. I graduated from HTL Villach in 2026 with a Reife- und Diplomprüfung in computer science, and I've done software engineering internships at Infineon Technologies. I work on web applications, on apps in general — Android and desktop among them — and on projects in data science and AI. More about my background on <link>LinkedIn</link>."
+                            values={{
+                                link: (chunks) => (
+                                    <a
+                                        href={IDENTITY.linkedInUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-[var(--accent)] underline underline-offset-4"
+                                    >
+                                        {chunks}
+                                    </a>
+                                ),
+                            }}
                         />
                     </p>
 
