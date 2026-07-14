@@ -1,6 +1,6 @@
 {
   "name": "@portfolio/workspace",
-  "version": "6.1.0",
+  "version": "6.1.1",
   "private": true,
   "type": "module",
   "description": "Workspace root for the Woofi Developments portfolio. Holds no application code — it ties the deployables together so they share one install, one formatter and one lint command.",
