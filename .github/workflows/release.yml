@@ -227,12 +227,19 @@ jobs:
       # portal still showing min=0 and no way to fix it short of a redeploy.
       - name: Deploy to Azure Container App
         run: |
+          # --max-inactive-revisions caps the revision history. Container Apps has no
+          # API to delete a revision — deactivating one only stops it, it stays in the
+          # list — so without a cap, every release leaves its predecessor behind and the
+          # revision list grows without bound (it reached 20). The cap is garbage-collected
+          # when a new revision is created, which is exactly what this step does, so each
+          # release trims the history back down to the five most recent as it deploys.
           az containerapp update \
             --name "${{ vars.CONTAINERAPP_NAME }}" \
             --resource-group "${{ vars.RESOURCE_GROUP }}" \
             --image "${{ needs.resolve-metadata.outputs.image }}:${{ needs.resolve-metadata.outputs.tag }}" \
             --revision-suffix "${{ needs.resolve-metadata.outputs.revision_suffix }}" \
-            --min-replicas 0 --max-replicas 5
+            --min-replicas 0 --max-replicas 5 \
+            --max-inactive-revisions 5
 
       - name: Show deployed revision
         run: |
