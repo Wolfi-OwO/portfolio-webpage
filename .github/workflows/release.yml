@@ -216,13 +216,30 @@ jobs:
       # takes 100% of the traffic and its predecessor is deprovisioned — there is
       # never more than one revision serving. The suffix names that revision after
       # the version it carries, which is what makes `revision list` legible.
+      #
+      # Scale is stated here rather than left to whatever the app template happens to
+      # say. A revision's scale is baked into it at creation and cannot be changed
+      # afterwards: editing the app's min-replicas in the portal updates the template
+      # for the *next* revision and leaves the running one exactly as it was. So a
+      # release that doesn't say `--min-replicas 0` is only scaling to zero by luck —
+      # it inherits whatever the last person to touch the template left behind, and if
+      # that was ever 1, this app holds a replica (and bills for it) forever, with the
+      # portal still showing min=0 and no way to fix it short of a redeploy.
       - name: Deploy to Azure Container App
         run: |
+          # --max-inactive-revisions caps the revision history. Container Apps has no
+          # API to delete a revision — deactivating one only stops it, it stays in the
+          # list — so without a cap, every release leaves its predecessor behind and the
+          # revision list grows without bound (it reached 20). The cap is garbage-collected
+          # when a new revision is created, which is exactly what this step does, so each
+          # release trims the history back down to the five most recent as it deploys.
           az containerapp update \
             --name "${{ vars.CONTAINERAPP_NAME }}" \
             --resource-group "${{ vars.RESOURCE_GROUP }}" \
             --image "${{ needs.resolve-metadata.outputs.image }}:${{ needs.resolve-metadata.outputs.tag }}" \
-            --revision-suffix "${{ needs.resolve-metadata.outputs.revision_suffix }}"
+            --revision-suffix "${{ needs.resolve-metadata.outputs.revision_suffix }}" \
+            --min-replicas 0 --max-replicas 5 \
+            --max-inactive-revisions 5
 
       - name: Show deployed revision
         run: |
