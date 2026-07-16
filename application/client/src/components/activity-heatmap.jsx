@@ -163,7 +163,7 @@ function dayLink(day, meta) {
     }
 
     if (day.gitlab > 0 && gitlab.ok) {
-        return `${gitlab.profileUrl}/-/activity`;
+        return gitlab.activityUrl;
     }
 
     return null;

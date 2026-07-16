@@ -83,10 +83,17 @@ function summarizeHistory(history) {
     return `${known.length - badDays} of ${known.length} days fully operational`;
 }
 
+// A window with no checks in it has a null uptime — unknown, which reads muted
+// and prints as a dash rather than a confident "0%".
 function uptimeColor(pct) {
+    if (pct == null) return 'var(--muted)';
     if (pct >= 99.9) return 'var(--live)';
     if (pct >= 99) return '#c98a1a';
     return 'var(--down)';
+}
+
+function fmtUptime(pct) {
+    return pct == null ? '—' : `${pct}%`;
 }
 
 // A monitor's status word, in systems terms: a healthy scale-to-zero app reads
@@ -359,13 +366,13 @@ function MonitorRow({ monitor, admin, onEdit, onDelete }) {
             <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 font-mono text-2xs">
                 <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
                     <span style={{ color: uptimeColor(monitor.uptime.d30) }}>
-                        {monitor.uptime.d30}% · 30d
+                        {fmtUptime(monitor.uptime.d30)} · 30d
                     </span>
                     <span style={{ color: uptimeColor(monitor.uptime.d7) }}>
-                        {monitor.uptime.d7}% · 7d
+                        {fmtUptime(monitor.uptime.d7)} · 7d
                     </span>
                     <span style={{ color: uptimeColor(monitor.uptime.h24) }}>
-                        {monitor.uptime.h24}% · 24h
+                        {fmtUptime(monitor.uptime.h24)} · 24h
                     </span>
                 </span>
                 <span className="flex items-center gap-1.5 text-[var(--muted)]">
@@ -555,13 +562,13 @@ function GroupSection({ group, admin, onEdit, onDelete }) {
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-2xs">
                 <span style={{ color: uptimeColor(group.uptime.d30) }}>
-                    {group.uptime.d30}% · 30d avg
+                    {fmtUptime(group.uptime.d30)} · 30d avg
                 </span>
                 <span style={{ color: uptimeColor(group.uptime.d7) }}>
-                    {group.uptime.d7}% · 7d avg
+                    {fmtUptime(group.uptime.d7)} · 7d avg
                 </span>
                 <span style={{ color: uptimeColor(group.uptime.h24) }}>
-                    {group.uptime.h24}% · 24h avg
+                    {fmtUptime(group.uptime.h24)} · 24h avg
                 </span>
             </div>
 
@@ -666,8 +673,9 @@ export default function StatusPage() {
     const existingGroups = groups.map((g) => g.name);
 
     const upCount = monitors.filter((m) => m.status === 'operational').length;
-    const avgUptime = monitors.length
-        ? round1(monitors.reduce((sum, m) => sum + m.uptime.d30, 0) / monitors.length)
+    const known30d = monitors.map((m) => m.uptime.d30).filter((pct) => pct != null);
+    const avgUptime = known30d.length
+        ? round1(known30d.reduce((sum, pct) => sum + pct, 0) / known30d.length)
         : null;
     const latencies = monitors.map((m) => m.latencyMs).filter((ms) => ms != null);
     const avgLatency = latencies.length

@@ -168,6 +168,10 @@ async function getActivity(req, res, next) {
                     total: gitlabTotal,
                     user: GITLAB_USER,
                     profileUrl: `${GITLAB_HOST}/${GITLAB_USER}`,
+                    // The activity feed lives under /users/<name>/activity, NOT
+                    // under the profile — `<profileUrl>/-/activity` is a project
+                    // route and 404s for a user.
+                    activityUrl: `${GITLAB_HOST}/users/${GITLAB_USER}/activity`,
                 },
             },
             total: githubTotal + gitlabTotal,

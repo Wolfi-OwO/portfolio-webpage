@@ -4,8 +4,14 @@ import { MonitorCheckModel } from '../models/monitor-check.js';
 // This service no longer probes anything itself: the separate monitor-checker
 // Azure Function performs every check (~once per minute, 24/7) and writes the
 // samples to MongoDB. This module only READS those samples to build the status
-// report. CHECK_MS is the checker's cadence — used to turn sample counts into
-// uptime %/downtime duration — and must match the Function's schedule.
+// report.
+//
+// CHECK_MS is the checker's NOMINAL cadence, and it is only ever a display hint
+// ("checks every 60s"). Nothing here divides by it: the Function's real cadence
+// drifts well above the schedule — Azure's timer trigger replays ticks it thinks
+// it missed, so a full day holds ~1700 samples rather than the 1440 the schedule
+// implies. Every measurement below is therefore derived from the samples we
+// actually have, never from a wall-clock guess at how many should exist.
 const CHECK_MS = (Number(process.env.STATUS_CHECK_INTERVAL_SECONDS) || 60) * 1000;
 const DAY = 24 * 60 * 60 * 1000;
 const HISTORY_DAYS = 90;
@@ -50,33 +56,49 @@ async function buildDailyHistory(monitorId) {
                 totalChecks: 0,
             };
         }
-        const downPct = round1((bucket.down / bucket.total) * 100);
+        const downRatio = bucket.down / bucket.total;
+        // How much of this day we have actually observed: a whole day for past
+        // days, the elapsed part of it for today.
+        const observedMs = Math.min(DAY, Date.now() - dayBucket * DAY);
         return {
             day: dayBucket * DAY,
-            severity: severityFor(bucket.down / bucket.total),
-            downPct,
-            // Each failed check stands in for roughly one check-interval of
-            // downtime — checks are evenly spaced, so this approximates duration
-            // (e.g. "1 hrs 44 mins") without needing to track incident start/end.
-            downMs: bucket.down * CHECK_MS,
+            severity: severityFor(downRatio),
+            downPct: round1(downRatio * 100),
+            // The share of the day's checks that failed, projected onto the part
+            // of the day we watched — checks are evenly spaced, so this
+            // approximates duration (e.g. "1 hrs 44 mins") without tracking
+            // incident start/end, and stays right regardless of the real cadence.
+            downMs: Math.round(downRatio * observedMs),
             totalChecks: bucket.total,
         };
     });
 }
 
 // ── Reporting ─────────────────────────────────────────────────────────────────
+// Uptime is the share of the window's checks that passed. It is deliberately NOT
+// "successful checks ÷ how many checks should have run in this span": that older
+// form divided by span/CHECK_MS and clamped the result to 100, and because the
+// checker really writes ~1700 samples a day against an assumed 1440, every ratio
+// landed above 1 and clamped — so the page reported a flat 100% while days with
+// real failures sat right there in the history bars.
+//
+// A window with no samples at all returns null ("no data"), matching how the
+// daily history treats gaps. Missing checks are missing information, not
+// downtime, and must not be averaged in as either.
 async function uptimePct(monitorId, windowMs, since) {
-    const now = Date.now();
-    const start = Math.max(now - windowMs, since);
-    const span = now - start;
-    if (span <= CHECK_MS) return 100;
-    const expected = Math.max(1, Math.round(span / CHECK_MS));
-    const count = await MonitorCheckModel.countDocuments({
-        monitor: monitorId,
-        at: { $gte: start },
-        ok: true,
-    });
-    return round1(Math.min(100, (count / expected) * 100));
+    const start = Math.max(Date.now() - windowMs, since);
+    const [totals] = await MonitorCheckModel.aggregate([
+        { $match: { monitor: monitorId, at: { $gte: start } } },
+        {
+            $group: {
+                _id: null,
+                total: { $sum: 1 },
+                up: { $sum: { $cond: ['$ok', 1, 0] } },
+            },
+        },
+    ]);
+    if (!totals?.total) return null;
+    return round1((totals.up / totals.total) * 100);
 }
 
 async function buildMonitorStatus(monitor) {
@@ -125,8 +147,13 @@ function buildGroups(statuses) {
         byGroup.get(entry.group).push(entry);
     }
 
-    const avg = (members, field) =>
-        round1(members.reduce((sum, m) => sum + m.uptime[field], 0) / members.length);
+    // Members still waiting for their first sample report a null uptime; they sit
+    // out the average rather than dragging it to 0 or inventing a 100.
+    const avg = (members, field) => {
+        const known = members.map((m) => m.uptime[field]).filter((pct) => pct != null);
+        if (!known.length) return null;
+        return round1(known.reduce((sum, pct) => sum + pct, 0) / known.length);
+    };
 
     const groups = Array.from(byGroup.entries()).map(([name, members]) => ({
         name,
