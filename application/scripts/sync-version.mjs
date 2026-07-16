@@ -24,7 +24,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 // Kept in step with the `workspaces` array in package.json.
-const PACKAGES = ['.', 'server', 'client', 'jobs'];
+const PACKAGES = ['server', 'client', 'jobs'];
 
 const SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 

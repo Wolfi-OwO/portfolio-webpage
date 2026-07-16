@@ -1,6 +1,6 @@
 {
   "name": "@portfolio/jobs",
-  "version": "6.1.2",
+  "version": "6.1.1",
   "private": true,
   "description": "Azure Functions (Timer triggers) for Woofi Developments: uptime checks for the status page, and the GitHub/GitLab contribution sync the heatmap reads. NOTE: deliberately NOT part of the application/ npm workspace — the Functions deploy zips this folder including its node_modules, and a hoisted install would leave that zip without dependencies. It therefore keeps its own lockfile and is installed on its own.",
   "type": "module",
