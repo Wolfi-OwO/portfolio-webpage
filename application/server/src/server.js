@@ -49,6 +49,19 @@ if (missingEnvVars.length > 0) {
 }
 
 const app = express();
+
+// Canonical host: the apex is registered as a custom domain on the container app
+// and serves the same content as `www`, so without this every URL is reachable
+// twice and Google reports duplicate pages. Redirect before anything else runs
+// so static assets and API routes are covered too, and keep the path + query
+// intact so deep links survive. `status.` is a separate entry point — untouched.
+app.use((req, res, next) => {
+    if (req.hostname.toLowerCase() === 'woofi-developments.at') {
+        return res.redirect(301, `https://www.woofi-developments.at${req.originalUrl}`);
+    }
+    next();
+});
+
 app.use(helmet());
 app.use(
     express.json({
