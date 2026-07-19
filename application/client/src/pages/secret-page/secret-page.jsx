@@ -16,7 +16,10 @@ export default function SecretPage() {
     const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem(UNLOCK_KEY) === 'true');
 
     usePageMeta(
-        intl.formatMessage({ id: 'secret.meta.title', defaultMessage: 'For Helmi (Aka. The love of my love)' }),
+        intl.formatMessage({
+            id: 'secret.meta.title',
+            defaultMessage: 'For Helmi (aka. the love of my life)',
+        }),
         intl.formatMessage({
             id: 'secret.meta.description',
             defaultMessage: 'A little something that was never meant to be found by accident.',
@@ -204,7 +207,10 @@ function LovePage() {
                 />
 
                 <h1 className="mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">
-                    <FormattedMessage id="secret.heading" defaultMessage="For Helmi (Aka. The love of my love)" />
+                    <FormattedMessage
+                        id="secret.heading"
+                        defaultMessage="For Helmi (Aka. The love of my love)"
+                    />
                 </h1>
 
                 <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-[var(--muted)]">
