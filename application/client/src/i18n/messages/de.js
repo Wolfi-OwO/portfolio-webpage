@@ -5,6 +5,7 @@ export default {
     'nav.admin': 'Admin',
     'nav.logout': 'Abmelden',
     'nav.services': 'Leistungen',
+    'nav.secret': 'Geheimnis',
 
     'theme.label': 'Design',
     'theme.light': 'Hell',
@@ -159,4 +160,27 @@ export default {
     'privacy.imprint.title': 'Impressum',
     'privacy.imprint.text':
         'Angaben gemäß §5 ECG und §25 MedienG:\n\nPhillip Kofler\nSoftwareingenieur | Fullstack Developer\nVillach, Kärnten, Österreich\n\nTätigkeitsbereich: Softwareentwicklung, Webentwicklung und digitale Lösungen — moderne Webanwendungen, REST-APIs, Dashboards und cloudbasierte Systeme.\n\nVerantwortlich für den Inhalt dieser Seite: Phillip Kofler. Die Inhalte erstelle ich sorgfältig, eine Gewähr für Richtigkeit, Vollständigkeit oder Aktualität übernehme ich jedoch nicht. Auf die Inhalte verlinkter externer Seiten habe ich keinen Einfluss und übernehme dafür keine Haftung. Alle Inhalte dieser Seite unterliegen dem Urheberrecht; eine Nutzung außerhalb der gesetzlichen Grenzen bedarf vorab meiner Zustimmung.',
+
+    'secret.meta.title': 'Für Helmi',
+    'secret.meta.description': 'Etwas Kleines, das niemand zufällig finden sollte.',
+    'secret.gate.title': 'Du hast etwas gefunden',
+    'secret.gate.subtitle': 'Es ist aber abgesperrt. Du kennst das Wort.',
+    'secret.gate.password': 'Passwort',
+    'secret.gate.show': 'Passwort anzeigen',
+    'secret.gate.hide': 'Passwort verbergen',
+    'secret.gate.submit': 'Aufmachen',
+    'secret.gate.error': 'Nicht ganz. Versuch es nochmal.',
+    'secret.gate.offline': 'Server nicht erreichbar. Versuch es nochmal.',
+    'secret.gate.back': 'Doch nicht, zurück zur Startseite',
+    'secret.heading': 'Für Helmi',
+    'secret.message':
+        'Manche Dinge kann man nicht bauen, egal wie gut man im Bauen wird. Man hat einmal Glück — und danach ist man jeden einzelnen Tag dankbar dafür. Du bist das Beste in meinem Leben: der Mensch, dem ich alles zuerst erzählen will, und der einen ganz gewöhnlichen Abend zu dem Ort macht, an dem ich sein möchte. Danke, dass es dich gibt.',
+    'secret.since': 'Zusammen seit 25.12.2025, 15:37:48',
+    'secret.stillCounting': '…und ich zähle weiter. Ich liebe dich ❤️',
+    'secret.unit.years': 'Jahre',
+    'secret.unit.months': 'Monate',
+    'secret.unit.days': 'Tage',
+    'secret.unit.hours': 'Stunden',
+    'secret.unit.minutes': 'Minuten',
+    'secret.unit.seconds': 'Sekunden',
 };

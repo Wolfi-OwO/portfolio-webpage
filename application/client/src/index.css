@@ -184,8 +184,27 @@
     }
 }
 
+/* Two beats then a rest, like a real pulse - a plain scale in/out reads as a
+   throb rather than a heartbeat. */
+@keyframes heartbeat {
+    0%,
+    28%,
+    70%,
+    100% {
+        transform: scale(1);
+    }
+    14%,
+    46% {
+        transform: scale(1.14);
+    }
+}
+
 .animate-caret {
     animation: caret-blink 1.05s steps(1) infinite;
+}
+
+.animate-heartbeat {
+    animation: heartbeat 1.6s ease-in-out infinite;
 }
 
 .animate-fade-up {
@@ -199,7 +218,8 @@
 @media (prefers-reduced-motion: reduce) {
     .animate-caret,
     .animate-fade-up,
-    .animate-live {
+    .animate-live,
+    .animate-heartbeat {
         animation: none;
     }
 }

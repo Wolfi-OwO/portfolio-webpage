@@ -47,6 +47,38 @@ async function login(req, res, next) {
 }
 
 /**
+ * Checks a bare password against the admin password, without issuing a token.
+ *
+ * The secret page gates on the admin password alone - it has no username field
+ * to fill in, and hardcoding ADMIN_USER into the client bundle just to satisfy
+ * /auth/login would leak it for no benefit. This grants no API access: it only
+ * answers "is this the admin password", so the client can reveal a static page.
+ *
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+async function unlock(req, res, next) {
+    try {
+        const { password } = req.body || {};
+
+        if (!password) {
+            return next(new BadRequest('Password is required.'));
+        }
+
+        const matches = await bcrypt.compare(password, ADMIN_PASSWORD_HASH || DUMMY_HASH);
+
+        if (!matches) {
+            return next(new Unauthorized('Invalid password.'));
+        }
+
+        return res.status(204).send();
+    } catch (err) {
+        return next(err);
+    }
+}
+
+/**
  * Acknowledges a logout request. Tokens are stateless JWTs with a short
  * expiry and are not tracked server-side, so there is nothing to revoke -
  * the client is responsible for discarding the token it holds. This endpoint
@@ -60,4 +92,4 @@ function logout(_req, res) {
     return res.status(204).send();
 }
 
-export { login, logout };
+export { login, unlock, logout };

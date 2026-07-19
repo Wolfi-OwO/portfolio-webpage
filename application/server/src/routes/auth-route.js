@@ -1,6 +1,6 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import { login, logout } from '../handlers/auth-handlers.js';
+import { login, unlock, logout } from '../handlers/auth-handlers.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 
 const authRouter = express.Router();
@@ -14,6 +14,7 @@ const loginLimiter = rateLimit({
 });
 
 authRouter.post('/login', loginLimiter, login);
+authRouter.post('/unlock', loginLimiter, unlock);
 authRouter.post('/logout', authMiddleware, logout);
 
 export { authRouter };

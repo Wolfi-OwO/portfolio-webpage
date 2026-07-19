@@ -5,6 +5,7 @@ import {
     ArrowRightOnRectangleIcon,
     CodeBracketIcon,
     ComputerDesktopIcon,
+    HeartIcon,
     LanguageIcon,
     LockClosedIcon,
     MoonIcon,
@@ -12,6 +13,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { isAdmin, logout } from '../../utils/auth.js';
 import { useLocale, SUPPORTED_LOCALES } from '../../i18n/LocaleContext.jsx';
+import { useSecretCombo } from '../../hooks/useSecretCombo.js';
 
 const themeOptions = [
     { id: 'light', labelId: 'theme.light', defaultLabel: 'Light', Icon: SunIcon },
@@ -54,6 +56,7 @@ export default function DefaultLayout() {
     const [openDropdown, setOpenDropdown] = useState(null); // 'theme' | 'language' | null
     const [buildInfo, setBuildInfo] = useState(null);
     const [loggedIn, setLoggedIn] = useState(() => isAdmin());
+    const [secretFound] = useSecretCombo();
     const themeDropdownRef = useRef(null);
     const languageDropdownRef = useRef(null);
     const scrollRef = useRef(null);
@@ -195,6 +198,20 @@ export default function DefaultLayout() {
                         <NavLink to="/services" className={navLinkClasses}>
                             <FormattedMessage id="nav.services" defaultMessage="Services" />
                         </NavLink>
+
+                        {/* Only here once the combo has been typed. Fades in rather
+                            than popping, so it reads as something appearing. */}
+                        {secretFound && (
+                            <NavLink
+                                to="/secret"
+                                className={(state) =>
+                                    `${navLinkClasses(state)} animate-fade-up whitespace-nowrap`
+                                }
+                            >
+                                <HeartIcon className="h-4 w-4 text-[#e5675b]" aria-hidden="true" />
+                                <FormattedMessage id="nav.secret" defaultMessage="Secret" />
+                            </NavLink>
+                        )}
                     </div>
 
                     <div className="flex shrink-0 items-center gap-1.5">
