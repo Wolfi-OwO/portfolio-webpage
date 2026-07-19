@@ -209,7 +209,7 @@ function LovePage() {
                 <h1 className="mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">
                     <FormattedMessage
                         id="secret.heading"
-                        defaultMessage="For Helmi (Aka. The love of my love)"
+                        defaultMessage="For Helmi (Aka. The love of my life)"
                     />
                 </h1>
 
