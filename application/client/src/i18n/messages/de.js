@@ -172,7 +172,7 @@ export default {
     'secret.gate.error': 'Nicht ganz. Versuch es nochmal.',
     'secret.gate.offline': 'Server nicht erreichbar. Versuch es nochmal.',
     'secret.gate.back': 'Lieber doch nicht — zurück zur Startseite',
-    'secret.heading': 'Für Helmi',
+    'secret.heading': 'Für Helmi (aka. die Liebe meines Lebens)',
     'secret.message':
         'Manche Dinge kann man nicht bauen, egal, wie gut man darin wird. Man hat einmal Glück — und danach ist man jeden einzelnen Tag dankbar dafür. Du bist das Beste in meinem Leben: der Mensch, dem ich alles zuerst erzählen will, und der aus einem ganz gewöhnlichen Abend den Ort macht, an dem ich am liebsten bin. Danke, dass es dich gibt.',
     'secret.since': 'Zusammen seit 25.12.2025, 15:37:48',
