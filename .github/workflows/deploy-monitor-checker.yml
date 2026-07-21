@@ -29,6 +29,24 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
 
+    # Dependabot watches npm under /application/*, which includes
+    # application/jobs — so a routine lockfile bump lands on main, matches the
+    # paths filter above, and rolls production forward with nobody watching.
+    #
+    # The actor is NOT the lever here. On a squash merge github.actor is
+    # whoever pressed the button, not Dependabot, so the usual
+    # `github.actor != 'dependabot[bot]'` guard would silently never fire on a
+    # push event. The squashed commit keeps Dependabot as its *author*, which
+    # is what this reads.
+    #
+    # The cost, stated plainly: a bump merged here does not reach production
+    # until some later change to application/jobs/** deploys it, or someone
+    # runs this workflow by hand. That is the point — but it means a security
+    # patch sits undeployed too, so workflow_dispatch is deliberately exempt.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.head_commit.author.name != 'dependabot[bot]'
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
