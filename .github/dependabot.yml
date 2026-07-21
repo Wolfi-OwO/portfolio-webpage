@@ -14,8 +14,11 @@
 
 version: 2
 updates:
+  # The glob covers server/ and client/ too — both were previously unmonitored.
   - package-ecosystem: npm
-    directory: /application
+    directories:
+      - /application
+      - /application/*
     schedule:
       interval: monthly
       day: monday
@@ -30,27 +33,6 @@ updates:
     groups:
       # One PR for the whole ecosystem, not one per package.
       application:
-        patterns:
-          - "*"
-    ignore:
-      - dependency-name: "*"
-        update-types: [version-update:semver-major]
-
-  - package-ecosystem: npm
-    directory: /application/jobs
-    schedule:
-      interval: monthly
-      day: monday
-      time: "06:00"
-      timezone: Europe/Vienna
-    open-pull-requests-limit: 1
-    labels:
-      - dependencies
-    commit-message:
-      prefix: chore
-      include: scope
-    groups:
-      jobs:
         patterns:
           - "*"
     ignore:
