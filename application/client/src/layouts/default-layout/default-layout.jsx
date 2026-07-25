@@ -209,7 +209,10 @@ export default function DefaultLayout() {
                                 }
                             >
                                 <HeartIcon className="h-4 w-4 text-[#e5675b]" aria-hidden="true" />
-                                <FormattedMessage id="nav.secret" defaultMessage="Another new Secret?!" />
+                                <FormattedMessage
+                                    id="nav.secret"
+                                    defaultMessage="Another new Secret?!"
+                                />
                             </NavLink>
                         )}
                     </div>
