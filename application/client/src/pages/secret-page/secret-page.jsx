@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 import {
+    ArrowDownTrayIcon,
     EyeIcon,
     EyeSlashIcon,
     GiftIcon,
@@ -16,6 +17,7 @@ import { elapsedSince, monthlyMilestone } from './elapsed.js';
 const SINCE = new Date(2025, 11, 25, 15, 37, 48);
 
 const UNLOCK_KEY = 'portfolio.secretUnlocked';
+const UNLOCK_TOKEN_KEY = 'portfolio.secretToken';
 
 // The voucher was a seven-month present, so it rides along with that one
 // milestone and no other - a gift that reappears every month isn't a gift.
@@ -36,8 +38,15 @@ export default function SecretPage() {
         }),
     );
 
-    function handleUnlocked() {
+    function handleUnlocked(token) {
         sessionStorage.setItem(UNLOCK_KEY, 'true');
+
+        // Held for the download, which is gated server-side. Revealing the page
+        // never depended on this - the token is not what proves the password.
+        if (token) {
+            sessionStorage.setItem(UNLOCK_TOKEN_KEY, token);
+        }
+
         setUnlocked(true);
     }
 
@@ -76,7 +85,9 @@ function PasswordGate({ onUnlocked }) {
                 return;
             }
 
-            onUnlocked();
+            const { token } = await response.json().catch(() => ({}));
+
+            onUnlocked(token);
         } catch (_err) {
             setError(
                 intl.formatMessage({
@@ -298,15 +309,14 @@ function Gift() {
             </p>
 
             <div className="mt-4 flex items-start gap-4">
-                {/* The voucher art off the delivery mail. It is a 48x33 original,
-                    so it is held near that size on purpose - scaled up it just
-                    turns to mush. */}
+                {/* The voucher art, cut out of its white product-shot backdrop so
+                    it carries over into dark mode. */}
                 <img
                     src="/voucher.webp"
                     alt=""
-                    width="192"
-                    height="132"
-                    className="mt-0.5 h-11 w-16 shrink-0 object-contain"
+                    width="480"
+                    height="324"
+                    className="-mt-1 w-24 shrink-0 object-contain sm:w-28"
                 />
 
                 <div className="min-w-0 flex-1">
@@ -356,6 +366,86 @@ function Gift() {
                     />
                 </p>
             </div>
+
+            <ReceiptDownload />
+        </div>
+    );
+}
+
+// The receipt lives in a private Azure container and is proxied by the server,
+// so it cannot be a plain <a href>: the request has to carry the unlock token.
+// Fetch it, hand the browser a blob URL, revoke it again.
+function ReceiptDownload() {
+    const intl = useIntl();
+    const [downloading, setDownloading] = useState(false);
+    const [error, setError] = useState('');
+
+    async function handleDownload() {
+        setDownloading(true);
+        setError('');
+
+        try {
+            const token = sessionStorage.getItem(UNLOCK_TOKEN_KEY);
+
+            const response = await fetch('/api/secret/voucher', {
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+            });
+
+            if (!response.ok) {
+                setError(
+                    intl.formatMessage({
+                        id: 'secret.gift.downloadError',
+                        defaultMessage: 'That did not work. Try unlocking the page again.',
+                    }),
+                );
+                return;
+            }
+
+            const url = URL.createObjectURL(await response.blob());
+            const link = document.createElement('a');
+
+            link.href = url;
+            link.download = 'gutschein-beleg.pdf';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        } catch (_err) {
+            setError(
+                intl.formatMessage({
+                    id: 'secret.gift.downloadOffline',
+                    defaultMessage: 'Could not reach the server. Try again.',
+                }),
+            );
+        } finally {
+            setDownloading(false);
+        }
+    }
+
+    return (
+        <div className="mt-4 border-t border-[var(--line)] pt-4">
+            <button
+                type="button"
+                onClick={handleDownload}
+                disabled={downloading}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[var(--line)] px-3 py-2 text-sm font-medium text-[var(--text)] transition hover:border-[#e5675b] hover:text-[#e5675b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+                <ArrowDownTrayIcon className="h-4 w-4" aria-hidden="true" />
+                {downloading ? (
+                    <FormattedMessage id="secret.gift.downloading" defaultMessage="Fetching…" />
+                ) : (
+                    <FormattedMessage
+                        id="secret.gift.download"
+                        defaultMessage="Download the receipt"
+                    />
+                )}
+            </button>
+
+            {error && (
+                <p role="alert" className="mt-2 text-sm" style={{ color: 'var(--down)' }}>
+                    {error}
+                </p>
+            )}
         </div>
     );
 }

@@ -7,6 +7,10 @@ const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH;
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
 
+// The secret page is read in one sitting, so its token does not need to outlive
+// one. Shorter than the admin token on purpose.
+const SECRET_EXPIRES_IN = process.env.SECRET_EXPIRES_IN || '30m';
+
 // Dummy hash used to keep bcrypt.compare's timing similar when the submitted
 // username doesn't match, so responses don't leak whether a username exists.
 const DUMMY_HASH = '$2b$12$C6UzMDM.H6dfI/f/IKcEeO4pXEbf/pZ0GN2QxU9L1SgFsMImk.KX2';
@@ -47,12 +51,17 @@ async function login(req, res, next) {
 }
 
 /**
- * Checks a bare password against the admin password, without issuing a token.
+ * Checks a bare password against the admin password and issues a `secret` token.
  *
  * The secret page gates on the admin password alone - it has no username field
  * to fill in, and hardcoding ADMIN_USER into the client bundle just to satisfy
- * /auth/login would leak it for no benefit. This grants no API access: it only
- * answers "is this the admin password", so the client can reveal a static page.
+ * /auth/login would leak it for no benefit.
+ *
+ * The token this returns is emphatically not an admin token. It carries
+ * `role: 'secret'`, and every admin route is guarded by a middleware that
+ * insists on `role: 'admin'`, so the only thing it opens is the secret page's
+ * own download. It exists because that download has to be gated somewhere the
+ * client cannot simply lie about - sessionStorage is not a lock.
  *
  * @param {import('express').Request} req
  * @param {import('express').Response} res
@@ -72,7 +81,11 @@ async function unlock(req, res, next) {
             return next(new Unauthorized('Invalid password.'));
         }
 
-        return res.status(204).send();
+        const token = jwt.sign({ sub: 'secret', role: 'secret' }, JWT_SECRET, {
+            expiresIn: SECRET_EXPIRES_IN,
+        });
+
+        return res.json({ token, expiresIn: SECRET_EXPIRES_IN });
     } catch (err) {
         return next(err);
     }

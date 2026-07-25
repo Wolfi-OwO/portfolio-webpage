@@ -189,6 +189,10 @@ export default {
     'secret.gift.line2':
         'I never knew that an person like you could make my life so colorful again and give it a purpose again. I wanna live with you forever and also die together.',
     'secret.gift.line3': 'I never ever wanna loose you...',
+    'secret.gift.download': 'Beleg herunterladen',
+    'secret.gift.downloading': 'Wird geholt…',
+    'secret.gift.downloadError': 'Hat nicht geklappt. Sperr die Seite nochmal auf.',
+    'secret.gift.downloadOffline': 'Server nicht erreichbar. Versuch es nochmal.',
     'secret.stillCounting': '…und ich zähle weiter. Ich liebe dich ❤️',
     'secret.unit.years': 'Jahre',
     'secret.unit.months': 'Monate',
