@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { EyeIcon, EyeSlashIcon, HeartIcon, LockClosedIcon } from '@heroicons/react/24/outline';
+import {
+    EyeIcon,
+    EyeSlashIcon,
+    GiftIcon,
+    HeartIcon,
+    LockClosedIcon,
+} from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import { elapsedSince, monthlyMilestone } from './elapsed.js';
@@ -10,6 +16,10 @@ import { elapsedSince, monthlyMilestone } from './elapsed.js';
 const SINCE = new Date(2025, 11, 25, 15, 37, 48);
 
 const UNLOCK_KEY = 'portfolio.secretUnlocked';
+
+// The voucher was a seven-month present, so it rides along with that one
+// milestone and no other - a gift that reappears every month isn't a gift.
+const GIFT_MILESTONE = 7;
 
 export default function SecretPage() {
     const intl = useIntl();
@@ -252,6 +262,8 @@ function LovePage() {
                     </p>
 
                     <FireworkHeart />
+
+                    {milestone === GIFT_MILESTONE && <Gift />}
                 </div>
             )}
 
@@ -270,6 +282,80 @@ function LovePage() {
                     defaultMessage="…and still counting. I love you ❤️"
                 />
             </p>
+        </div>
+    );
+}
+
+// The delivery note, rebuilt rather than screenshotted: it has to survive both
+// themes, stay legible at any width and be translatable. The recipient's email
+// address is deliberately left off - this repo is public.
+function Gift() {
+    return (
+        <div className="mt-8 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-5 text-left">
+            <p className="flex items-center gap-2 font-mono text-2xs uppercase tracking-[0.18em] text-[var(--muted)]">
+                <GiftIcon className="h-4 w-4 text-[#e5675b]" aria-hidden="true" />
+                <FormattedMessage id="secret.gift.badge" defaultMessage="A present for you" />
+            </p>
+
+            <div className="mt-4 flex items-start gap-4">
+                {/* The voucher art off the delivery mail. It is a 48x33 original,
+                    so it is held near that size on purpose - scaled up it just
+                    turns to mush. */}
+                <img
+                    src="/voucher.webp"
+                    alt=""
+                    width="192"
+                    height="132"
+                    className="mt-0.5 h-11 w-16 shrink-0 object-contain"
+                />
+
+                <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline justify-between gap-4">
+                        <p className="font-semibold text-[var(--text)]">
+                            <FormattedMessage
+                                id="secret.gift.title"
+                                defaultMessage="Virtual gift voucher"
+                            />
+                        </p>
+                        <p className="shrink-0 font-mono text-sm text-[var(--text)]">65,00 €</p>
+                    </div>
+
+                    <p className="mt-1 text-sm text-[var(--muted)]">
+                        <FormattedMessage
+                            id="secret.gift.delivered"
+                            defaultMessage="Delivered Saturday, 25 July, to {name}"
+                            values={{ name: 'Helmi' }}
+                        />
+                    </p>
+                </div>
+            </div>
+
+            <div className="mt-4 space-y-3 border-t border-[var(--line)] pt-4 text-sm leading-6 text-[var(--text)]">
+                {/* His words, quoted exactly as they went out with the voucher.
+                    `<3` rides in as a value because ICU would try to read the
+                    `<` as the start of a tag. */}
+                <p>
+                    <FormattedMessage
+                        id="secret.gift.line1"
+                        defaultMessage="I love you so fucking much {heart}"
+                        values={{ heart: '<3' }}
+                    />
+                </p>
+
+                <p>
+                    <FormattedMessage
+                        id="secret.gift.line2"
+                        defaultMessage="I never knew that an person like you could make my life so colorful again and give it a purpose again. I wanna live with you forever and also die together."
+                    />
+                </p>
+
+                <p>
+                    <FormattedMessage
+                        id="secret.gift.line3"
+                        defaultMessage="I never ever wanna loose you..."
+                    />
+                </p>
+            </div>
         </div>
     );
 }
