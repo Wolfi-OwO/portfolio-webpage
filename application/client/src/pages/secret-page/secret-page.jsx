@@ -4,7 +4,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { EyeIcon, EyeSlashIcon, HeartIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
-import { elapsedSince } from './elapsed.js';
+import { elapsedSince, monthlyMilestone } from './elapsed.js';
 
 // 25.12.2025, 15:37:48 - local time, the way it was actually lived.
 const SINCE = new Date(2025, 11, 25, 15, 37, 48);
@@ -179,14 +179,17 @@ function PasswordGate({ onUnlocked }) {
 }
 
 function LovePage() {
-    const [elapsed, setElapsed] = useState(() => elapsedSince(SINCE, new Date()));
+    const [now, setNow] = useState(() => new Date());
 
     // One interval, ticking on the wall clock rather than accumulating - so the
     // seconds stay honest even if the tab gets throttled in the background.
     useEffect(() => {
-        const id = setInterval(() => setElapsed(elapsedSince(SINCE, new Date())), 1000);
+        const id = setInterval(() => setNow(new Date()), 1000);
         return () => clearInterval(id);
     }, []);
+
+    const elapsed = elapsedSince(SINCE, now);
+    const milestone = monthlyMilestone(SINCE, now);
 
     return (
         <div className="animate-fade-up mx-auto max-w-4xl pb-10">
@@ -229,6 +232,29 @@ function LovePage() {
                 </p>
             </div>
 
+            {/* Only shows up on the day itself - the rest of the month the
+                counter below says it well enough on its own. */}
+            {milestone !== null && (
+                <div className="animate-fade-up mx-auto mt-10 max-w-xl rounded-2xl border border-[#e5675b]/30 bg-[#e5675b]/5 px-6 py-6 text-center">
+                    <p className="font-mono text-2xs uppercase tracking-[0.18em] text-[#e5675b]">
+                        <FormattedMessage
+                            id="secret.milestone.badge"
+                            defaultMessage="{months} months today"
+                            values={{ months: milestone }}
+                        />
+                    </p>
+
+                    <p className="mt-3 text-base leading-7 text-[var(--text)]">
+                        <FormattedMessage
+                            id="secret.milestone.message"
+                            defaultMessage="I kept thinking this sort of thing wears off after a while. It doesn't. Your name shows up on my phone and I'm still happy about it, every time. And honestly, the best days were the ones where we didn't really do anything."
+                        />
+                    </p>
+
+                    <FireworkHeart />
+                </div>
+            )}
+
             <div className="mt-10 grid grid-cols-3 gap-3 sm:grid-cols-6">
                 <TimeCell value={elapsed.years} labelId="secret.unit.years" label="Years" />
                 <TimeCell value={elapsed.months} labelId="secret.unit.months" label="Months" />
@@ -245,6 +271,80 @@ function LovePage() {
                 />
             </p>
         </div>
+    );
+}
+
+// A heart drawn around its own origin, so it can be dropped anywhere in the
+// burst with nothing but a translate.
+const HEART =
+    'M0 4 C -2 1.6 -5 0 -5 -1.8 C -5 -3.8 -2.4 -4.6 0 -1.8 C 2.4 -4.6 5 -3.8 5 -1.8 C 5 0 2 1.6 0 4 Z';
+
+const RAY_COUNT = 12;
+
+/** A point on the circle around the middle of the 120×120 viewBox. */
+function pointAt(degrees, radius) {
+    const radians = (degrees * Math.PI) / 180;
+    return [
+        Number((60 + Math.cos(radians) * radius).toFixed(2)),
+        Number((60 + Math.sin(radians) * radius).toFixed(2)),
+    ];
+}
+
+// The firework. Rays on a clock face and a ring of sparks half a beat behind
+// them, generated from angles rather than hand-written paths so the burst stays
+// symmetrical and the markup stays short. Purely decorative - the milestone is
+// already stated in words above it, so this is hidden from screen readers.
+function FireworkHeart() {
+    const angles = Array.from({ length: RAY_COUNT }, (_, index) => (index * 360) / RAY_COUNT);
+
+    return (
+        <svg
+            viewBox="0 0 120 120"
+            aria-hidden="true"
+            className="mx-auto mt-8 h-28 w-28 sm:h-32 sm:w-32"
+        >
+            <g className="animate-burst" strokeLinecap="round" strokeWidth="2.5">
+                {angles.map((angle, index) => {
+                    const [x1, y1] = pointAt(angle, 20);
+                    const [x2, y2] = pointAt(angle, 34);
+
+                    return (
+                        <line
+                            key={angle}
+                            x1={x1}
+                            y1={y1}
+                            x2={x2}
+                            y2={y2}
+                            stroke={index % 2 ? 'var(--accent)' : '#e5675b'}
+                        />
+                    );
+                })}
+            </g>
+
+            <g className="animate-burst animate-burst-late">
+                {angles.map((angle, index) => {
+                    const [x, y] = pointAt(angle + 15, 40);
+
+                    return index % 2 ? (
+                        <path
+                            key={angle}
+                            d={HEART}
+                            fill="#e5675b"
+                            transform={`translate(${x} ${y}) scale(0.8)`}
+                        />
+                    ) : (
+                        <circle key={angle} cx={x} cy={y} r="2.2" fill="var(--accent)" />
+                    );
+                })}
+            </g>
+
+            <path
+                d={HEART}
+                fill="#e5675b"
+                transform="translate(60 60) scale(1.9)"
+                className="drop-shadow-[0_4px_12px_rgba(229,103,91,0.45)]"
+            />
+        </svg>
     );
 }
 

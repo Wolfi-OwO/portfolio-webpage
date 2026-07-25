@@ -199,8 +199,37 @@
     }
 }
 
+/* The anniversary firework. Rays push out from the heart and fade on the way,
+   the way a real one thins out rather than stopping. `view-box` pins the origin
+   to the middle of the viewBox, so each layer scales from the burst centre
+   instead of from its own bounding box. */
+@keyframes firework-burst {
+    0% {
+        transform: scale(0.35);
+        opacity: 0;
+    }
+    25% {
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.15);
+        opacity: 0;
+    }
+}
+
 .animate-caret {
     animation: caret-blink 1.05s steps(1) infinite;
+}
+
+.animate-burst {
+    transform-box: view-box;
+    transform-origin: 60px 60px;
+    animation: firework-burst 2.8s ease-out infinite;
+}
+
+/* The second layer goes half a beat later, so the burst never fully dies out. */
+.animate-burst-late {
+    animation-delay: 1.4s;
 }
 
 .animate-heartbeat {
@@ -219,7 +248,8 @@
     .animate-caret,
     .animate-fade-up,
     .animate-live,
-    .animate-heartbeat {
+    .animate-heartbeat,
+    .animate-burst {
         animation: none;
     }
 }

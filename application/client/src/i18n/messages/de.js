@@ -176,6 +176,9 @@ export default {
     'secret.message':
         'Manche Dinge kann man nicht bauen, egal, wie gut man darin wird. Man hat einmal Glück — und danach ist man jeden einzelnen Tag dankbar dafür. Du bist das Beste in meinem Leben: der Mensch, dem ich alles zuerst erzählen will, und der aus einem ganz gewöhnlichen Abend den Ort macht, an dem ich am liebsten bin. Danke, dass es dich gibt.',
     'secret.since': 'Zusammen seit 25.12.2025, 15:37:48',
+    'secret.milestone.badge': 'Heute sind es {months} Monate',
+    'secret.milestone.message':
+        'Ich hab immer gedacht, so was legt sich mit der Zeit. Tut es aber nicht. Dein Name leuchtet am Handy auf und ich freu mich, jedes Mal. Und ehrlich, die schönsten Tage waren die, an denen wir eigentlich gar nichts gemacht haben.',
     'secret.stillCounting': '…und ich zähle weiter. Ich liebe dich ❤️',
     'secret.unit.years': 'Jahre',
     'secret.unit.months': 'Monate',
