@@ -1,3 +1,4 @@
+import { DefaultAzureCredential } from '@azure/identity';
 import { BlobServiceClient, StorageSharedKeyCredential } from '@azure/storage-blob';
 import { logger } from '../utils/logger.js';
 import { InternalServerError, NotFound } from '../middlewares/error-handlers.js';
@@ -11,16 +12,30 @@ const GIFT_BLOB = process.env.GIFT_BLOB || 'voucher-receipt.pdf';
 // so rebuilding it per request would only cost handshakes.
 let blobService = null;
 
+/**
+ * Managed identity first, account key only if one was handed over.
+ *
+ * In Azure the container app's own identity holds `Storage Blob Data Reader` on
+ * this one account, which is the whole of what it needs - an account key would
+ * carry write and delete over every container, for a job that reads one file.
+ * `DefaultAzureCredential` also picks up the local `az login`, so leaving the
+ * key unset works for development too. The key path stays for the case where
+ * neither is available.
+ */
 function getBlobService() {
-    if (!STORAGE_ACCOUNT || !STORAGE_KEY) {
+    if (!STORAGE_ACCOUNT) {
         return null;
     }
 
     if (!blobService) {
-        blobService = new BlobServiceClient(
-            `https://${STORAGE_ACCOUNT}.blob.core.windows.net`,
-            new StorageSharedKeyCredential(STORAGE_ACCOUNT, STORAGE_KEY),
-        );
+        const url = `https://${STORAGE_ACCOUNT}.blob.core.windows.net`;
+
+        blobService = STORAGE_KEY
+            ? new BlobServiceClient(
+                  url,
+                  new StorageSharedKeyCredential(STORAGE_ACCOUNT, STORAGE_KEY),
+              )
+            : new BlobServiceClient(url, new DefaultAzureCredential());
     }
 
     return blobService;
@@ -42,7 +57,7 @@ async function downloadVoucherReceipt(_req, res, next) {
     const service = getBlobService();
 
     if (!service) {
-        logger.error('Secret - STORAGE_ACCOUNT/STORAGE_KEY are not configured.');
+        logger.error('Secret - STORAGE_ACCOUNT is not configured.');
         return next(new InternalServerError(new Error('Downloads are not configured.')));
     }
 
