@@ -5,7 +5,7 @@ export default {
     'nav.admin': 'Admin',
     'nav.logout': 'Abmelden',
     'nav.services': 'Leistungen',
-    'nav.secret': 'Geheimnis',
+    'nav.secret': 'Ein neues Geheimnis?!',
 
     'theme.label': 'Design',
     'theme.light': 'Hell',
