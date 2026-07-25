@@ -444,7 +444,7 @@ export default function ActivityHeatmap() {
                 <div
                     ref={scrollerRef}
                     onScroll={handleScroll}
-                    className="app-scroll overflow-x-auto pb-2"
+                    className="app-scroll app-scroll-x overflow-x-auto pb-2"
                 >
                     <div className="relative" style={{ width }}>
                         {/* Year band: |—— 2025 ——|—— 2026 ——| */}
