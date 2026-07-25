@@ -51,3 +51,31 @@ export function elapsedSince(start, end) {
 
     return { years, months, days, hours, minutes, seconds };
 }
+
+/**
+ * How many months it has been, but only on the days where that number is round.
+ *
+ * Deliberately calendar-only: the counter above is exact to the second, but an
+ * anniversary is a day, not an instant - it shouldn't wait until 15:37:48 to
+ * admit what day it is, and it shouldn't stop being true at midnight-minus-one.
+ * A start day past the end of the current month (the 31st in a 30-day month)
+ * lands on that month's last day, so those months get one too.
+ *
+ * @param {Date} start
+ * @param {Date} end
+ * @returns {number|null} months completed today, or null on an ordinary day
+ */
+export function monthlyMilestone(start, end) {
+    const months =
+        (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+
+    if (months < 1) {
+        return null;
+    }
+
+    // Day 0 of the next month is the last day of this one.
+    const lastDayOfMonth = new Date(end.getFullYear(), end.getMonth() + 1, 0).getDate();
+    const anniversaryDay = Math.min(start.getDate(), lastDayOfMonth);
+
+    return end.getDate() === anniversaryDay ? months : null;
+}

@@ -26,6 +26,7 @@ import { authRouter } from './routes/auth-route.js';
 import { infoRouter } from './routes/info-route.js';
 import { monitorsRouter } from './routes/monitors-route.js';
 import { statusRouter } from './routes/status-route.js';
+import { secretRouter } from './routes/secret-route.js';
 import { errorHandler } from './middlewares/error-handlers.js';
 
 /* ***************** CONFIG and CONSTS ********************* */
@@ -84,6 +85,7 @@ app.use('/api/activity/', activityRouter);
 app.use('/api/technologies/', technologiesRouter);
 app.use('/api/monitors/', monitorsRouter);
 app.use('/api/status/', statusRouter);
+app.use('/api/secret/', secretRouter);
 
 // SPA fallback (support direct navigation to client routes like /projects).
 // The `status.` subdomain gets its own standalone bundle instead of the main app's.

@@ -5,7 +5,7 @@ export default {
     'nav.admin': 'Admin',
     'nav.logout': 'Abmelden',
     'nav.services': 'Leistungen',
-    'nav.secret': 'Geheimnis',
+    'nav.secret': 'Ein neues Geheimnis?!',
 
     'theme.label': 'Design',
     'theme.light': 'Hell',
@@ -176,6 +176,23 @@ export default {
     'secret.message':
         'Manche Dinge kann man nicht bauen, egal, wie gut man darin wird. Man hat einmal Glück — und danach ist man jeden einzelnen Tag dankbar dafür. Du bist das Beste in meinem Leben: der Mensch, dem ich alles zuerst erzählen will, und der aus einem ganz gewöhnlichen Abend den Ort macht, an dem ich am liebsten bin. Danke, dass es dich gibt.',
     'secret.since': 'Zusammen seit 25.12.2025, 15:37:48',
+    'secret.milestone.badge': 'Heute sind es {months} Monate',
+    'secret.milestone.message':
+        'Ich hab immer gedacht, so was legt sich mit der Zeit. Tut es aber nicht. Dein Name leuchtet am Handy auf und ich freu mich, jedes Mal. Und ehrlich, die schönsten Tage waren die, an denen wir eigentlich gar nichts gemacht haben.',
+
+    'secret.gift.badge': 'Ein Geschenk für dich',
+    'secret.gift.title': 'Virtueller Geschenkgutschein',
+    'secret.gift.delivered': 'Geliefert am Samstag, 25. Juli, an {name}',
+    // The note stays in the language it was actually written in - it is a quote,
+    // not interface copy.
+    'secret.gift.line1': 'I love you so fucking much {heart}',
+    'secret.gift.line2':
+        'I never knew that an person like you could make my life so colorful again and give it a purpose again. I wanna live with you forever and also die together.',
+    'secret.gift.line3': 'I never ever wanna loose you...',
+    'secret.gift.download': 'Beleg herunterladen',
+    'secret.gift.downloading': 'Wird geholt…',
+    'secret.gift.downloadError': 'Hat nicht geklappt. Sperr die Seite nochmal auf.',
+    'secret.gift.downloadOffline': 'Server nicht erreichbar. Versuch es nochmal.',
     'secret.stillCounting': '…und ich zähle weiter. Ich liebe dich ❤️',
     'secret.unit.years': 'Jahre',
     'secret.unit.months': 'Monate',
