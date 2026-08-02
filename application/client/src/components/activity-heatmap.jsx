@@ -342,7 +342,7 @@ export default function ActivityHeatmap() {
                             key={option.id}
                             type="button"
                             onClick={() => setSource(option.id)}
-                            className={`rounded-md px-2.5 py-1 font-mono text-2xs uppercase tracking-wider transition ${
+                            className={`cursor-pointer rounded-md px-2.5 py-1 font-mono text-2xs uppercase tracking-wider transition ${
                                 source === option.id
                                     ? 'bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] text-[var(--text)]'
                                     : 'text-[var(--muted)] hover:text-[var(--text)]'

@@ -130,7 +130,7 @@ export default function AdminLoginPage() {
                                     type="button"
                                     onClick={() => dispatch({ type: 'TOGGLE_PASSWORD_VISIBILITY' })}
                                     aria-label={showPassword ? 'Hide password' : 'Show password'}
-                                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-[var(--muted)] transition hover:text-[var(--text)]"
+                                    className="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3 text-[var(--muted)] transition hover:text-[var(--text)]"
                                 >
                                     {showPassword ? (
                                         <EyeSlashIcon className="h-5 w-5" aria-hidden="true" />
@@ -157,7 +157,7 @@ export default function AdminLoginPage() {
                         <button
                             type="submit"
                             disabled={submitting || !username || !password}
-                            className="mt-2 inline-flex w-full items-center justify-center rounded-md bg-[var(--text)] px-6 py-3 text-sm font-semibold text-[var(--bg)] transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface)] disabled:cursor-not-allowed disabled:opacity-60"
+                            className="mt-2 inline-flex w-full cursor-pointer items-center justify-center rounded-md bg-[var(--text)] px-6 py-3 text-sm font-semibold text-[var(--bg)] transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface)] disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {submitting ? (
                                 <span className="inline-flex items-center gap-2">

@@ -284,7 +284,7 @@ export default function AvailabilityTimeline({
                     <button
                         type="button"
                         onClick={() => setForm({ ...EMPTY_FORM })}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 py-1.5 text-xs font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--text)]"
+                        className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-[var(--line)] px-3 py-1.5 text-xs font-semibold text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--text)]"
                     >
                         <PlusIcon className="h-3.5 w-3.5" />
                         <FormattedMessage id="availability.new" defaultMessage="New entry" />
@@ -469,7 +469,7 @@ function Rail({ segments, todayPercent, admin, intl, onEdit, onDelete }) {
                                         type="button"
                                         onClick={() => onEdit(entry)}
                                         aria-label={`Edit ${entry.title}`}
-                                        className="rounded-md border border-[var(--line)] p-1 text-[var(--muted)] transition hover:text-[var(--text)]"
+                                        className="cursor-pointer rounded-md border border-[var(--line)] p-1 text-[var(--muted)] transition hover:text-[var(--text)]"
                                     >
                                         <PencilSquareIcon className="h-3.5 w-3.5" />
                                     </button>
@@ -477,7 +477,7 @@ function Rail({ segments, todayPercent, admin, intl, onEdit, onDelete }) {
                                         type="button"
                                         onClick={() => onDelete(entry)}
                                         aria-label={`Delete ${entry.title}`}
-                                        className="rounded-md border border-[var(--line)] p-1 text-[var(--muted)] transition hover:text-[var(--down)]"
+                                        className="cursor-pointer rounded-md border border-[var(--line)] p-1 text-[var(--muted)] transition hover:text-[var(--down)]"
                                     >
                                         <TrashIcon className="h-3.5 w-3.5" />
                                     </button>
@@ -515,7 +515,7 @@ function EntryForm({ form, setForm, saving, onSubmit, onCancel }) {
                     type="button"
                     onClick={onCancel}
                     aria-label="Close"
-                    className="rounded-md border border-[var(--line)] p-1.5 text-[var(--muted)] transition hover:text-[var(--text)]"
+                    className="cursor-pointer rounded-md border border-[var(--line)] p-1.5 text-[var(--muted)] transition hover:text-[var(--text)]"
                 >
                     <XMarkIcon className="h-4 w-4" />
                 </button>
@@ -587,7 +587,7 @@ function EntryForm({ form, setForm, saving, onSubmit, onCancel }) {
                 <button
                     type="submit"
                     disabled={saving}
-                    className="rounded-md bg-[var(--text)] px-4 py-2 text-sm font-semibold text-[var(--bg)] transition hover:opacity-90 disabled:opacity-50"
+                    className="cursor-pointer rounded-md bg-[var(--text)] px-4 py-2 text-sm font-semibold text-[var(--bg)] transition hover:opacity-90 disabled:opacity-50"
                 >
                     {saving ? 'Saving…' : 'Save'}
                 </button>
@@ -595,7 +595,7 @@ function EntryForm({ form, setForm, saving, onSubmit, onCancel }) {
                 <button
                     type="button"
                     onClick={onCancel}
-                    className="rounded-md border border-[var(--line)] px-4 py-2 text-sm font-semibold text-[var(--text)] transition hover:border-[var(--accent)]"
+                    className="cursor-pointer rounded-md border border-[var(--line)] px-4 py-2 text-sm font-semibold text-[var(--text)] transition hover:border-[var(--accent)]"
                 >
                     Cancel
                 </button>

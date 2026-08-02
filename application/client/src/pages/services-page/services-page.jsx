@@ -187,7 +187,7 @@ export default function ServicesPage() {
                     <button
                         type="button"
                         onClick={() => setForm({ ...EMPTY_FORM })}
-                        className="inline-flex items-center gap-2 self-start rounded-lg bg-[var(--text)] px-4 py-2 text-sm font-semibold text-[var(--bg)] transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                        className="inline-flex cursor-pointer items-center gap-2 self-start rounded-lg bg-[var(--text)] px-4 py-2 text-sm font-semibold text-[var(--bg)] transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                     >
                         <PlusIcon className="h-4 w-4" />
                         <FormattedMessage id="services.new" defaultMessage="New service" />
@@ -297,7 +297,7 @@ function ServiceCard({ service, admin, onEdit, onDelete }) {
                             type="button"
                             onClick={onEdit}
                             aria-label={`Edit ${service.title}`}
-                            className="rounded-md border border-[var(--line)] p-1.5 text-[var(--muted)] transition hover:text-[var(--text)]"
+                            className="cursor-pointer rounded-md border border-[var(--line)] p-1.5 text-[var(--muted)] transition hover:text-[var(--text)]"
                         >
                             <PencilSquareIcon className="h-4 w-4" />
                         </button>
@@ -305,7 +305,7 @@ function ServiceCard({ service, admin, onEdit, onDelete }) {
                             type="button"
                             onClick={onDelete}
                             aria-label={`Delete ${service.title}`}
-                            className="rounded-md border border-[var(--line)] p-1.5 text-[var(--muted)] transition hover:text-[var(--down)]"
+                            className="cursor-pointer rounded-md border border-[var(--line)] p-1.5 text-[var(--muted)] transition hover:text-[var(--down)]"
                         >
                             <TrashIcon className="h-4 w-4" />
                         </button>
@@ -374,7 +374,7 @@ function ServiceForm({ form, setForm, saving, onSubmit, onCancel }) {
                     type="button"
                     onClick={onCancel}
                     aria-label="Close"
-                    className="rounded-md border border-[var(--line)] p-1.5 text-[var(--muted)] transition hover:text-[var(--text)]"
+                    className="cursor-pointer rounded-md border border-[var(--line)] p-1.5 text-[var(--muted)] transition hover:text-[var(--text)]"
                 >
                     <XMarkIcon className="h-4 w-4" />
                 </button>
@@ -476,7 +476,7 @@ function ServiceForm({ form, setForm, saving, onSubmit, onCancel }) {
                 <button
                     type="submit"
                     disabled={saving}
-                    className="rounded-md bg-[var(--text)] px-4 py-2 text-sm font-semibold text-[var(--bg)] transition hover:opacity-90 disabled:opacity-50"
+                    className="cursor-pointer rounded-md bg-[var(--text)] px-4 py-2 text-sm font-semibold text-[var(--bg)] transition hover:opacity-90 disabled:opacity-50"
                 >
                     {saving ? 'Saving…' : 'Save'}
                 </button>
@@ -484,7 +484,7 @@ function ServiceForm({ form, setForm, saving, onSubmit, onCancel }) {
                 <button
                     type="button"
                     onClick={onCancel}
-                    className="rounded-md border border-[var(--line)] px-4 py-2 text-sm font-semibold text-[var(--text)] transition hover:border-[var(--accent)]"
+                    className="cursor-pointer rounded-md border border-[var(--line)] px-4 py-2 text-sm font-semibold text-[var(--text)] transition hover:border-[var(--accent)]"
                 >
                     Cancel
                 </button>
