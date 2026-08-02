@@ -171,7 +171,7 @@ export default function Homepage() {
                             src="/profile-image.jpg"
                             alt={`${IDENTITY.name}, portrait`}
                             fetchPriority="high"
-                            className="w-25 sm:h-30 sm:w-25 h-40 shrink-0 rounded-xl border border-[var(--line)] object-cover"
+                            className="h-40 w-[6.25rem] shrink-0 rounded-xl border border-[var(--line)] object-cover sm:h-[7.5rem] sm:w-[6.25rem]"
                         />
 
                         <div className="min-w-0 pt-0.5">
