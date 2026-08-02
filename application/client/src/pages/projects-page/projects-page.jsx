@@ -155,7 +155,7 @@ export default function ProjectsPage() {
                     <button
                         type="button"
                         onClick={() => dispatch({ type: 'OPEN_FORM_NEW' })}
-                        className="inline-flex items-center gap-2 self-start rounded-lg bg-[var(--text)] px-4 py-2 text-sm font-semibold text-[var(--bg)] transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                        className="inline-flex cursor-pointer items-center gap-2 self-start rounded-lg bg-[var(--text)] px-4 py-2 text-sm font-semibold text-[var(--bg)] transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                     >
                         <PlusIcon className="h-4 w-4" />
                         New Project
@@ -214,16 +214,14 @@ function ProjectCard({ project, admin, onEdit, onDelete }) {
             onClick={hasRepo ? openRepo : undefined}
             onKeyDown={hasRepo ? onKeyDown : undefined}
             aria-label={hasRepo ? `Open repository for ${project.title}` : undefined}
-            className={`group relative flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition dark:border-slate-800 dark:bg-slate-900 ${
+            className={`group relative flex flex-col rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm transition ${
                 hasRepo
-                    ? 'cursor-pointer hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 dark:hover:border-slate-700 dark:focus-visible:ring-white'
+                    ? 'cursor-pointer hover:-translate-y-1 hover:border-[var(--accent)] hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]'
                     : ''
             }`}
         >
             <div className="flex items-start justify-between gap-3">
-                <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-                    {project.title}
-                </h2>
+                <h2 className="text-xl font-semibold text-[var(--text)]">{project.title}</h2>
 
                 <div className="flex items-center gap-1">
                     {admin && (
@@ -236,7 +234,7 @@ function ProjectCard({ project, admin, onEdit, onDelete }) {
                                 }}
                                 aria-label={`Edit ${project.title}`}
                                 title="Edit"
-                                className="rounded-full p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+                                className="cursor-pointer rounded-full p-1.5 text-[var(--muted)] transition hover:bg-[var(--bg)] hover:text-[var(--text)]"
                             >
                                 <PencilSquareIcon className="h-4 w-4" />
                             </button>
@@ -248,7 +246,7 @@ function ProjectCard({ project, admin, onEdit, onDelete }) {
                                 }}
                                 aria-label={`Delete ${project.title}`}
                                 title="Delete"
-                                className="rounded-full p-1.5 text-slate-500 transition hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-red-500/10 dark:hover:text-red-300"
+                                className="cursor-pointer rounded-full p-1.5 text-[var(--muted)] transition hover:bg-[color-mix(in_srgb,var(--down)_10%,transparent)] hover:text-[var(--down)]"
                             >
                                 <TrashIcon className="h-4 w-4" />
                             </button>
@@ -258,21 +256,21 @@ function ProjectCard({ project, admin, onEdit, onDelete }) {
                     {hasRepo && (
                         <ArrowTopRightOnSquareIcon
                             aria-hidden="true"
-                            className="h-5 w-5 shrink-0 text-slate-400 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-slate-950 dark:text-slate-500 dark:group-hover:text-white"
+                            className="h-5 w-5 shrink-0 text-[var(--muted)] transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[var(--text)]"
                         />
                     )}
                 </div>
             </div>
 
-            <p className="mt-3 flex-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            <p className="mt-3 flex-1 text-sm leading-6 text-[var(--muted)]">
                 {project.description}
             </p>
 
             {project.livedemo && (
                 <div className="mt-3 flex min-w-0 items-center gap-2 text-sm">
-                    <span className="shrink-0 text-slate-600 dark:text-slate-300">Live Demo:</span>
+                    <span className="shrink-0 text-[var(--muted)]">Live Demo:</span>
                     <a
-                        className="truncate font-semibold text-blue-600 underline hover:text-blue-800 dark:text-sky-400 dark:hover:text-sky-300"
+                        className="truncate font-semibold text-[var(--accent)] underline hover:opacity-80"
                         href={project.livedemo}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -284,7 +282,7 @@ function ProjectCard({ project, admin, onEdit, onDelete }) {
                 </div>
             )}
 
-            <p className="mt-3 flex items-center text-sm leading-6 text-slate-600 dark:text-slate-300">
+            <p className="mt-3 flex items-center text-sm leading-6 text-[var(--muted)]">
                 <ClockIcon className="mr-1 h-4 w-4" />
                 <FormattedDate
                     value={project.createdAt}
@@ -343,13 +341,13 @@ function ProjectForm({ state, dispatch, onSubmit }) {
 
     return (
         <section className="max-w-10xl mx-auto px-6">
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950 sm:p-8">
+            <div className="rounded-[2rem] border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm sm:p-8">
                 <div className="flex items-start justify-between gap-4">
                     <div>
-                        <p className="text-xs uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+                        <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted)]">
                             {isEdit ? 'Edit Project' : 'New Project'}
                         </p>
-                        <h2 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">
+                        <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[var(--text)]">
                             {isEdit
                                 ? 'Update an existing project'
                                 : 'Add a project to the portfolio'}
@@ -360,7 +358,7 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                         type="button"
                         onClick={() => dispatch({ type: 'CLOSE_FORM' })}
                         aria-label="Close form"
-                        className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white"
+                        className="cursor-pointer rounded-full p-2 text-[var(--muted)] transition hover:bg-[var(--bg)] hover:text-[var(--text)]"
                     >
                         <XMarkIcon className="h-5 w-5" />
                     </button>
@@ -412,7 +410,7 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                     </Field>
 
                     <div>
-                        <p className="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                        <p className="block text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
                             Technologies
                         </p>
 
@@ -441,7 +439,7 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                                                     })
                                                 }
                                                 aria-label={`Remove ${t.tech}`}
-                                                className="ml-1 inline-flex items-center justify-center rounded-full hover:bg-black/10"
+                                                className="ml-1 inline-flex cursor-pointer items-center justify-center rounded-full hover:bg-black/10"
                                             >
                                                 <XMarkIcon className="h-3.5 w-3.5" />
                                             </button>
@@ -469,7 +467,7 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                             />
 
                             {techOpen && (filtered.length > 0 || (query && !exactMatchExists)) && (
-                                <div className="absolute z-20 mt-1 max-h-80 w-full overflow-auto rounded-2xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
+                                <div className="absolute z-20 mt-1 max-h-80 w-full overflow-auto rounded-2xl border border-[var(--line)] bg-[var(--surface)] [box-shadow:var(--shadow-float)]">
                                     {filtered.map((tech) => {
                                         const { className, style } = chipProps(tech.color);
                                         return (
@@ -486,7 +484,7 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                                                         },
                                                     })
                                                 }
-                                                className="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-sm transition hover:bg-slate-50 dark:hover:bg-slate-800"
+                                                className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-2.5 text-left text-sm transition hover:bg-[var(--bg)]"
                                             >
                                                 <span
                                                     style={style}
@@ -494,7 +492,7 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                                                 >
                                                     {tech.tech}
                                                 </span>
-                                                <span className="text-xs text-slate-400 dark:text-slate-500">
+                                                <span className="text-xs text-[var(--muted)]">
                                                     add
                                                 </span>
                                             </button>
@@ -525,7 +523,8 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                     {error && (
                         <div
                             role="alert"
-                            className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"
+                            className="rounded-2xl border border-[var(--down)] px-4 py-3 text-sm text-[var(--down)]"
+                            style={{ background: 'color-mix(in srgb, var(--down) 10%, transparent)' }}
                         >
                             {error}
                         </div>
@@ -535,7 +534,7 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                         <button
                             type="button"
                             onClick={() => dispatch({ type: 'CLOSE_FORM' })}
-                            className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800"
+                            className="inline-flex cursor-pointer items-center justify-center rounded-full border border-[var(--line)] bg-[var(--surface)] px-5 py-2.5 text-sm font-semibold text-[var(--text)] transition hover:border-[var(--accent)]"
                         >
                             Cancel
                         </button>
@@ -543,7 +542,7 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                         <button
                             type="submit"
                             disabled={submitting}
-                            className="inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+                            className="inline-flex cursor-pointer items-center justify-center rounded-full bg-[var(--text)] px-5 py-2.5 text-sm font-semibold text-[var(--bg)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {submitting
                                 ? isEdit
@@ -564,8 +563,8 @@ function NewTechRow({ query, color, onColorChange, onCreate }) {
     const previewProps = chipProps(color);
 
     return (
-        <div className="border-t border-slate-200 p-3 dark:border-slate-800">
-            <p className="text-xs text-slate-500 dark:text-slate-400">Create new technology</p>
+        <div className="border-t border-[var(--line)] p-3">
+            <p className="text-xs text-[var(--muted)]">Create new technology</p>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span
@@ -578,7 +577,7 @@ function NewTechRow({ query, color, onColorChange, onCreate }) {
                 <button
                     type="button"
                     onClick={onCreate}
-                    className="ml-auto inline-flex items-center gap-1 rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+                    className="ml-auto inline-flex cursor-pointer items-center gap-1 rounded-full bg-[var(--text)] px-3 py-1 text-xs font-semibold text-[var(--bg)] transition hover:opacity-90"
                 >
                     <PlusIcon className="h-3.5 w-3.5" />
                     Create "{query}"
@@ -596,14 +595,14 @@ function NewTechRow({ query, color, onColorChange, onCreate }) {
 }
 
 const inputClass =
-    'mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-950 placeholder-slate-400 transition focus:border-slate-950 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-950/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder-slate-500 dark:focus:border-white dark:focus:bg-slate-900 dark:focus:ring-white/10';
+    'mt-2 w-full rounded-2xl border border-[var(--line)] bg-[var(--bg)] px-4 py-2.5 text-sm text-[var(--text)] placeholder-[var(--muted)] transition focus:border-[var(--accent)] focus:bg-[var(--surface)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]';
 
 function Field({ label, required, children }) {
     return (
         <label className="block">
-            <span className="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+            <span className="block text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
                 {label}
-                {required && <span className="ml-1 text-red-500">*</span>}
+                {required && <span className="ml-1 text-[var(--down)]">*</span>}
             </span>
             {children}
         </label>

@@ -103,7 +103,7 @@ export default function TailwindColorPicker({ value, onChange }) {
                     type="color"
                     value={hex}
                     onChange={(e) => applyHex(e.target.value)}
-                    className="h-10 w-14 cursor-pointer overflow-hidden rounded-xl border border-slate-200 bg-white p-0 dark:border-slate-800 dark:bg-slate-900 [&::-moz-color-swatch]:rounded-lg [&::-moz-color-swatch]:border-none [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-lg [&::-webkit-color-swatch]:border-none"
+                    className="h-10 w-14 cursor-pointer overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface)] p-0 [&::-moz-color-swatch]:rounded-lg [&::-moz-color-swatch]:border-none [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-lg [&::-webkit-color-swatch]:border-none"
                     aria-label="Pick a color"
                 />
 
@@ -119,30 +119,30 @@ export default function TailwindColorPicker({ value, onChange }) {
                         }
                     }}
                     placeholder="#1e90ff or 30, 144, 255"
-                    className="min-w-[12rem] flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-950 placeholder-slate-400 transition focus:border-slate-950 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-950/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder-slate-500"
+                    className="min-w-[12rem] flex-1 rounded-2xl border border-[var(--line)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] placeholder-[var(--muted)] transition focus:border-[var(--accent)] focus:bg-[var(--surface)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
                 />
 
                 <button
                     type="button"
                     onClick={() => setQuickOpen(true)}
                     aria-haspopup="dialog"
-                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:focus-visible:ring-white/20"
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--text)] shadow-sm transition hover:border-[var(--accent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                 >
                     <Squares2X2Icon className="h-4 w-4" />
                     Quick Picks
                 </button>
             </div>
 
-            {error && <p className="text-xs text-red-600 dark:text-red-300">{error}</p>}
+            {error && <p className="text-xs text-[var(--down)]">{error}</p>}
 
-            <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[var(--line)] bg-[var(--bg)] p-3">
                 <span
-                    className="inline-flex h-7 w-7 rounded-full border border-white shadow-sm"
+                    className="inline-flex h-7 w-7 rounded-full border border-[var(--surface)] shadow-sm"
                     style={{ backgroundColor: hex }}
                     aria-hidden="true"
                 />
 
-                <span className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                <span className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">
                     Mapped to
                 </span>
 
@@ -152,11 +152,9 @@ export default function TailwindColorPicker({ value, onChange }) {
                     {resolved.palette}-{resolved.shade}
                 </span>
 
-                <span className="text-2xs text-slate-500 dark:text-slate-400">
-                    {resolved.paletteHex}
-                </span>
+                <span className="text-2xs text-[var(--muted)]">{resolved.paletteHex}</span>
 
-                <code className="ml-auto truncate text-2xs text-slate-500 dark:text-slate-400">
+                <code className="ml-auto truncate text-2xs text-[var(--muted)]">
                     {resolved.classes}
                 </code>
             </div>
@@ -166,22 +164,22 @@ export default function TailwindColorPicker({ value, onChange }) {
                     role="dialog"
                     aria-modal="true"
                     aria-label="Quick color picks"
-                    className="fixed inset-0 z-50 !mt-0 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-md"
+                    className="fixed inset-0 z-50 !mt-0 flex items-center justify-center bg-[color-mix(in_srgb,var(--text)_65%,transparent)] p-4 backdrop-blur-md"
                 >
                     <button
                         type="button"
                         aria-label="Close color picker"
                         onClick={() => setQuickOpen(false)}
-                        className="absolute inset-0"
+                        className="absolute inset-0 cursor-pointer"
                     />
 
-                    <div className="relative z-10 flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-950">
-                        <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-4 dark:border-slate-800">
+                    <div className="relative z-10 flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-[2rem] border border-[var(--line)] bg-[var(--surface)] [box-shadow:var(--shadow-float)]">
+                        <div className="flex items-start justify-between gap-4 border-b border-[var(--line)] px-6 py-4">
                             <div>
-                                <p className="text-xs uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+                                <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted)]">
                                     Quick Picks
                                 </p>
-                                <h3 className="mt-1 text-lg font-semibold text-slate-950 dark:text-white">
+                                <h3 className="mt-1 text-lg font-semibold text-[var(--text)]">
                                     Choose a Tailwind color
                                 </h3>
                             </div>
@@ -190,7 +188,7 @@ export default function TailwindColorPicker({ value, onChange }) {
                                 type="button"
                                 onClick={() => setQuickOpen(false)}
                                 aria-label="Close"
-                                className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white"
+                                className="cursor-pointer rounded-full p-2 text-[var(--muted)] transition hover:bg-[var(--bg)] hover:text-[var(--text)]"
                             >
                                 <XMarkIcon className="h-5 w-5" />
                             </button>
@@ -200,7 +198,7 @@ export default function TailwindColorPicker({ value, onChange }) {
                             <div className="space-y-2">
                                 {PALETTES.map((palette) => (
                                     <div key={palette.name} className="flex items-center gap-3">
-                                        <span className="w-20 shrink-0 truncate text-xs font-medium text-slate-600 dark:text-slate-300">
+                                        <span className="w-20 shrink-0 truncate text-xs font-medium text-[var(--muted)]">
                                             {palette.name}
                                         </span>
                                         <div className="flex flex-1 flex-wrap gap-1.5">
@@ -234,10 +232,10 @@ export default function TailwindColorPicker({ value, onChange }) {
                                                         style={{
                                                             backgroundColor: shadeHex,
                                                         }}
-                                                        className={`h-8 w-8 rounded-lg border transition ${
+                                                        className={`h-8 w-8 cursor-pointer rounded-lg border transition ${
                                                             active
-                                                                ? 'border-slate-950 ring-2 ring-slate-950/30 dark:border-white dark:ring-white/30'
-                                                                : 'border-transparent hover:scale-110 hover:border-slate-400'
+                                                                ? 'border-[var(--text)] ring-2 ring-[var(--accent)]'
+                                                                : 'border-transparent hover:scale-110 hover:border-[var(--muted)]'
                                                         }`}
                                                     />
                                                 );
