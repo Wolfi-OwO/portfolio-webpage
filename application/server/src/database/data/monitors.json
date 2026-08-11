@@ -23,5 +23,15 @@
     "name": "Machine Learning Visualizer (Preview)",
     "url": "https://ml-visualizer.at",
     "group": "ML Visualizer"
+  },
+  {
+    "name": "Nutrilens",
+    "url": "https://nutrilens.woofi-developments.at",
+    "group": "Nutrilens",
+    "containerApp": {
+      "resourceGroup": "nutrilens-rg",
+      "name": "nutrilens",
+      "scaleToZero": true
+    }
   }
 ]
