@@ -46,14 +46,24 @@ services:
   mongodb:
     image: mongo:latest
     container_name: portfolio-database
-    restart: always
+    # unless-stopped, not always: `always` restarts the container at every boot
+    # even after it has been stopped by hand, so this development database kept
+    # coming back and sat idle for days with nothing connected to it.
+    # unless-stopped still survives reboots while the project is being worked
+    # on, but honours a deliberate `docker stop`.
+    restart: unless-stopped
     attach: false
     environment:
       MONGO_INITDB_DATABASE: portfolio
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
     ports:
-      - 27017:27017
+      # Bound to the loopback address explicitly. `27017:27017` binds to
+      # 0.0.0.0, which published this database to every interface -- and with
+      # no root user configured it takes no credentials, so anyone on the same
+      # network could read and write it. The application connects from the
+      # host, so localhost is all that is needed.
+      - 127.0.0.1:27017:27017
   # Azure Storage emulator — the Functions runtime requires an AzureWebJobsStorage
   # backend for the Timer trigger's schedule/singleton state. Locally that's Azurite.
   azurite:
@@ -61,7 +71,10 @@ services:
     profiles:
       - production
     container_name: portfolio-azurite
-    restart: always
+    # Same reasoning as mongodb above: `always` brought this back at every boot
+    # even though its only consumer, the `jobs` service, is behind the
+    # production profile and was not running.
+    restart: unless-stopped
     attach: false
     command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0
   # The background jobs (Azure Functions, Timer triggers): one checks every
