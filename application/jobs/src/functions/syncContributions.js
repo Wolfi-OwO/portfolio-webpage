@@ -84,7 +84,7 @@ const GITHUB_USER = process.env.GITHUB_USER || 'Wolfi-OwO';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
 
 const GITLAB_HOST = (process.env.GITLAB_HOST || 'https://gitlab.com').replace(/\/$/, '');
-const GITLAB_USER = process.env.GITLAB_USER || 'Koflerp';
+const GITLAB_USER = process.env.GITLAB_USER || 'WoofiOwO';
 const GITLAB_TOKEN = process.env.GITLAB_TOKEN || '';
 
 // How far back the backfill is willing to look. GitHub accounts older than this

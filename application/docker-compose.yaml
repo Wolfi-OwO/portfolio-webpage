@@ -30,7 +30,7 @@ services:
       - GITHUB_USER=${GITHUB_USER:-Wolfi-OwO}
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
       - GITLAB_HOST=${GITLAB_HOST:-https://gitlab.com}
-      - GITLAB_USER=${GITLAB_USER:-Koflerp}
+      - GITLAB_USER=${GITLAB_USER:-WoofiOwO}
       - GITLAB_TOKEN=${GITLAB_TOKEN:-}
     ports:
       - '8080:8080'
@@ -111,7 +111,7 @@ services:
       - GITHUB_USER=${GITHUB_USER:-Wolfi-OwO}
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
       - GITLAB_HOST=${GITLAB_HOST:-https://gitlab.com}
-      - GITLAB_USER=${GITLAB_USER:-Koflerp}
+      - GITLAB_USER=${GITLAB_USER:-WoofiOwO}
       - GITLAB_TOKEN=${GITLAB_TOKEN:-}
       - CONTRIBUTIONS_CRON=${CONTRIBUTIONS_CRON:-0 * * * * *}
     depends_on:

@@ -8,7 +8,7 @@ import { ContributionDayModel, ForgeRepoModel, SyncStateModel } from '../models/
  * timer in the monitor-checker Function App. */
 const GITHUB_USER = process.env.GITHUB_USER || 'Wolfi-OwO';
 const GITLAB_HOST = (process.env.GITLAB_HOST || 'https://gitlab.com').replace(/\/$/, '');
-const GITLAB_USER = process.env.GITLAB_USER || 'Koflerp';
+const GITLAB_USER = process.env.GITLAB_USER || 'WoofiOwO';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_WINDOW_DAYS = 365;
