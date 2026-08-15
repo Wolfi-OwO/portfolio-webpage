@@ -70,7 +70,15 @@ async function pingUrl(url) {
             redirect: 'follow',
             signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         });
-        return { ok: response.ok, statusCode: response.status, latencyMs: Date.now() - start };
+        // 2xx and 3xx are healthy — fetch follows redirects to their end, so a
+        // final 3xx (e.g. a 304) still means the URL responded. response.ok only
+        // covers 2xx, so test the range explicitly.
+        const statusCode = response.status;
+        return {
+            ok: statusCode >= 200 && statusCode < 400,
+            statusCode,
+            latencyMs: Date.now() - start,
+        };
     } catch (err) {
         return { ok: false, latencyMs: Date.now() - start, error: err.message };
     }

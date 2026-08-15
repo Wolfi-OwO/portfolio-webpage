@@ -1,0 +1,61 @@
+# Production Caddy config for the 0€ Oracle VM. Caddy reads this from the
+# read-only mount ./Caddyfile:/etc/caddy/Caddyfile and automatically obtains
+# and renews the TLS certificate for the configured domain (Let's Encrypt by
+# default, switchable to ZeroSSL below). Certificates and account keys persist
+# in the caddy_data volume defined in docker-compose.prod.yaml.
+
+{
+    # Log one line per request to stdout, timestamped JSON. INFO level drops
+    # the debug noise; everything the VM operator needs is here.
+    log {
+        output stdout
+        format json
+        level INFO
+    }
+    # To use ZeroSSL instead of Let's Encrypt (enterprise-grade certs with a
+    # web dashboard), create an account on https://zerossl.com and add the
+    # account ID + API key to .env, then uncomment this line. Do NOT run
+    # certs from two CAs on the same VM: the rate limits and account users
+    # are separate, and switching twice a day trips both.
+    # acme_ca https://acme.zerossl.com/v2/DV90
+}
+
+# The real site. Caddy provisions a certificate on first request, so the
+# first curl after boot may take a few seconds; every request after that is
+# instant. Plain-HTTP requests for this hostname are redirected to HTTPS
+# automatically — the fallback `:80` block below only answers OTHER hosts.
+{$DOMAIN:phillip-kofler.at} {
+    # zstd first: browsers that understand it (all current ones) save ~15%
+    # over gzip; gzip stays for the rest. Static assets and JSON both benefit.
+    encode zstd gzip
+
+    header {
+        # HSTS with preload: once a browser sees this it refuses plain HTTP
+        # for this domain for a year. Some browsers require the HSTS header
+        # on the HTTPS response itself, so enable preload only after you
+        # confirm the site runs correctly over HTTPS (preload has no undo).
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        # Strict CSP: everything the app needs is same-origin. style-src
+        # keeps 'unsafe-inline' because feature toggles (e.g. dark mode)
+        # are injected as inline styles by React; script-src intentionally
+        # has NO 'unsafe-inline', so an HTML-injection XSS cannot run.
+        Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+        # Disable a pile of browser features this site never uses. The app
+        # has no camera/mic/gps access; this is how you say that in one line.
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    }
+
+    # The Express container is reached name-only over the compose network;
+    # no port on this host maps to :8080.
+    reverse_proxy web:8080
+}
+
+# Fallback for any Host header that is not the domain — e.g. the VM's bare
+# public IP. Never serve content here; bounce to HTTPS so the browser ends up
+# on the real domain (and its certificate).
+:80 {
+    redir https://{$host}{uri} permanent
+}

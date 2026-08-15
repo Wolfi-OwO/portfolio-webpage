@@ -17,6 +17,10 @@
     :root {
         --bg: #eef2f9;
         --surface: #ffffff;
+        /* A step between surface and line: hover fills, skeleton bars. Was
+           referenced by the status page but never defined, so hovers and
+           skeletons fell back to transparent. */
+        --surface-2: #e8eef7;
         --line: #d2dcec;
         --text: #0c1526;
         --muted: #5a6a86;
@@ -34,6 +38,7 @@
     html.dark {
         --bg: #070b18;
         --surface: #0e1729;
+        --surface-2: #17233c;
         --line: #22304c;
         --text: #e6ecf6;
         --muted: #8ea0bd;

@@ -17,6 +17,12 @@ const DAY = 24 * 60 * 60 * 1000;
 const HISTORY_DAYS = 90;
 const round1 = (n) => Math.round(n * 10) / 10;
 
+// Worst-of ordering for rolled-up statuses (groups and the overall report).
+// `idle` sits above `pending`: a scaled-to-zero app is verified-healthy, just
+// at rest; a never-checked monitor is simply unknown.
+const STATUS_ORDER = ['down', 'degraded', 'pending', 'idle', 'operational'];
+const worstStatus = (statuses) => STATUS_ORDER.find((s) => statuses.includes(s)) ?? 'operational';
+
 // Discord-style: one bar per calendar day, colored by how much of that day
 // was down — not one bar per raw check (which, at a short check interval,
 // would only cover the last few minutes instead of the last 90 days).
@@ -101,6 +107,24 @@ async function uptimePct(monitorId, windowMs, since) {
     return round1((totals.up / totals.total) * 100);
 }
 
+async function failurePct(monitorId, windowMs, since) {
+    const start = Math.max(Date.now() - windowMs, since);
+    const [totals] = await MonitorCheckModel.aggregate([
+        { $match: { monitor: monitorId, at: { $gte: start } } },
+        {
+            $group: {
+                _id: null,
+                total: { $sum: 1 },
+                down: { $sum: { $cond: ['$ok', 0, 1] } },
+            },
+        },
+    ]);
+    if (!totals?.total) return null;
+    // Unrounded: uptimePct rounds for display, but the degraded threshold must
+    // be exact (10.04% failures must trip it, not round down to 10.0).
+    return (totals.down / totals.total) * 100;
+}
+
 async function buildMonitorStatus(monitor) {
     const first = await MonitorCheckModel.findOne({ monitor: monitor._id }).sort({ at: 1 });
     const latest = await MonitorCheckModel.findOne({ monitor: monitor._id }).sort({ at: -1 });
@@ -108,7 +132,18 @@ async function buildMonitorStatus(monitor) {
 
     const history = await buildDailyHistory(monitor._id);
 
-    const status = !latest ? 'pending' : latest.ok ? 'operational' : 'down';
+    // `ScaledToZero` is a healthy state (checkMonitors.js reads it from ARM), so
+    // it wins as `idle` before the last-24h failure rate is considered.
+    const fail24 = await failurePct(monitor._id, DAY, monitoringSince);
+    const status = !latest
+        ? 'pending'
+        : !latest.ok
+          ? 'down'
+          : latest.runningStatus === 'ScaledToZero'
+            ? 'idle'
+            : fail24 != null && fail24 > 10
+              ? 'degraded'
+              : 'operational';
 
     return {
         _id: monitor._id,
@@ -123,7 +158,7 @@ async function buildMonitorStatus(monitor) {
         runningStatus: latest?.runningStatus ?? null,
         monitoringSince,
         uptime: {
-            h24: await uptimePct(monitor._id, DAY, monitoringSince),
+            h24: fail24 != null ? round1(100 - fail24) : null,
             d7: await uptimePct(monitor._id, 7 * DAY, monitoringSince),
             d30: await uptimePct(monitor._id, 30 * DAY, monitoringSince),
         },
@@ -157,7 +192,7 @@ function buildGroups(statuses) {
 
     const groups = Array.from(byGroup.entries()).map(([name, members]) => ({
         name,
-        status: members.some((m) => m.status === 'down') ? 'down' : 'operational',
+        status: worstStatus(members.map((m) => m.status)),
         uptime: {
             h24: avg(members, 'h24'),
             d7: avg(members, 'd7'),
@@ -173,7 +208,7 @@ async function getStatusReport() {
     const monitors = await MonitorModel.find().sort({ createdAt: 1 });
     const statuses = await Promise.all(monitors.map(buildMonitorStatus));
 
-    const status = statuses.some((m) => m.status === 'down') ? 'down' : 'operational';
+    const status = worstStatus(statuses.map((m) => m.status));
     const { groups, ungrouped } = buildGroups(statuses);
 
     return {

@@ -1,0 +1,164 @@
+version: '3.8'
+
+# Production stack for the 0€ Oracle Cloud Always Free VM. Run with:
+#   docker compose -f docker-compose.prod.yaml up -d
+#
+# ── How this differs from docker-compose.yaml (local dev) ───────────────────
+#   * Caddy terminates TLS at the edge (ports 80/443) and reverse-proxies to
+#     the web container. No Express port is published to the host: the whole
+#     VM exposes exactly four ports — 80, 443 TCP and 443/udp for HTTP/3.
+#   * Images are NOT built here in the happy path. They are pulled from the
+#     private Azure Container Registry, where the release pipeline pushes the
+#     `portfolio-web` and `portfolio-jobs` images (see the deployment doc).
+#     The `build:` blocks are the fallback for a machine without registry
+#     access; with both `image` and `build` present, `docker compose pull`
+#     wins during deploys and `up -d --build` still works in emergencies.
+#   * MongoDB stays on Atlas (same connection string as the Azure deploy) —
+#     running a database on a 1-4 OCPU VM would eat the entire free tier.
+#     Only the blob storage for the Functions runtime is emulated (azurite),
+#     because that is what the jobs service needs and Oracle has no Azure
+#     equivalent that speaks the Azure Storage protocol.
+#   * Secrets live in .env (gitignored, chmod 600) next to this file. Compose
+#     interpolates them at parse time; nothing secret is baked into an image.
+#     Container names use the Compose project directory (_application), so do
+#     not rely on `container_name:` here — leave auto-naming alone.
+#
+# ── Why the images come from a private ACR ───────────────────────────────────
+# The app is proprietary — there is no public image. Registry credentials are
+# ACR_USERNAME / ACR_PASSWORD in .env and are used only on the host, by
+# `docker login`, never passed into a container. The pull happens at
+# `docker compose pull` time. ACR_* deliberately appear nowhere in the
+# services' `environment:` blocks for that reason.
+
+services:
+  # ── Edge / TLS ──────────────────────────────────────────────────────────────
+  # Caddy is the whole inbound surface of the VM. It obtains and renews the
+  # Let's Encrypt / ZeroSSL certificate automatically (state persists in the
+  # caddy_data volume), serves HTTP/3, and talks to the backend only over the
+  # private Docker network. Logs go to stdout so `docker compose logs caddy`
+  # is the single place to look at request traffic.
+  caddy:
+    image: caddy:alpine
+    restart: unless-stopped
+    ports:
+      - '80:80' # HTTP challenge + http→https redirect
+      - '443:443' # HTTPS
+      - '443:443/udp' # HTTP/3 (QUIC); without it browsers just use TCP
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data # certs, private keys, OCSP staples — must survive restarts
+      - caddy_config:/config # the Caddy config API's state
+    depends_on:
+      - web
+    networks:
+      - portfolio-net
+
+  # ── The Express web server ──────────────────────────────────────────────────
+  # Serves the SPA plus its /api. Not published on the host — Caddy reaches it
+  # as `web:8080`. The long list of env vars are the ones the server reads at
+  # boot; the defaults match docker-compose.yaml so behaviour stays identical
+  # between local and VM deploys. Secrets come from .env, interpolated here.
+  web:
+    image: ${ACR_SERVER:-portfolioacr.azurecr.io}/portfolio-web:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: dockerfile
+    restart: unless-stopped
+    environment:
+      - MONGODB_CONNECTION_STRING=mongodb+srv://woofi:${MONGODB_PASSWORD}@portfolio.lorxr25.mongodb.net/portfolio
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=1h
+      - ADMIN_USER=${ADMIN_USER}
+      - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH}
+      - SECRET_EXPIRES_IN=${SECRET_EXPIRES_IN:-30m}
+      # Azure Blob the server proxies for the gift-receipt download. Same
+      # variables as every other deploy — the storage is still Azure, because
+      # the VM has no object store and the blob already sits there.
+      - STORAGE_ACCOUNT=${STORAGE_ACCOUNT}
+      - STORAGE_KEY=${STORAGE_KEY}
+      - GIFT_CONTAINER=${GIFT_CONTAINER:-secret-gifts}
+      - GIFT_BLOB=${GIFT_BLOB:-voucher-receipt.pdf}
+      - STATUS_CHECK_INTERVAL_SECONDS=${STATUS_CHECK_INTERVAL_SECONDS:-60}
+      # Forge credentials for the activity heatmap. All optional: without
+      # them /api/activity still answers, just with an empty GitHub half.
+      - GITHUB_USER=${GITHUB_USER:-Wolfi-OwO}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - GITLAB_HOST=${GITLAB_HOST:-https://gitlab.com}
+      - GITLAB_USER=${GITLAB_USER:-Koflerp}
+      - GITLAB_TOKEN=${GITLAB_TOKEN:-}
+    networks:
+      - portfolio-net
+
+  # ── Azure Storage emulator for the Functions runtime ────────────────────────
+  # The Azure Functions host REQUIRES an AzureWebJobsStorage backend for Timer
+  # triggers (it persists the schedule/singleton state in a queue + table).
+  # On Azure that is a real storage account; on Oracle there is none, so the
+  # well-known emulator stands in. It is the same image and account the local
+  # stack uses, and the dev account credentials are public constants — those
+  # are not a secret to keep.
+  #
+  # No host ports: nothing on the internet may talk to it. `jobs` reaches it
+  # as `azurite` on the private network only. State lives in azurite_data so
+  # the timer bookkeeping survives container restarts/recreates.
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    restart: unless-stopped
+    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --location /data
+    volumes:
+      - azurite_data:/data
+    networks:
+      - portfolio-net
+
+  # ── Background jobs (Azure Functions, timer triggers) ───────────────────────
+  # Runs the same code as the Function App in Azure: one timer checks every
+  # monitored page once a minute, the other syncs the GitHub/GitLab
+  # contribution history. Both write to the same Atlas database the web reads.
+  jobs:
+    image: ${ACR_SERVER:-portfolioacr.azurecr.io}/portfolio-jobs:${IMAGE_TAG:-latest}
+    build:
+      context: ./jobs
+      dockerfile: dockerfile
+    restart: unless-stopped
+    depends_on:
+      - azurite
+    environment:
+      - MONGODB_CONNECTION_STRING=mongodb+srv://woofi:${MONGODB_PASSWORD}@portfolio.lorxr25.mongodb.net/portfolio
+      # Blob/queue/table all point at the azurite service; only the queue
+      # endpoint (10001) is actually used by the timers. The account key is
+      # the emulator's well-known public constant.
+      - AzureWebJobsStorage=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1
+      - FUNCTIONS_WORKER_RUNTIME=node
+      - AzureWebJobsFeatureFlags=EnableWorkerIndexing
+      # ARM access for the Container App control-plane checks. The Azure SDK's
+      # DefaultAzureCredential reads TENANT/CLIENT_ID/CLIENT_SECRET from the
+      # environment itself, which is why they are listed even though no source
+      # line references them. Without all four, the ARM-backed monitors fail
+      # per-check (caught) and only plain URL checks run.
+      - AZURE_SUBSCRIPTION_ID=${AZURE_SUBSCRIPTION_ID}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+      - CONTAINER_APP_RESOURCE_GROUPS=${CONTAINER_APP_RESOURCE_GROUPS:-portfolio-webpage-rg,netviz-rg,dsai-5bhif-app}
+      # Forge credentials for syncContributions — without the tokens the
+      # private repos (and therefore the older history) stay invisible.
+      - GITHUB_USER=${GITHUB_USER:-Wolfi-OwO}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - GITLAB_HOST=${GITLAB_HOST:-https://gitlab.com}
+      - GITLAB_USER=${GITLAB_USER:-Koflerp}
+      - GITLAB_TOKEN=${GITLAB_TOKEN:-}
+      - CONTRIBUTIONS_CRON=${CONTRIBUTIONS_CRON:-0 * * * * *}
+    networks:
+      - portfolio-net
+
+networks:
+  # Reverse-proxying to Atlas and the forges needs outbound internet, so this
+  # is a plain bridge — NOT `internal: true`. "Internal" here means only that
+  # no host port is published for web/azurite/jobs; caddy is the single door
+  # to the outside.
+  portfolio-net:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:
+  azurite_data:

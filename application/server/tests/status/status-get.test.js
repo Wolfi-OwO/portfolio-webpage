@@ -15,12 +15,16 @@ const DAY = 24 * 60 * 60 * 1000;
 // clamped every ratio to 100%, hiding real failures.
 const PER_DAY = 1700;
 
-async function seedChecks(monitorId, { days, failEvery }) {
+// failStart shifts which samples fail: with failStart: 1 the newest check
+// (i === 0) passes while every later one still fails on schedule — needed by the
+// 'degraded' test, where the LATEST sample must be healthy for the classifier to
+// reach the rolled-up 24h failure rate at all.
+async function seedChecks(monitorId, { days, failEvery, failStart = 0 }) {
     const now = Date.now();
     const spacing = DAY / PER_DAY;
     const docs = [];
     for (let i = 0; i < days * PER_DAY; i++) {
-        const ok = !(failEvery && i % failEvery === 0);
+        const ok = !(failEvery && i >= failStart && i % failEvery === 0);
         docs.push({
             monitor: monitorId,
             at: now - i * spacing,
@@ -93,5 +97,39 @@ describe('GET /api/status', function () {
             Math.abs(fullDay.downMs - expectedMs) < 60 * 1000,
             `downMs ${fullDay.downMs} should track the day's down ratio (~${expectedMs})`,
         );
+    });
+
+    it("reports 'idle' for a healthy scaled-to-zero container app", async function () {
+        const monitor = await MonitorModel.create({
+            name: 'Snoozing',
+            url: 'https://snooze.test',
+            containerApp: { resourceGroup: 'rg', name: 'snooze', scaleToZero: true },
+        });
+        // ScaledToZero is a healthy ARM state and must not read as an outage.
+        await MonitorCheckModel.create({
+            monitor: monitor._id,
+            at: Date.now(),
+            ok: true,
+            latencyMs: 20,
+            runningStatus: 'ScaledToZero',
+        });
+
+        const res = await request(httpServer).get('/api/status').expect(200);
+        const snoozing = res.body.ungrouped.find((m) => m.name === 'Snoozing');
+
+        assert.equal(snoozing.status, 'idle');
+        assert.equal(snoozing.uptime.h24, 100);
+    });
+
+    it("reports 'degraded' when the latest check passes but >10% of the last 24h failed", async function () {
+        const monitor = await MonitorModel.create({ name: 'Wobbly', url: 'https://wobbly.test' });
+        // Latest sample healthy (failStart: 1), then one in every nine fails (~11%).
+        await seedChecks(monitor._id, { days: 6, failEvery: 9, failStart: 1 });
+
+        const res = await request(httpServer).get('/api/status').expect(200);
+        const wobbly = res.body.ungrouped.find((m) => m.name === 'Wobbly');
+
+        assert.equal(wobbly.status, 'degraded');
+        assert.ok(wobbly.uptime.h24 < 100, `degraded but flawless 24h uptime? ${wobbly.uptime.h24}%`);
     });
 });

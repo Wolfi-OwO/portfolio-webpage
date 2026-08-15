@@ -21,9 +21,23 @@ const POLL_MS = 15000;
 const BADGE = {
     operational: { label: 'Operational', color: 'var(--live)', Icon: CheckCircleIcon },
     down: { label: 'Down', color: 'var(--down)', Icon: XCircleIcon },
+    // Still responding, but more than 10% of the last 24h of checks failed.
+    degraded: {
+        label: 'Degraded',
+        color: 'color-mix(in srgb, var(--live) 45%, var(--down))',
+        Icon: ExclamationTriangleIcon,
+    },
     pending: { label: 'Pending', color: 'var(--muted)', Icon: ExclamationTriangleIcon },
     // A healthy scale-to-zero app: still up, just resting. Distinct label, same green.
     idle: { label: 'Idle', color: 'var(--live)', Icon: MoonIcon },
+};
+
+// Extra context for statuses whose word alone invites the wrong reading — most
+// importantly `idle`, which is healthy, not an outage. Surfaced as a `title`
+// (mouse hover) on the badges below; screen-reader/keyboard users get the
+// same explanation for free from MonitorMeta's permanent, non-hover text.
+const BADGE_HINT = {
+    idle: 'Idle means healthy but scaled to zero — it wakes automatically on the next request, this is not an outage.',
 };
 
 // Discord-style severity tiers for a day's bar — the longer a service was down
@@ -116,15 +130,21 @@ function StatusDot({ status, size = 'sm' }) {
         );
     }
     if (status === 'idle') {
+        // A hollow ring, not a filled dot: healthy but at rest. Reads as the
+        // outline of "operational" rather than a dimmer copy of it — a scaled
+        // to-zero app is up, just not doing anything.
         return (
             <span
-                className={`inline-flex shrink-0 ${dim} rounded-full`}
-                style={{ background: 'color-mix(in srgb, var(--live) 70%, transparent)' }}
+                className={`inline-flex shrink-0 ${dim} rounded-full border`}
+                style={{
+                    borderColor: 'var(--live)',
+                    background: 'color-mix(in srgb, var(--live) 15%, transparent)',
+                }}
             />
         );
     }
 
-    const color = status === 'operational' ? 'var(--live)' : 'var(--muted)';
+    const color = BADGE[status]?.color ?? 'var(--muted)';
     return (
         <span className={`relative inline-flex shrink-0 ${dim}`}>
             <span
@@ -139,15 +159,29 @@ function StatusDot({ status, size = 'sm' }) {
     );
 }
 
-// One day's bar with a hover popover: date, severity, and downtime that day.
-function DayBar({ day }) {
+// One day's bar with a hover/focus popover: date, severity, and downtime that
+// day. Focusable so keyboard users can inspect individual days the same way a
+// mouse hover does; the tooltip shows on focus as well as hover.
+function DayBar({ day, index = 0, total = 90 }) {
     const info = SEVERITY[day.severity] ?? SEVERITY['no-data'];
+    const label = day.downMs > 0 ? `${info.label}, ${fmtDuration(day.downMs)} down` : info.label;
+
+    // A centred w-60 popover overhangs the container on the first and last few
+    // bars; pin those to the bar's edge so the tooltip stays on-screen.
+    const anchor = index < 4 ? 'left-0' : index >= total - 4 ? 'right-0' : 'left-1/2 -translate-x-1/2';
 
     return (
-        <div className="group/bar relative flex-1" aria-hidden="true">
+        <div
+            role="img"
+            tabIndex={0}
+            aria-label={`${fmtDate(day.day)}: ${label}`}
+            className="group/bar relative flex-1 rounded-[2px] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+        >
             <div className="h-7 rounded-[2px] transition-colors" style={{ background: info.bar }} />
 
-            <div className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 w-60 -translate-x-1/2 opacity-0 transition-opacity duration-150 group-hover/bar:opacity-100">
+            <div
+                className={`pointer-events-none absolute bottom-full z-20 mb-2 w-60 max-w-[80vw] opacity-0 transition-opacity duration-150 group-hover/bar:opacity-100 group-focus/bar:opacity-100 ${anchor}`}
+            >
                 <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-3 shadow-lg">
                     <p className="text-xs font-semibold text-[var(--text)]">{fmtDate(day.day)}</p>
 
@@ -169,16 +203,18 @@ function DayBar({ day }) {
 }
 
 function UptimeBar({ history }) {
+    // The summary lives in an sr-only caption so screen readers get the gist in
+    // one stop instead of being forced through every day's bar; the focusable
+    // bars below carry the per-day detail.
     return (
-        <div
-            className="flex h-7 items-stretch gap-[2px]"
-            role="img"
-            aria-label={summarizeHistory(history)}
-        >
-            {history.map((day, index) => (
-                <DayBar key={index} day={day} />
-            ))}
-        </div>
+        <figure className="m-0">
+            <figcaption className="sr-only">{summarizeHistory(history)}</figcaption>
+            <div className="flex h-7 items-stretch gap-[2px]">
+                {history.map((day, index) => (
+                    <DayBar key={index} day={day} index={index} total={history.length} />
+                ))}
+            </div>
+        </figure>
     );
 }
 
@@ -213,7 +249,36 @@ function StatTile({ label, value, Icon }) {
     );
 }
 
-function OverallBanner({ report, upCount, total }) {
+function OverallBanner({ report, upCount, total, error, onRetry }) {
+    if (!report && error) {
+        return (
+            <div
+                className="mb-6 flex flex-wrap items-center gap-4 rounded-lg border p-5"
+                style={{
+                    borderColor: `color-mix(in srgb, var(--down) 35%, var(--line))`,
+                    background: `color-mix(in srgb, var(--down) 8%, var(--surface))`,
+                }}
+            >
+                <span className="h-3 w-3 shrink-0 rounded-full bg-[var(--down)]" />
+                <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-[var(--text)]">
+                        Couldn&apos;t load the status report
+                    </p>
+                    <p className="font-mono text-xs text-[var(--muted)]">
+                        The status service didn&apos;t respond. Retrying automatically.
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    onClick={onRetry}
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-[var(--line)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[var(--text)] transition hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                >
+                    <ArrowPathIcon className="h-4 w-4" /> Try again
+                </button>
+            </div>
+        );
+    }
+
     if (!report) {
         return (
             <div className="mb-6 flex animate-pulse items-center gap-4 rounded-lg border border-[var(--line)] bg-[var(--surface)] p-5">
@@ -225,29 +290,61 @@ function OverallBanner({ report, upCount, total }) {
         );
     }
 
-    const allOperational = report.status === 'operational';
+    const allOperational = report.status === 'operational' || report.status === 'idle';
     const label = allOperational
         ? 'All systems operational'
-        : upCount === 0 && total > 0
-          ? 'Major outage'
-          : 'Partial outage';
-    const tint = allOperational ? 'var(--live)' : 'var(--down)';
+        : report.status === 'degraded'
+          ? 'Degraded performance'
+          : report.status === 'pending'
+            ? 'Awaiting first checks'
+            : upCount === 0 && total > 0
+              ? 'Major outage'
+              : 'Partial outage';
+    const tint = allOperational
+        ? 'var(--live)'
+        : report.status === 'degraded'
+          ? BADGE.degraded.color
+          : report.status === 'pending'
+            ? 'var(--muted)'
+            : 'var(--down)';
 
     return (
-        <div
-            className="mb-6 flex items-center gap-4 rounded-lg border p-5"
-            style={{
-                borderColor: `color-mix(in srgb, ${tint} 35%, var(--line))`,
-                background: `color-mix(in srgb, ${tint} 8%, var(--surface))`,
-            }}
-        >
-            <StatusDot status={report.status} size="lg" />
-            <div className="min-w-0 flex-1">
-                <p className="text-base font-semibold text-[var(--text)]">{label}</p>
-                <p className="font-mono text-xs text-[var(--muted)]">
-                    checks every {Math.round(report.checkIntervalMs / 1000)}s
-                </p>
+        <div className="mb-6">
+            <div
+                className="flex items-center gap-4 rounded-lg border p-5"
+                style={{
+                    borderColor: `color-mix(in srgb, ${tint} 35%, var(--line))`,
+                    background: `color-mix(in srgb, ${tint} 8%, var(--surface))`,
+                }}
+            >
+                <StatusDot status={report.status} size="lg" />
+                <div className="min-w-0 flex-1">
+                    <p className="text-base font-semibold text-[var(--text)]">{label}</p>
+                    <p className="font-mono text-xs text-[var(--muted)]">
+                        checks every {Math.round(report.checkIntervalMs / 1000)}s
+                    </p>
+                </div>
             </div>
+
+            {/* A background poll failed, but the last known report is still shown
+                above rather than blanked — this note says so instead of leaving the
+                user to wonder whether what they're looking at is current. */}
+            {error && (
+                <div className="mt-2 flex flex-wrap items-center gap-3 rounded-md border border-[var(--line)] bg-[var(--surface)] px-4 py-2 font-mono text-xs text-[var(--muted)]">
+                    <ExclamationTriangleIcon
+                        className="h-4 w-4 shrink-0"
+                        style={{ color: 'var(--down)' }}
+                    />
+                    <span>Last update failed — showing the most recently known status.</span>
+                    <button
+                        type="button"
+                        onClick={onRetry}
+                        className="ml-auto inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-[var(--line)] px-2.5 py-1 font-semibold text-[var(--text)] transition hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                    >
+                        <ArrowPathIcon className="h-3.5 w-3.5" /> Retry
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
@@ -276,7 +373,7 @@ function MonitorMeta({ monitor }) {
                         </a>
                     </>
                 )}
-                {scaled && ' · Scaled To Zero Revisions'}
+                {scaled && ' · Idle — scaled to zero, wakes automatically on the next request'}
             </p>
         );
     }
@@ -300,7 +397,7 @@ function MonitorMeta({ monitor }) {
     return null;
 }
 
-function MonitorRow({ monitor, admin, onEdit, onDelete }) {
+function MonitorRow({ monitor, admin, onEdit, onDelete, nested = false }) {
     const status = displayStatus(monitor);
     const badge = BADGE[status] ?? BADGE.pending;
     const rowTitle =
@@ -309,7 +406,10 @@ function MonitorRow({ monitor, admin, onEdit, onDelete }) {
             : undefined;
 
     return (
-        <div className="border-b border-[var(--line)] py-5 last:border-0" title={rowTitle}>
+        <div
+            className={`border-b border-[var(--line)] ${nested ? 'py-3' : 'py-5'} last:border-0`}
+            title={rowTitle}
+        >
             <div className="mb-2 flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-2.5">
                     <StatusDot status={status} />
@@ -332,6 +432,7 @@ function MonitorRow({ monitor, admin, onEdit, onDelete }) {
                     <span
                         className="flex items-center gap-1.5 text-xs font-medium"
                         style={{ color: badge.color }}
+                        title={BADGE_HINT[status]}
                     >
                         <badge.Icon className="h-4 w-4" /> {badge.label}
                     </span>
@@ -450,6 +551,7 @@ function MonitorForm({ editing, existingGroups, onSubmit, onCancel }) {
 
     return (
         <form
+            id={editing ? undefined : 'monitor-form'}
             onSubmit={handleSubmit}
             className="mb-6 flex flex-wrap items-end gap-3 rounded-lg border border-dashed border-[var(--line)] bg-[var(--surface)] p-4"
         >
@@ -555,6 +657,7 @@ function GroupSection({ group, admin, onEdit, onDelete }) {
                 <span
                     className="flex shrink-0 items-center gap-1.5 text-xs font-medium"
                     style={{ color: badge.color }}
+                    title={BADGE_HINT[group.status]}
                 >
                     <badge.Icon className="h-4 w-4" /> {badge.label}
                 </span>
@@ -580,6 +683,7 @@ function GroupSection({ group, admin, onEdit, onDelete }) {
                         admin={admin}
                         onEdit={onEdit}
                         onDelete={onDelete}
+                        nested
                     />
                 ))}
             </div>
@@ -591,6 +695,7 @@ export default function StatusPage() {
     usePageMeta('Status', 'Live uptime status for Woofi Developments and its monitored services.');
 
     const [report, setReport] = useState(null);
+    const [loadError, setLoadError] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [admin] = useState(() => isAdmin());
     const [editingMonitor, setEditingMonitor] = useState(null);
@@ -599,10 +704,19 @@ export default function StatusPage() {
         return fetch('/api/status')
             .then((response) => (response.ok ? response.json() : null))
             .then((data) => {
-                if (data) setReport(data);
+                if (data) {
+                    setReport(data);
+                    setLoadError(false);
+                } else {
+                    // A non-ok response is a failed load, not "no data".
+                    setLoadError(true);
+                }
             })
             .catch(() => {
-                // keep the last known report if a poll fails
+                // A failed poll keeps the last known report on screen; the error
+                // state below only renders when there is nothing to fall back on,
+                // so this stays silent for a stale-but-there report.
+                setLoadError(true);
             });
     }, []);
 
@@ -672,7 +786,7 @@ export default function StatusPage() {
     const monitors = [...groups.flatMap((g) => g.monitors), ...ungrouped];
     const existingGroups = groups.map((g) => g.name);
 
-    const upCount = monitors.filter((m) => m.status === 'operational').length;
+    const upCount = monitors.filter((m) => m.status === 'operational' || m.status === 'idle').length;
     const known30d = monitors.map((m) => m.uptime.d30).filter((pct) => pct != null);
     const avgUptime = known30d.length
         ? round1(known30d.reduce((sum, pct) => sum + pct, 0) / known30d.length)
@@ -703,7 +817,13 @@ export default function StatusPage() {
                     </button>
                 </div>
 
-                <OverallBanner report={report} upCount={upCount} total={monitors.length} />
+                <OverallBanner
+                    report={report}
+                    upCount={upCount}
+                    total={monitors.length}
+                    error={loadError}
+                    onRetry={handleRefresh}
+                />
 
                 {report && monitors.length > 0 && (
                     <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -772,15 +892,27 @@ export default function StatusPage() {
                         ))}
 
                         {report && monitors.length === 0 && (
-                            <div className="flex flex-col items-center gap-2 py-14 text-center">
-                                <ServerIcon className="h-8 w-8 text-[var(--line)]" />
-                                <p className="text-sm text-[var(--muted)]">
-                                    No monitors configured yet.
+                            <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-[var(--line)] py-16 px-6 text-center">
+                                <ServerIcon className="h-8 w-8 text-[var(--muted)]" />
+                                <p className="text-sm font-medium text-[var(--text)]">
+                                    No monitored services yet
                                 </p>
+                                <p className="max-w-sm text-xs text-[var(--muted)]">
+                                    Live status and 90-day uptime history will appear here once
+                                    the first service is being watched.
+                                </p>
+                                {admin && (
+                                    <a
+                                        href="#monitor-form"
+                                        className="mt-2 inline-flex items-center gap-2 rounded-md bg-[var(--text)] px-4 py-2 text-sm font-semibold text-[var(--bg)] transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                                    >
+                                        <PlusIcon className="h-4 w-4" /> Add your first monitor
+                                    </a>
+                                )}
                             </div>
                         )}
 
-                        {!report && (
+                        {!report && !loadError && (
                             <>
                                 <MonitorSkeleton />
                                 <MonitorSkeleton />

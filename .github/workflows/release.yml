@@ -1,15 +1,22 @@
 name: Release Deploy
 
-# Publishing a GitHub Release builds the client, pushes the image to Azure
-# Container Registry and rolls the Azure Container App onto the new tag.
+# Publishing a GitHub Release builds the client, pushes both images (web,
+# jobs) to the private Azure Container Registry, then SSHes into the Oracle
+# Cloud Always Free VM to pull and recreate the stack — see
+# docs/DEPLOYMENT_ORACLE_0EUR.md §9 for the architecture this automates and
+# §14 for the GitHub secrets this workflow needs.
 #
-# Jobs are split so the parts that don't need an Azure identity (metadata
-# resolution, client build, the ACR push using scoped registry tokens) can
-# run freely. Only the final containerapp rollout needs an Azure AD identity
-# (rolling a revision is an ARM call, not a registry operation, so the ACR
-# tokens used to push the image can't authorize it) and therefore the
-# `production` environment. Keeping that one call in its own job means a
-# release only ever waits on a single reviewer approval.
+# The stack moved off Azure Container Apps (see §13 of that doc); this
+# workflow no longer deploys there. There is exactly one deploy target now —
+# the Oracle VM — so there is exactly one deploy job. Two live deploy paths
+# for the same app is how you get them racing each other.
+#
+# Jobs are split so the parts that don't need VM/registry credentials
+# (metadata resolution, client build) can run freely. The two ACR pushes use
+# scoped registry tokens (push-only), not an Azure AD identity — no OIDC
+# needed anywhere in this file. The final SSH rollout is its own job behind
+# the `production` environment, so a release only ever waits on a single
+# reviewer approval.
 
 on:
   release:
@@ -22,7 +29,6 @@ on:
 
 permissions:
   contents: write # sync-version commits the bumped package.json files back
-  id-token: write # required for Azure OIDC login in deploy-to-production
 
 jobs:
   resolve-metadata:
@@ -31,10 +37,10 @@ jobs:
     outputs:
       tag: ${{ steps.meta.outputs.tag }}
       image: ${{ steps.meta.outputs.image }}
+      image_jobs: ${{ steps.meta.outputs.image_jobs }}
       build_date: ${{ steps.meta.outputs.build_date }}
-      revision_suffix: ${{ steps.meta.outputs.revision_suffix }}
     steps:
-      - name: Compute tag, image, build date & revision suffix
+      - name: Compute tag, image names & build date
         id: meta
         run: |
           TAG="${{ github.event.inputs.tag || github.event.release.tag_name || github.ref_name }}"
@@ -43,24 +49,16 @@ jobs:
             exit 1
           fi
           IMAGE="${{ vars.ACR_NAME }}.azurecr.io/${{ vars.IMAGE_NAME }}"
-
-          # Name the revision after the version it runs, so `revision list` reads
-          # `portfolio-app--v6-0-1` instead of an opaque `portfolio-app--0000022`.
-          # A suffix may only hold lowercase alphanumerics and dashes, so the dots
-          # in a semver tag have to go, and any run of separators collapses to one.
-          SUFFIX=$(echo "$TAG" \
-            | tr '[:upper:]' '[:lower:]' \
-            | sed 's/[^a-z0-9]\+/-/g; s/^-\+//; s/-\+$//')
-          if [ -z "$SUFFIX" ]; then
-            echo "::error::Tag '${TAG}' normalises to an empty revision suffix."
-            exit 1
-          fi
+          # docker-compose.prod.yaml hardcodes this repository name (only
+          # ACR_SERVER is configurable there) — match it rather than adding a
+          # second repo variable for a name that never changes.
+          IMAGE_JOBS="${{ vars.ACR_NAME }}.azurecr.io/portfolio-jobs"
 
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+          echo "image_jobs=${IMAGE_JOBS}" >> "$GITHUB_OUTPUT"
           echo "build_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
-          echo "revision_suffix=${SUFFIX}" >> "$GITHUB_OUTPUT"
-          echo "Resolved ${IMAGE}:${TAG} (revision suffix: ${SUFFIX})"
+          echo "Resolved ${IMAGE}:${TAG} / ${IMAGE_JOBS}:${TAG}"
 
   sync-version:
     name: Sync package versions to the tag
@@ -167,6 +165,13 @@ jobs:
           username: ${{ secrets.ACR_PUSH_USERNAME }}
           password: ${{ secrets.ACR_PUSH_PASSWORD }}
 
+      # QEMU + a multi-platform Buildx build: the Oracle VM is Ampere (arm64),
+      # this runner is amd64. Without this the pushed manifest is amd64-only
+      # and `docker compose pull` on the VM fails with "no matching manifest
+      # for linux/arm64" (see docs/DEPLOYMENT_ORACLE_0EUR.md §9.1).
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
@@ -176,7 +181,8 @@ jobs:
           context: application
           file: application/dockerfile
           push: true
-          # Push a plain single-platform image manifest, not an OCI index.
+          platforms: linux/amd64,linux/arm64
+          # Push a plain multi-platform image manifest, no attestations.
           #
           # By default Buildx attaches provenance/SBOM attestations, which turns
           # the push into an index whose children (the real payload and the
@@ -185,7 +191,9 @@ jobs:
           # tagged index behind — the tag still resolves, but every pull fails
           # with MANIFEST_UNKNOWN. That is what took production down and it
           # destroyed every tag in the repository, so there was nothing to roll
-          # back to. A single manifest has no untagged children to lose.
+          # back to. The platform index itself is still required for multi-arch
+          # (that part is unavoidable); it is the attestation children that get
+          # dropped.
           provenance: false
           sbom: false
           tags: |
@@ -199,33 +207,90 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  deploy-to-production:
-    name: Deploy to Azure Container App
+  push-jobs-image:
+    name: Push jobs image to ACR
     runs-on: ubuntu-latest
-    needs: [resolve-metadata, push-image]
+    needs: resolve-metadata
+    steps:
+      - uses: actions/checkout@v7
+
+      # Scoped ACR token (push/pull only, revocable) — no Azure AD identity
+      # or OIDC login needed for this job.
+      - name: Log in to ACR
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ vars.ACR_NAME }}.azurecr.io
+          username: ${{ secrets.ACR_PUSH_USERNAME }}
+          password: ${{ secrets.ACR_PUSH_PASSWORD }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push jobs image
+        uses: docker/build-push-action@v7
+        with:
+          context: application/jobs
+          file: application/jobs/dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          # Same reasoning as push-image: a plain manifest list, no attestation
+          # children an ACR cleanup could orphan.
+          provenance: false
+          sbom: false
+          tags: |
+            ${{ needs.resolve-metadata.outputs.image_jobs }}:${{ needs.resolve-metadata.outputs.tag }}
+            ${{ needs.resolve-metadata.outputs.image_jobs }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-to-oracle-vm:
+    name: Deploy to Oracle Cloud VM
+    runs-on: ubuntu-latest
+    needs: [resolve-metadata, push-image, push-jobs-image]
     environment: production
     steps:
-      - name: Azure login (OIDC)
-        uses: azure/login@v3
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Deploy to Azure Container App
+      # Host-key pinning, not TOFU: an `ssh-keyscan` at deploy time or
+      # StrictHostKeyChecking=no would accept whatever key answers on the
+      # wire, which is exactly the MITM a public runner is exposed to. The
+      # known_hosts secret is captured once, out of band (§14 of the
+      # deployment doc), from the VM's own host key fingerprint.
+      - name: Configure SSH
         run: |
-          #
-          az containerapp update \
-            --name "${{ vars.CONTAINERAPP_NAME }}" \
-            --resource-group "${{ vars.RESOURCE_GROUP }}" \
-            --image "${{ needs.resolve-metadata.outputs.image }}:${{ needs.resolve-metadata.outputs.tag }}" \
-            --revision-suffix "${{ needs.resolve-metadata.outputs.revision_suffix }}" \
-            --min-replicas 0 --max-replicas 5 
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.ORACLE_VM_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "${{ secrets.ORACLE_VM_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
 
-      - name: Show deployed revision
+      # The automated form of docs/DEPLOYMENT_ORACLE_0EUR.md §9.2, pinned to
+      # the tag this run just pushed rather than whatever IMAGE_TAG happens
+      # to be sitting in the VM's .env. Credentials are handed to the remote
+      # shell through env vars in the ssh command prefix, never interpolated
+      # into the script body, so nothing secret is echoed if a step ever logs
+      # its command line.
+      #
+      # ponytail: secret values are placed inside single-quoted shell words on
+      # the runner's own command line below (ACR SP passwords are Azure-issued
+      # GUID-like tokens with no embedded quotes). If that ever changes,
+      # switch to `printf '%q'` escaping before widening this assumption.
+      - name: Pull images and recreate the stack
         run: |
-          az containerapp revision list \
-            --name "${{ vars.CONTAINERAPP_NAME }}" \
-            --resource-group "${{ vars.RESOURCE_GROUP }}" \
-            --query "[0].{revision:name, active:properties.active, image:properties.template.containers[0].image}" \
-            -o table
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes \
+            "${{ secrets.ORACLE_VM_USER }}@${{ secrets.ORACLE_VM_HOST }}" \
+            "IMAGE_TAG='${{ needs.resolve-metadata.outputs.tag }}' ACR_SERVER='${{ vars.ACR_NAME }}.azurecr.io' ACR_USER='${{ secrets.ACR_PULL_USERNAME }}' ACR_PASS='${{ secrets.ACR_PULL_PASSWORD }}' bash -s" <<'SCRIPT'
+            set -euo pipefail
+            cd /opt/portfolio-webpage/application
+            docker login "$ACR_SERVER" -u "$ACR_USER" -p "$ACR_PASS"
+            docker compose -f docker-compose.prod.yaml pull
+            docker compose -f docker-compose.prod.yaml up -d --remove-orphans
+          SCRIPT
+
+      - name: Show running services
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes \
+            "${{ secrets.ORACLE_VM_USER }}@${{ secrets.ORACLE_VM_HOST }}" \
+            'cd /opt/portfolio-webpage/application && docker compose -f docker-compose.prod.yaml ps'
