@@ -35,36 +35,52 @@
     # acme_ca https://acme.zerossl.com/v2/DV90
 }
 
-# One static fallback page for real outages (502/503/504 — the upstream
-# container is unreachable, restarting, or too slow to answer), imported by
-# both site blocks below. Only Caddy can speak here at all: the defining
-# property of this error class is that neither app is running to render its
-# own page (contrast with 404/500, which each app's own error-page.jsx /
-# error.tsx handles — see those files). One shared file rather than one per
-# app, deliberately:
-#   - it must survive the app being completely dead, so there is exactly one
-#     asset that has to stay JS-free and CDN-free instead of two;
-#   - "the upstream isn't answering" is a property of this domain's edge,
-#     not of either app's own design, so a visitor doesn't need brand
-#     matching mid-outage — one honest sentence and a retry link cover both;
-#   - colors and tone are the portfolio app's own light/dark tokens
-#     (client/src/index.css) — that palette is this domain's original one,
-#     and its `--down` token is literally reserved there for a real
-#     down/error state, which this page is the purest example of.
-# 501 (Not Implemented) is deliberately not in the status list: neither app
-# can realistically produce it (see error-page.jsx and not-found.tsx/
-# error.tsx — no route or handler in either returns 501), so it is not worth
-# a bespoke page for a code nobody will ever see.
-(error_pages) {
-    handle_errors 502 503 504 {
-        header Content-Type "text/html; charset=utf-8"
-        respond <<HTML
+# Global edge error pages — one owner per failure class:
+#
+#   - 502/503/504 (upstream unreachable/restarting/too slow) can ONLY be
+#     rendered by Caddy: the defining property of this class is that no app
+#     is running to draw its own page. `handle_errors` below catches these,
+#     since Caddy itself produces them when `reverse_proxy` can't dial out.
+#   - 404/500 CAN be rendered by the app (error-page.jsx, not-found.tsx,
+#     error.tsx already exist and do this) — but only for *soft* navigation:
+#     a click inside an already-loaded SPA/Next app, handled entirely by the
+#     client-side router, which never touches Caddy or the network at all.
+#     A *hard* navigation (typed URL, external link, reload) is a real HTTP
+#     request that Caddy sees and can intercept before the browser ever
+#     gets the app's JS bundle to run that router in the first place — and
+#     the user explicitly asked for exactly that: a global, edge-owned
+#     error page, not three different app-drawn ones. `edge_upstream_errors`
+#     below, imported inside each `reverse_proxy` block, does this via
+#     `handle_response`, matching the response status Caddy already got
+#     from the app. The app-drawn pages keep owning the soft-navigation
+#     case; nothing here disables them.
+#   - The `/api/*` exclusion is doubly important: an API client expects
+#     JSON, and Caddy replacing its body with HTML would be strictly worse
+#     than the status code alone. Likewise assets (JS/CSS/fonts/images) —
+#     `header Accept *text/html*` is what tells a real page-load apart from
+#     either of those, since browsers request assets with an Accept header
+#     that does not contain `text/html`, and redirects (3xx) never reach
+#     these matchers at all since only 404/500/502/503/504 are matched.
+#
+# All three pages share one look, colors and tone are the portfolio app's
+# own light/dark tokens (client/src/index.css) — that palette is this
+# domain's original one, and its `--down` token is literally reserved there
+# for a real down/error state. One JS-free, CDN-free template parameterized
+# by (label, heading, body, status, cta text, cta href) rather than three
+# near-identical copies.
+#
+# 501 (Not Implemented) is deliberately not handled anywhere: no route or
+# handler in any of the three apps returns 501, so it is not worth a
+# bespoke page for a code nobody will ever see.
+(error_page) {
+    header Content-Type "text/html; charset=utf-8"
+    respond <<HTML
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Service unavailable</title>
+<title>{args[1]}</title>
 <style>
   :root {
     color-scheme: light dark;
@@ -135,13 +151,69 @@
 </style>
 </head>
 <body>
-  <p class="code">Service unavailable</p>
-  <h1>The service isn&#39;t responding right now</h1>
-  <p class="body">This address is temporarily unreachable &mdash; usually a short restart or deploy. Reloading in a moment should work.</p>
-  <a href="">Try again</a>
+  <p class="code">{args[0]}</p>
+  <h1>{args[1]}</h1>
+  <p class="body">{args[2]}</p>
+  <a href="{args[5]}">{args[4]}</a>
 </body>
 </html>
-HTML {http.error.status_code}
+HTML {args[3]}
+}
+
+(error_pages) {
+    handle_errors 502 503 504 {
+        import error_page "Service unavailable" "The service isn't responding right now" "This address is temporarily unreachable — usually a short restart or deploy. Reloading in a moment should work." {http.error.status_code} "Try again" ""
+    }
+}
+
+# Imported inside each `reverse_proxy` block (not `error_pages` above, which
+# only fires for errors Caddy itself generates) to intercept 404/500 that
+# the *upstream app* returns — see the comment above `(error_page)` for why
+# these two codes specifically are edge-owned only for hard navigations.
+(edge_upstream_errors) {
+    # The matcher passed directly to `handle_response` only understands
+    # `status` and `header` (it runs in the proxy's response-matching
+    # context, not a normal request context) — `not`/`path` aren't valid
+    # there (confirmed: `caddy validate` rejects it with "unrecognized
+    # response matcher not"). So `status` alone selects the response class,
+    # and the API/asset/navigation distinction is a second, ordinary
+    # matcher evaluated *inside* the handle_response block, where normal
+    # request matching is back in effect.
+    # `handle_response` fully takes over the response once its outer status
+    # matcher fires — it does NOT fall back to the original upstream body on
+    # its own. Reproduced locally (isolated Caddy + a stub backend, no
+    # production traffic involved): without the trailing `handle { copy_response }`,
+    # an /api/* 404 came back as an EMPTY 200 instead of the app's own JSON
+    # 404 — worse than the pre-existing bug this change exists to fix, not
+    # better. `copy_response` is Caddy's documented way to say "write the
+    # original backend response" for the branch that isn't a real HTML
+    # navigation.
+    @edge_404 status 404
+    handle_response @edge_404 {
+        @html_nav {
+            header Accept *text/html*
+            not path /api/*
+        }
+        handle @html_nav {
+            import error_page "Not found" "This page doesn't exist" "The address you followed doesn't match anything here. Check the URL, or head back to the homepage." 404 "Back to homepage" "/"
+        }
+        handle {
+            copy_response
+        }
+    }
+
+    @edge_500 status 500
+    handle_response @edge_500 {
+        @html_nav {
+            header Accept *text/html*
+            not path /api/*
+        }
+        handle @html_nav {
+            import error_page "Internal error" "Something went wrong on our end" "The request failed unexpectedly. Reloading in a moment should work." 500 "Try again" ""
+        }
+        handle {
+            copy_response
+        }
     }
 }
 
@@ -177,7 +249,9 @@ woofi-developments.at, www.woofi-developments.at, status.woofi-developments.at {
 
     # The Express container is reached name-only over the compose network;
     # no port on this host maps to :8080.
-    reverse_proxy web:8080
+    reverse_proxy web:8080 {
+        import edge_upstream_errors
+    }
 }
 
 # preussen-web dashboard. Its container lives in the separate preussen
@@ -213,7 +287,9 @@ preussen.woofi-developments.at {
 
     import error_pages
 
-    reverse_proxy preussen-web:8080
+    reverse_proxy preussen-web:8080 {
+        import edge_upstream_errors
+    }
 }
 
 # netviz — migrated from Azure Container Apps (netviz-rg) to this VPS
@@ -263,5 +339,7 @@ netviz.woofi-developments.at {
 
     import error_pages
 
-    reverse_proxy netviz:8080
+    reverse_proxy netviz:8080 {
+        import edge_upstream_errors
+    }
 }

@@ -27,7 +27,7 @@ import { infoRouter } from './routes/info-route.js';
 import { monitorsRouter } from './routes/monitors-route.js';
 import { statusRouter } from './routes/status-route.js';
 import { secretRouter } from './routes/secret-route.js';
-import { errorHandler } from './middlewares/error-handlers.js';
+import { errorHandler, NotFound } from './middlewares/error-handlers.js';
 
 /* ***************** CONFIG and CONSTS ********************* */
 /* Take configuration from environment variables or use hardcoded default value */
@@ -63,7 +63,30 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(helmet());
+// Content-Security-Policy, Strict-Transport-Security, Referrer-Policy,
+// X-Frame-Options and X-Content-Type-Options are turned off here on purpose:
+// Caddy (the only reverse proxy in front of this app, application/Caddyfile)
+// already sets each of them per-hostname, tuned to what the SPA actually
+// needs. Measured with `curl -sI https://www.woofi-developments.at/`: every
+// one of those five headers came back TWICE -- Caddy's value and helmet's
+// default -- and a browser silently resolves two conflicting headers to
+// whichever is stricter, which is not the same thing as either header
+// alone and nobody notices until something is inexplicably blocked. One
+// owner (the edge, since it is the one place that also serves the 502/503/
+// 504/404/500 error pages and therefore must set these regardless of
+// whether the app is even running) beats two. Helmet still sets everything
+// it doesn't overlap with Caddy on (COOP, CORP, Origin-Agent-Cluster,
+// X-DNS-Prefetch-Control, X-Download-Options, X-Permitted-Cross-Domain-
+// Policies, X-XSS-Protection) as defense in depth.
+app.use(
+    helmet({
+        contentSecurityPolicy: false,
+        strictTransportSecurity: false,
+        referrerPolicy: false,
+        xFrameOptions: false,
+        xContentTypeOptions: false,
+    }),
+);
 app.use(
     express.json({
         type: ['application/json', 'application/merge-patch+json'],
@@ -86,6 +109,18 @@ app.use('/api/technologies/', technologiesRouter);
 app.use('/api/monitors/', monitorsRouter);
 app.use('/api/status/', statusRouter);
 app.use('/api/secret/', secretRouter);
+
+// Every /api/ router above only handles the sub-paths it defines; a request
+// under /api/ that none of them match used to fall through all the way to
+// Express's own built-in 404, which renders as `text/html` (confirmed:
+// `curl -s .../api/gibt-es-nicht` came back `content-type: text/html`) --
+// wrong for a JSON API and, since Caddy's edge error pages now intercept
+// HTML 404s for real navigations, it would otherwise make a plain API 404
+// double as an HTML page too. Scoped to `/api` only, ahead of the SPA
+// catch-all below, so it never touches an actual client route.
+app.use('/api', (req, _res, next) => {
+    next(new NotFound(`Cannot ${req.method} ${req.originalUrl}`));
+});
 
 // Mirrors the paths defined in client/src/routes.jsx. The catch-all below
 // always used to answer 200, even for a path no route matches -- client-side
