@@ -27,13 +27,13 @@
   "dependencies": {
     "@azure/arm-appcontainers": "^3.0.0",
     "@azure/functions": "^4.7.2",
-    "@azure/identity": "^4.13.1",
-    "mongoose": "^9.8.0"
+    "@azure/identity": "^4.13.2",
+    "mongoose": "^9.9.4"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "eslint": "^10.7.0",
-    "globals": "^17.6.0",
+    "eslint": "^10.9.1",
+    "globals": "^17.12.0",
     "prettier": "^3.9.6"
   }
 }
