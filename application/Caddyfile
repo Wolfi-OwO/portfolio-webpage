@@ -224,22 +224,17 @@ preussen.woofi-developments.at {
 # `netviz`, not `web`, precisely to avoid the alias collision documented on
 # the `dashboard` service in Preussenbot/docker-compose.prod.yml.
 #
-# `http://` PREFIX IS DELIBERATE AND TEMPORARY. DNS for this hostname still
-# points at the Azure Container App, not this VPS (unlike the three site
-# blocks above, whose zone cutover is recorded at the top of this file). A
-# bare hostname here would make Caddy's automatic HTTPS attempt an ACME
-# HTTP-01 challenge against a domain that resolves to Azure — a challenge
-# this VPS can never win before the DNS cutover, and Let's Encrypt fails a
-# hostname 5 times/hour before locking it out for a week, which would also
-# jeopardize nothing else (rate limits are per-hostname) but is still a
-# self-inflicted outage window worth just not causing. The explicit
-# `http://` scheme opts this one site out of automatic HTTPS regardless of
-# the global setting, exactly like every block in this file ran before the
-# other three were cut over (see the top-of-file comment). Once GoDaddy's A
-# record for netviz.woofi-developments.at points at 167.86.115.79, drop the
-# `http://` prefix (matching the three blocks above) and reload — that is
-# the one remaining step; do not add `auto_https off` or any other flag.
-http://netviz.woofi-developments.at {
+# DNS cutover confirmed 2026-09-05 (dig against the authoritative
+# nameserver, ns21.domaincontrol.com: netviz.woofi-developments.at now
+# resolves to 167.86.115.79, TTL 600). Bare hostname like the three blocks
+# above: automatic HTTPS provisions a Let's Encrypt cert here and adds the
+# HTTP->HTTPS redirect. This block ran with an explicit `http://` prefix and
+# no cert from migration until this cutover — the DNS record used to point
+# at the Azure Container App, and a bare hostname would have sent Caddy's
+# ACME HTTP-01 challenge at a domain this VPS couldn't yet answer for,
+# burning into Let's Encrypt's 5-failures-per-hostname-per-hour limit for
+# nothing. See git history on this block for that reasoning in full.
+netviz.woofi-developments.at {
     encode zstd gzip
 
     # Same strict baseline as the portfolio block: a Vite-built SPA with no
