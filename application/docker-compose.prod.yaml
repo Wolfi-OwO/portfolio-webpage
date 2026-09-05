@@ -30,6 +30,24 @@ version: '3.8'
 # `docker compose pull` time. ACR_* deliberately appear nowhere in the
 # services' `environment:` blocks for that reason.
 
+# ── Where the resource limits come from ─────────────────────────────────────
+# The VM is 4 vCPU / 8 GB shared with preussen (docker-compose.prod.yml in the
+# Preussenbot repo), the OS, the Docker daemon, page cache and restic. This
+# stack's share is 1.5 vCPU / 1664 MiB; preussen's is 1.0 / 1024 MiB.
+#
+# `web` and `jobs` are sized from MEASURED Azure Monitor peaks (see the comment
+# on each). `caddy` and `azurite` have never run outside a laptop, so their
+# numbers are BUDGET ALLOCATIONS, not measurements — labelled as such so nobody
+# reads them as evidence. After the cutover, replace them with a week of
+# `docker stats --no-stream --format '{{.Name}} {{.MemUsage}}'`.
+#
+# `memswap_limit` is set equal to `mem_limit` on every service on purpose.
+# Docker's default is to grant swap equal to mem_limit AGAIN, so a container
+# that leaks past its ceiling starts swapping instead of dying: one leaking
+# container then degrades every other container on the box through disk I/O.
+# Equal values mean zero swap — a runaway gets OOM-killed and restarted by
+# `restart: unless-stopped`, which is loud, local and recoverable.
+
 services:
   # ── Edge / TLS ──────────────────────────────────────────────────────────────
   # Caddy is the whole inbound surface of the VM. It obtains and renews the
@@ -40,10 +58,27 @@ services:
   caddy:
     image: caddy:alpine
     restart: unless-stopped
+    # BUDGET ALLOCATION, not a measurement — Caddy has never run on this VM.
+    # A reverse proxy with no application heap; the certificate store lives on
+    # disk, not in memory. If it ever approaches this, something is wrong.
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.25
+    # `0.0.0.0:` is not decoration and must not be dropped. The VPS runs
+    # /etc/docker/daemon.json with `"ip": "127.0.0.1"`, because a published
+    # port bypasses ufw entirely: a test container with `-p 0.0.0.0:9999:80`
+    # answered from off-box while ufw was default-deny and had never allowed
+    # 9999 (measured from outside, see docs/MIGRATION_CONTABO.md). That daemon
+    # setting makes loopback the DEFAULT bind address, so a bare '80:80' here
+    # binds 127.0.0.1 and the sites are dead from the internet while
+    # `docker ps` says Up, the containers are healthy and the logs are empty —
+    # and Caddy could not answer an ACME HTTP-01 challenge either.
+    # Caddy is the only service on this box that is meant to be public, which
+    # is why 0.0.0.0 appears here and on no other service in this file.
     ports:
-      - '80:80' # HTTP challenge + http→https redirect
-      - '443:443' # HTTPS
-      - '443:443/udp' # HTTP/3 (QUIC); without it browsers just use TCP
+      - '0.0.0.0:80:80' # HTTP challenge + http→https redirect
+      - '0.0.0.0:443:443' # HTTPS
+      - '0.0.0.0:443:443/udp' # HTTP/3 (QUIC); without it browsers just use TCP
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data # certs, private keys, OCSP staples — must survive restarts
@@ -52,6 +87,13 @@ services:
       - web
     networks:
       - portfolio-net
+      # Reaches preussen-web (a separate compose project, docker-compose.prod.yml
+      # in the Preussenbot repo) by name for the preussen.woofi-developments.at
+      # site block in Caddyfile. Only caddy joins this network here — web/jobs/
+      # azurite have no reason to be reachable from the preussen stack, and
+      # portfolio's own `web` service name would collide with preussen's if
+      # both were on the same network without the alias preussen sets.
+      - edge-net
 
   # ── The Express web server ──────────────────────────────────────────────────
   # Serves the SPA plus its /api. Not published on the host — Caddy reaches it
@@ -59,11 +101,43 @@ services:
   # boot; the defaults match docker-compose.yaml so behaviour stays identical
   # between local and VM deploys. Secrets come from .env, interpolated here.
   web:
-    image: ${ACR_SERVER:-portfolioacr.azurecr.io}/portfolio-web:${IMAGE_TAG:-latest}
+    # Was `portfolio-web` — that repository never existed in the real
+    # registry. `az acr repository list --name globalcr01` on 2026-09-04
+    # shows exactly one portfolio repo, `portfolio-webpage`, and the live
+    # `portfolio-app` Container App in Azure runs
+    # globalcr01.azurecr.io/portfolio-webpage:v6.3.4 — this is the actual
+    # production image, a single combined build (see the `jobs` note below
+    # for why there is no second one). First deploy attempt on the VPS
+    # failed here: `docker compose pull` couldn't find `portfolio-web`, fell
+    # through to the `build:` block below, and failed on a missing context
+    # (only the compose file was copied to the VPS, not the source tree) —
+    # confirmed in `journalctl -xeu portfolio.service`.
+    image: ${ACR_SERVER:-portfolioacr.azurecr.io}/portfolio-webpage:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: dockerfile
     restart: unless-stopped
+    # MEASURED: Azure Monitor WorkingSetBytes for the portfolio-app container
+    # app, 2026-08-28 → 2026-09-04 (172 hourly samples): peak 160,403,456 B
+    # (153 MiB), mean 146 MiB. UsageNanoCores peaked at 16.7M — 0.017 vCPU.
+    # 512m is ~3.3x the observed peak, which covers a V8 heap that grows under
+    # a traffic spike this window never saw. The CPU share is far above need;
+    # it is a ceiling against a runaway loop, not a reservation.
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 0.5
+    # /api/live, not /api/ready: the readiness probe fails while Mongoose is
+    # reconnecting, so an Atlas blip would mark the container unhealthy on a
+    # server that is answering fine. Liveness resolves unconditionally
+    # (server/src/utils/health-checks.js), so this fails only when the Node
+    # process itself is wedged — the one case a restart actually fixes.
+    # wget is busybox's, present in the node:alpine base; no curl there.
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q -O /dev/null http://127.0.0.1:8080/api/live || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
     environment:
       - MONGODB_CONNECTION_STRING=mongodb+srv://woofi:${MONGODB_PASSWORD}@portfolio.lorxr25.mongodb.net/portfolio
       - JWT_SECRET=${JWT_SECRET}
@@ -104,6 +178,12 @@ services:
     image: mcr.microsoft.com/azure-storage/azurite:latest
     restart: unless-stopped
     command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --location /data
+    # BUDGET ALLOCATION, not a measurement — the emulator has no Azure-side
+    # counterpart to measure. It holds only the timer singleton/queue
+    # bookkeeping for two triggers, so the working set is small and flat.
+    mem_limit: 256m
+    memswap_limit: 256m
+    cpus: 0.25
     volumes:
       - azurite_data:/data
     networks:
@@ -113,12 +193,39 @@ services:
   # Runs the same code as the Function App in Azure: one timer checks every
   # monitored page once a minute, the other syncs the GitHub/GitLab
   # contribution history. Both write to the same Atlas database the web reads.
+  #
+  # DISABLED via `profiles:` below — not deleted, not fixed, disabled.
+  # `portfolio-jobs` has never been pushed to any registry under any name:
+  # `az acr repository list --name globalcr01` (2026-09-04) lists no
+  # `portfolio-jobs` repo, and the Azure equivalent of this job
+  # (`woofi-monitor-checker`) is a native `functionapp,linux` resource
+  # running `linuxFxVersion: Node|22` — a zip/native deploy, not a
+  # container — so there never was an image to measure this against in the
+  # first place. `docker compose pull` for this service fails, and the
+  # `build:` fallback below then fails too (no VPS build allowed, and the
+  # compose file is deployed here without the surrounding source tree
+  # anyway). `profiles: [jobs]` keeps `docker compose up -d` (the systemd
+  # unit's exact command, no `--profile` flag) from touching this service
+  # at all, instead of failing the whole stack the way an unresolvable
+  # `image:` on an always-on service just did. Once a real `portfolio-jobs`
+  # image is pushed to `globalcr01.azurecr.io`, delete this `profiles:` key
+  # (or start it explicitly with `COMPOSE_PROFILES=jobs docker compose ...`).
   jobs:
+    profiles: ['jobs']
     image: ${ACR_SERVER:-portfolioacr.azurecr.io}/portfolio-jobs:${IMAGE_TAG:-latest}
     build:
       context: ./jobs
       dockerfile: dockerfile
     restart: unless-stopped
+    # MEASURED: Azure Monitor MemoryWorkingSet for the woofi-monitor-checker
+    # Function App, 2026-08-28 → 2026-09-04 (180 hourly samples): peak
+    # 558,379,008 B (533 MiB). This is the largest allocation in the stack
+    # because the Functions host itself is the bulk of it, not the job code —
+    # the same runtime ships in this container. 768m is 1.44x that peak;
+    # anything under ~600m would OOM-kill it on a bad minute.
+    mem_limit: 768m
+    memswap_limit: 768m
+    cpus: 0.5
     depends_on:
       - azurite
     environment:
@@ -157,6 +264,11 @@ networks:
   # to the outside.
   portfolio-net:
     driver: bridge
+  # Created once on the host with `docker network create edge-net` — not
+  # managed by either compose project, so bringing one stack down never
+  # deletes the network the other stack's Caddy still needs.
+  edge-net:
+    external: true
 
 volumes:
   caddy_data:
