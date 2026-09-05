@@ -226,6 +226,16 @@ async function checkContainerAppMonitor(monitor, client, context) {
 //     MonitorCheck row is written, so the status page's existing "no checks
 //     yet" state (`pending`, see status-checker.js) is what's shown — an
 //     honest "unmonitored", never a fabricated "up" or "down".
+//
+// LESSON: a monitor document must never be created ahead of the code
+// version that knows how to check it. A "Preussen Bot" document (no `url`,
+// no `containerApp`) was added to the database before this `skip` branch
+// existed on the deployed Function. The old code had no third case — it
+// fell through to `checkMonitor(monitor)` and called `fetch(undefined)`,
+// which "succeeded" as a rejection, got recorded as `ok: false`, and pulled
+// both that monitor's group and the status page's overall status down with
+// it. The document was removed as a stopgap; it is safe to re-add only
+// after this `skip` branch is the code actually running in the Function App.
 function resolveCheckMode(monitor) {
     if (
         monitor.containerApp?.name &&
