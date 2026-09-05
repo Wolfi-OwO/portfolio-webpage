@@ -392,6 +392,17 @@ export default function DefaultLayout() {
                             </NavLink>
                         </li>
                         <li>
+                            {/* Deliberately labelled "Impressum" in both locales — §5 ECG
+                                asks for the imprint to be recognisable as such, and that
+                                is the word an Austrian reader looks for. */}
+                            <NavLink
+                                to="/impressum"
+                                className="transition hover:text-[var(--text)]"
+                            >
+                                <FormattedMessage id="footer.imprint" defaultMessage="Impressum" />
+                            </NavLink>
+                        </li>
+                        <li>
                             <NavLink to="/contact" className="transition hover:text-[var(--text)]">
                                 <FormattedMessage id="footer.contact" defaultMessage="Contact" />
                             </NavLink>

@@ -1,5 +1,6 @@
 import { FormattedDate, FormattedMessage } from 'react-intl';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
+import ImprintText from '../../components/imprint-text.jsx';
 
 const LAST_UPDATED = new Date('2026-07-11');
 
@@ -103,7 +104,7 @@ export default function PrivacyPolicyPage() {
                 <Section id="privacy.fonts" defaultTitle="Fonts">
                     <FormattedMessage
                         id="privacy.fonts.text"
-                        defaultMessage="The typefaces used here (Manrope and JetBrains Mono) are loaded from Google Fonts. That means your browser requests the font files from a Google server, and Google therefore receives your IP address for the duration of that request. The legal basis is again my legitimate interest in a consistent presentation (Art. 6(1)(f) GDPR). No cookie is set by that request."
+                        defaultMessage="The typefaces used here (Manrope and JetBrains Mono) are served from my own server. Your browser makes no request to Google Fonts or any other outside host for them, so no IP address is passed to a third party in order to render this page."
                     />
                 </Section>
 
@@ -189,13 +190,10 @@ export default function PrivacyPolicyPage() {
                     />
                 </Section>
 
+                {/* Also reachable on its own at /impressum — same message ids,
+                    rendered through the same component, so they cannot drift. */}
                 <Section id="privacy.imprint" defaultTitle="Imprint">
-                    <FormattedMessage
-                        id="privacy.imprint.text"
-                        defaultMessage={
-                            'Information pursuant to §5 ECG and §25 MedienG:\n\nPhillip Kofler\nSoftware Engineer | Fullstack Developer\nVillach, Carinthia, Austria\n\nBusiness activity: software development, web development and digital solutions — modern web applications, REST APIs, dashboards and cloud-based systems.\n\nResponsible for the content of this site: Phillip Kofler. The contents are written with care, but I give no guarantee of accuracy, completeness or currentness. Where this site links to external pages, I have no influence over their content and take no responsibility for it. All content here is protected by copyright; use beyond the statutory limits needs my permission first.'
-                        }
-                    />
+                    <ImprintText />
                 </Section>
             </div>
         </div>

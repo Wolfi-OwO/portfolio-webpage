@@ -18,6 +18,7 @@ export default {
 
     'footer.status': 'Status',
     'footer.privacyPolicy': 'Datenschutz',
+    'footer.imprint': 'Impressum',
     'footer.contact': 'Kontakt',
     'footer.rightsReserved': 'Alle Rechte vorbehalten.',
 
@@ -123,7 +124,7 @@ export default {
 
     'privacy.fonts.title': 'Schriftarten',
     'privacy.fonts.text':
-        'Die verwendeten Schriften (Manrope und JetBrains Mono) werden von Google Fonts geladen. Dein Browser fordert die Schriftdateien also von einem Google-Server an, und Google erhält dadurch für die Dauer dieser Anfrage deine IP-Adresse. Rechtsgrundlage ist wiederum mein berechtigtes Interesse an einer einheitlichen Darstellung (Art. 6 Abs. 1 lit. f DSGVO). Ein Cookie wird dabei nicht gesetzt.',
+        'Die verwendeten Schriften (Manrope und JetBrains Mono) liegen auf meinem eigenen Server und werden von dort ausgeliefert. Dein Browser baut dafür keine Verbindung zu Google Fonts oder einem anderen fremden Server auf, und es wird dabei auch keine IP-Adresse an Dritte übermittelt.',
 
     'privacy.storage.title': 'Was in deinem Browser gespeichert wird',
     'privacy.storage.text':
@@ -156,6 +157,9 @@ export default {
     'privacy.changes.title': 'Änderungen dieser Erklärung',
     'privacy.changes.text':
         'Wenn ich ändere, was diese Seite tut, ändere ich auch diese Erklärung. Das Datum oben sagt dir, welche Fassung du gerade liest.',
+
+    'imprint.contact': 'Kontakt: ',
+    'imprint.privacyLink': 'Zur Datenschutzerklärung',
 
     'privacy.imprint.title': 'Impressum',
     'privacy.imprint.text':
