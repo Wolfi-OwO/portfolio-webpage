@@ -34,16 +34,16 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@azure/identity": "^4.13.1",
+    "@azure/identity": "^4.13.2",
     "@azure/storage-blob": "^12.33.0",
     "@godaddy/terminus": "^4.12.1",
     "bcryptjs": "^3.0.3",
     "cross-env": "^10.1.0",
     "express": "^5.2.1",
-    "express-rate-limit": "^8.6.0",
+    "express-rate-limit": "^8.7.0",
     "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.8.0",
+    "mongoose": "^9.9.4",
     "supertest": "^7.2.2",
     "winston": "^3.19.0"
   },
@@ -52,7 +52,7 @@
     "assert": "^2.1.0",
     "c8": "^11.0.0",
     "eslint": "^9.39.4",
-    "mocha": "^11.7.5",
+    "mocha": "^11.8.0",
     "nodemon": "^3.1.14",
     "prettier": "^3.9.6"
   }
