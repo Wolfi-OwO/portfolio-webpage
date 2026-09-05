@@ -248,8 +248,13 @@ woofi-developments.at, www.woofi-developments.at, status.woofi-developments.at {
     import error_pages
 
     # The Express container is reached name-only over the compose network;
-    # no port on this host maps to :8080.
-    reverse_proxy web:8080 {
+    # no port on this host maps to :8080. `web-blue`/`web-green` are the two
+    # blue-green slots defined in docker-compose.prod.yaml's `x-web` anchor —
+    # deploy.sh on the VPS rewrites this exact line (via a truncating `>`
+    # write, never `sed -i` — see /opt/caddy-reload.sh for why) to flip
+    # which slot gets traffic, then pushes the change through Caddy's admin
+    # API without a restart.
+    reverse_proxy web-blue:8080 {
         import edge_upstream_errors
     }
 }
