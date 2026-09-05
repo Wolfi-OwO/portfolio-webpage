@@ -292,7 +292,14 @@ preussen.woofi-developments.at {
 
     import error_pages
 
-    reverse_proxy preussen-web:8080 {
+    # `preussen-web-blue`/`preussen-web-green` are the two blue-green edge-net
+    # aliases Preussenbot/docker-compose.prod.yml's `dashboard-blue`/
+    # `dashboard-green` register (see that file's `x-dashboard` comment) —
+    # deploy.sh on the VPS rewrites this exact line (via a truncating `>`
+    # write, never `sed -i` — see /opt/caddy-reload.sh for why) to flip
+    # which slot gets traffic, then pushes the change through Caddy's admin
+    # API without a restart.
+    reverse_proxy preussen-web-blue:8080 {
         import edge_upstream_errors
     }
 }
