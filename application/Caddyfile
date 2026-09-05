@@ -1,8 +1,10 @@
-# Production Caddy config for the 0€ Oracle VM. Caddy reads this from the
-# read-only mount ./Caddyfile:/etc/caddy/Caddyfile and automatically obtains
-# and renews the TLS certificate for the configured domain (Let's Encrypt by
-# default, switchable to ZeroSSL below). Certificates and account keys persist
-# in the caddy_data volume defined in docker-compose.prod.yaml.
+# Production Caddy config for the Contabo VPS (167.86.115.79). Caddy reads
+# this from the read-only mount ./Caddyfile:/etc/caddy/Caddyfile. It is also
+# the single reverse proxy on the box for the preussen-web dashboard (see the
+# preussen.woofi-developments.at block below) — Caddy is the only container
+# allowed to publish 0.0.0.0 ports (docs/MIGRATION_CONTABO.md), so it is the
+# one owner of port 443 for both stacks. Certificates and account keys
+# persist in the caddy_data volume defined in docker-compose.prod.yaml.
 
 {
     # Log one line per request to stdout, timestamped JSON. INFO level drops
@@ -12,6 +14,19 @@
         format json
         level INFO
     }
+    # DNS cutover verified 2026-09-04 (dig against the authoritative
+    # nameserver, ns22.domaincontrol.com: all four hostnames below resolve
+    # to this VPS, no CAA record restricting the issuing CA). Automatic
+    # HTTPS is back on: every site block below uses a bare hostname, so
+    # Caddy provisions a Let's Encrypt cert per hostname on first request
+    # and adds the HTTP->HTTPS redirect itself. Before this date the zone
+    # still pointed at Azure and this file ran with `auto_https off` plus an
+    # explicit `http://` prefix on every site address, because a bare
+    # hostname defaults to a :443 listener regardless of the global
+    # auto_https setting — an ACME attempt against the wrong box would have
+    # eaten into Let's Encrypt's five-failures-per-hostname-per-hour limit
+    # and locked the real cutover out for a week.
+    #
     # To use ZeroSSL instead of Let's Encrypt (enterprise-grade certs with a
     # web dashboard), create an account on https://zerossl.com and add the
     # account ID + API key to .env, then uncomment this line. Do NOT run
@@ -20,11 +35,121 @@
     # acme_ca https://acme.zerossl.com/v2/DV90
 }
 
-# The real site. Caddy provisions a certificate on first request, so the
-# first curl after boot may take a few seconds; every request after that is
-# instant. Plain-HTTP requests for this hostname are redirected to HTTPS
-# automatically — the fallback `:80` block below only answers OTHER hosts.
-{$DOMAIN:phillip-kofler.at} {
+# One static fallback page for real outages (502/503/504 — the upstream
+# container is unreachable, restarting, or too slow to answer), imported by
+# both site blocks below. Only Caddy can speak here at all: the defining
+# property of this error class is that neither app is running to render its
+# own page (contrast with 404/500, which each app's own error-page.jsx /
+# error.tsx handles — see those files). One shared file rather than one per
+# app, deliberately:
+#   - it must survive the app being completely dead, so there is exactly one
+#     asset that has to stay JS-free and CDN-free instead of two;
+#   - "the upstream isn't answering" is a property of this domain's edge,
+#     not of either app's own design, so a visitor doesn't need brand
+#     matching mid-outage — one honest sentence and a retry link cover both;
+#   - colors and tone are the portfolio app's own light/dark tokens
+#     (client/src/index.css) — that palette is this domain's original one,
+#     and its `--down` token is literally reserved there for a real
+#     down/error state, which this page is the purest example of.
+# 501 (Not Implemented) is deliberately not in the status list: neither app
+# can realistically produce it (see error-page.jsx and not-found.tsx/
+# error.tsx — no route or handler in either returns 501), so it is not worth
+# a bespoke page for a code nobody will ever see.
+(error_pages) {
+    handle_errors 502 503 504 {
+        header Content-Type "text/html; charset=utf-8"
+        respond <<HTML
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Service unavailable</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #eef2f9;
+    --text: #0c1526;
+    --muted: #5a6a86;
+    --down: #b3261e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #070b18;
+      --text: #e6ecf6;
+      --muted: #8ea0bd;
+      --down: #e5675b;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    display: flex;
+    min-height: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    text-align: center;
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  p.code {
+    margin: 0;
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace;
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--down);
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  p.body {
+    max-width: 32rem;
+    margin: 0;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+  a {
+    margin-top: 0.5rem;
+    display: inline-block;
+    border-radius: 0.375rem;
+    padding: 0.6rem 1.1rem;
+    background: var(--text);
+    color: var(--bg);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  a:hover { opacity: 0.9; }
+  a:focus-visible {
+    outline: 2px solid var(--down);
+    outline-offset: 2px;
+  }
+</style>
+</head>
+<body>
+  <p class="code">Service unavailable</p>
+  <h1>The service isn&#39;t responding right now</h1>
+  <p class="body">This address is temporarily unreachable &mdash; usually a short restart or deploy. Reloading in a moment should work.</p>
+  <a href="">Try again</a>
+</body>
+</html>
+HTML {http.error.status_code}
+    }
+}
+
+# The portfolio site plus its two aliases (www, status — all three pointed at
+# the same Azure Container App per docs/MIGRATION_CONTABO.md, so they get the
+# same Caddy treatment). Bare hostnames: automatic HTTPS provisions a cert
+# per name and redirects HTTP to HTTPS.
+woofi-developments.at, www.woofi-developments.at, status.woofi-developments.at {
     # zstd first: browsers that understand it (all current ones) save ~15%
     # over gzip; gzip stays for the rest. Static assets and JSON both benefit.
     encode zstd gzip
@@ -48,14 +173,100 @@
         Permissions-Policy "camera=(), microphone=(), geolocation=()"
     }
 
+    import error_pages
+
     # The Express container is reached name-only over the compose network;
     # no port on this host maps to :8080.
     reverse_proxy web:8080
 }
 
-# Fallback for any Host header that is not the domain — e.g. the VM's bare
-# public IP. Never serve content here; bounce to HTTPS so the browser ends up
-# on the real domain (and its certificate).
-:80 {
-    redir https://{$host}{uri} permanent
+# preussen-web dashboard. Its container lives in the separate preussen
+# compose stack (Preussenbot/docker-compose.prod.yml) — reachable here as
+# `preussen-web` because both stacks join the external `edge-net` network
+# (see the `networks` block at the bottom of this file and of that compose
+# file). preussen-bot gets no site block at all: it is a pure Discord
+# gateway worker with no HTTP surface (Azure's container app for it has
+# fqdn: null), so there is nothing here to route to it.
+preussen.woofi-developments.at {
+    encode zstd gzip
+
+    # A separate header block on purpose, not a copy of the portfolio one
+    # above: that CSP is `script-src 'self'` with no 'unsafe-inline', which
+    # would break preussen-web. It is a Next.js App Router app, which streams
+    # RSC hydration data via an inline `<script>self.__next_f.push(...)</script>`
+    # tag on every page load (confirmed: no next.config.ts header/nonce setup
+    # and no middleware.ts in applications/web, so there is no nonce to
+    # tighten this with) — script-src needs 'unsafe-inline' or the app never
+    # hydrates. img-src additionally needs cdn.discordapp.com: guild icons
+    # are rendered from `https://cdn.discordapp.com/icons/...`
+    # (src/components/guilds/guild-picker.tsx) via a plain <img>, not
+    # next/image, so there is no build-time domain allowlist to lean on
+    # instead.
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://cdn.discordapp.com; font-src 'self'; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    }
+
+    import error_pages
+
+    reverse_proxy preussen-web:8080
+}
+
+# netviz — migrated from Azure Container Apps (netviz-rg) to this VPS
+# (see docs/MIGRATION_CONTABO.md). Its container lives in the separate
+# netviz compose stack (network-visualizer/application/docker-compose.prod.yml)
+# — reachable here as `netviz` because both stacks join the external
+# `edge-net` network, same pattern as preussen-web above. Service name is
+# `netviz`, not `web`, precisely to avoid the alias collision documented on
+# the `dashboard` service in Preussenbot/docker-compose.prod.yml.
+#
+# `http://` PREFIX IS DELIBERATE AND TEMPORARY. DNS for this hostname still
+# points at the Azure Container App, not this VPS (unlike the three site
+# blocks above, whose zone cutover is recorded at the top of this file). A
+# bare hostname here would make Caddy's automatic HTTPS attempt an ACME
+# HTTP-01 challenge against a domain that resolves to Azure — a challenge
+# this VPS can never win before the DNS cutover, and Let's Encrypt fails a
+# hostname 5 times/hour before locking it out for a week, which would also
+# jeopardize nothing else (rate limits are per-hostname) but is still a
+# self-inflicted outage window worth just not causing. The explicit
+# `http://` scheme opts this one site out of automatic HTTPS regardless of
+# the global setting, exactly like every block in this file ran before the
+# other three were cut over (see the top-of-file comment). Once GoDaddy's A
+# record for netviz.woofi-developments.at points at 167.86.115.79, drop the
+# `http://` prefix (matching the three blocks above) and reload — that is
+# the one remaining step; do not add `auto_https off` or any other flag.
+http://netviz.woofi-developments.at {
+    encode zstd gzip
+
+    # Same strict baseline as the portfolio block: a Vite-built SPA with no
+    # inline <script>, so script-src stays 'self' with no 'unsafe-inline'.
+    # style-src needs 'unsafe-inline' for two real reasons, not a copy-paste
+    # default: the topology canvas renders node/edge positions via inline
+    # `style={{...}}` (dynamic layout, not stylable via a static class), and
+    # the built index.html itself links a Google Fonts stylesheet
+    # (`fonts.googleapis.com/css2?family=JetBrains+Mono...`, confirmed by
+    # curling the running container) which a bare 'self' would block outright.
+    # font-src allows fonts.gstatic.com, where that stylesheet's actual font
+    # files are hosted. img-src stays as permissive as the portfolio block
+    # (data: https:) because the app's Google/Microsoft OAuth login can
+    # render an avatar from the provider's own CDN (lh3.googleusercontent.com,
+    # graph.microsoft.com) — same reasoning as portfolio's own choice here,
+    # tighten to an explicit allow-list once the exact avatar host is confirmed
+    # from a real logged-in session.
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    }
+
+    import error_pages
+
+    reverse_proxy netviz:8080
 }
