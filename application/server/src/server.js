@@ -87,11 +87,33 @@ app.use('/api/monitors/', monitorsRouter);
 app.use('/api/status/', statusRouter);
 app.use('/api/secret/', secretRouter);
 
+// Mirrors the paths defined in client/src/routes.jsx. The catch-all below
+// always used to answer 200, even for a path no route matches -- client-side
+// routing still rendered the right ErrorPage (React Router does its own
+// matching independent of the HTTP status), but curl/crawlers/monitoring
+// saw "this page exists" for something that provably doesn't. Keep in sync
+// if a route is added or removed there.
+const KNOWN_CLIENT_ROUTES = new Set([
+    '/',
+    '/projects',
+    '/services',
+    '/contact',
+    '/privacy-policy',
+    '/impressum',
+    '/admin/login',
+    '/secret',
+]);
+
 // SPA fallback (support direct navigation to client routes like /projects).
-// The `status.` subdomain gets its own standalone bundle instead of the main app's.
+// The `status.` subdomain gets its own standalone bundle instead of the main
+// app's, and has no client router at all (status-main.jsx renders a single
+// page unconditionally) -- it never had per-path 404 handling, and adding
+// one is out of scope here, so its 200-for-everything behaviour is unchanged.
 app.get(/^(?!\/api).*/, (req, res) => {
-    const entry = /^status\./i.test(req.hostname) ? 'status.html' : 'index.html';
-    res.sendFile(path.join(CLIENT_DIST, entry));
+    const isStatusHost = /^status\./i.test(req.hostname);
+    const entry = isStatusHost ? 'status.html' : 'index.html';
+    const knownPath = isStatusHost || KNOWN_CLIENT_ROUTES.has(req.path);
+    res.status(knownPath ? 200 : 404).sendFile(path.join(CLIENT_DIST, entry));
 });
 
 // setup error handling middleware
