@@ -121,6 +121,68 @@ describe('GET /api/status', function () {
         assert.equal(snoozing.uptime.h24, 100);
     });
 
+    it('rolls the overall status up to operational when idle mixes with operational monitors', async function () {
+        // Mirrors the real fleet: ml-visualizer is a deliberate, permanent
+        // scale-to-zero app and is idle almost all the time. Before the
+        // idle-as-healthy rollup change, one idle monitor pinned `overall` to
+        // `idle` forever even with every other monitor operational — see
+        // STATUS_ORDER's comment in status-checker.js.
+        const solid = await MonitorModel.create({ name: 'Solid', url: 'https://solid.test' });
+        await seedChecks(solid._id, { days: 1, failEvery: 0 });
+
+        const snoozing = await MonitorModel.create({
+            name: 'Snoozing',
+            url: 'https://snooze.test',
+            containerApp: { resourceGroup: 'rg', name: 'snooze', scaleToZero: true },
+        });
+        await MonitorCheckModel.create({
+            monitor: snoozing._id,
+            at: Date.now(),
+            ok: true,
+            latencyMs: 20,
+            runningStatus: 'ScaledToZero',
+        });
+
+        const res = await request(httpServer).get('/api/status').expect(200);
+
+        assert.equal(res.body.status, 'operational');
+        // The per-monitor distinction must still be visible, only the summary
+        // treats idle as healthy.
+        const snoozingEntry = res.body.ungrouped.find((m) => m.name === 'Snoozing');
+        assert.equal(snoozingEntry.status, 'idle');
+    });
+
+    it('keeps the overall status down when one monitor is down, even alongside idle/operational ones', async function () {
+        const solid = await MonitorModel.create({ name: 'Solid2', url: 'https://solid2.test' });
+        await seedChecks(solid._id, { days: 1, failEvery: 0 });
+
+        const snoozing = await MonitorModel.create({
+            name: 'Snoozing2',
+            url: 'https://snooze2.test',
+            containerApp: { resourceGroup: 'rg', name: 'snooze2', scaleToZero: true },
+        });
+        await MonitorCheckModel.create({
+            monitor: snoozing._id,
+            at: Date.now(),
+            ok: true,
+            latencyMs: 20,
+            runningStatus: 'ScaledToZero',
+        });
+
+        const broken = await MonitorModel.create({ name: 'Broken', url: 'https://broken.test' });
+        await MonitorCheckModel.create({
+            monitor: broken._id,
+            at: Date.now(),
+            ok: false,
+            latencyMs: 20,
+            error: 'connection refused',
+        });
+
+        const res = await request(httpServer).get('/api/status').expect(200);
+
+        assert.equal(res.body.status, 'down');
+    });
+
     it("reports 'degraded' when the latest check passes but >10% of the last 24h failed", async function () {
         const monitor = await MonitorModel.create({ name: 'Wobbly', url: 'https://wobbly.test' });
         // Latest sample healthy (failStart: 1), then one in every nine fails (~11%).

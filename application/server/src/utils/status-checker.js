@@ -17,11 +17,28 @@ const DAY = 24 * 60 * 60 * 1000;
 const HISTORY_DAYS = 90;
 const round1 = (n) => Math.round(n * 10) / 10;
 
-// Worst-of ordering for rolled-up statuses (groups and the overall report).
-// `idle` sits above `pending`: a scaled-to-zero app is verified-healthy, just
-// at rest; a never-checked monitor is simply unknown.
-const STATUS_ORDER = ['down', 'degraded', 'pending', 'idle', 'operational'];
-const worstStatus = (statuses) => STATUS_ORDER.find((s) => statuses.includes(s)) ?? 'operational';
+// Worst-of ordering for rolled-up statuses (groups AND the overall report —
+// both call this one function, so the rule lives in exactly one place).
+//
+// `idle` is deliberately NOT a rung on this ladder. A scaled-to-zero app is
+// verified-healthy (buildMonitorStatus only assigns `idle` when the latest
+// check's `ok` is true — a stopped/errored/unreachable app is `down` before
+// `idle` is ever considered), so for a rollup it counts exactly as
+// `operational` does. Before this, `idle` outranked `operational` in the
+// order below, so ml-visualizer's permanent scale-to-zero idle state pinned
+// the whole page's banner to "idle" forever, even with every other monitor
+// green — a banner that never turns green gets ignored, and a real outage
+// stops standing out. `idle` still prints per-monitor (buildMonitorStatus
+// sets it directly, not via this function), so the distinction isn't lost —
+// only the top-level summary treats it as healthy.
+//
+// `pending` (never checked) stays a real rung, above `operational`: unknown
+// is not the same as healthy, and must not be folded in with `idle`.
+const STATUS_ORDER = ['down', 'degraded', 'pending', 'operational'];
+const worstStatus = (statuses) => {
+    const rollup = statuses.map((s) => (s === 'idle' ? 'operational' : s));
+    return STATUS_ORDER.find((s) => rollup.includes(s)) ?? 'operational';
+};
 
 // Discord-style: one bar per calendar day, colored by how much of that day
 // was down — not one bar per raw check (which, at a short check interval,
@@ -219,4 +236,8 @@ async function getStatusReport() {
     };
 }
 
-export { getStatusReport };
+// worstStatus exported for the framework-free unit check in
+// tests/status/worst-status.check.mjs (see that file for why: it's a pure
+// function and doesn't need the Mongo-backed mocha harness the rest of the
+// status suite runs under).
+export { getStatusReport, worstStatus };
