@@ -246,51 +246,56 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  deploy-to-oracle-vm:
-    name: Deploy to Oracle Cloud VM
+  deploy-to-vps:
+    name: Deploy to the Contabo VPS
     runs-on: ubuntu-latest
     needs: [resolve-metadata, push-image, push-jobs-image]
     environment: production
     steps:
+      # The stack moved off the Oracle Cloud VM to the shared Contabo VPS
+      # (docs/MIGRATION_CONTABO.md) on 2026-09-05, but this job kept
+      # deploying to ORACLE_VM_* secrets that no longer exist in this repo —
+      # every release since would have failed here even though push-image
+      # succeeded. Same forced-command pattern as netviz's and preussen's
+      # deploy.sh (see those repos' deploy.yml): the CI key can only ever
+      # run /opt/portfolio/deploy.sh, never an arbitrary command, even
+      # though the `deploy` account itself has passwordless sudo.
+      #
       # Host-key pinning, not TOFU: an `ssh-keyscan` at deploy time or
       # StrictHostKeyChecking=no would accept whatever key answers on the
-      # wire, which is exactly the MITM a public runner is exposed to. The
-      # known_hosts secret is captured once, out of band (§14 of the
-      # deployment doc), from the VM's own host key fingerprint.
+      # wire, which is exactly the MITM a public runner is exposed to.
+      # DEPLOY_KNOWN_HOSTS was captured once, by hand, from a session
+      # already authenticated to the VPS.
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          printf '%s\n' "${{ secrets.ORACLE_VM_SSH_KEY }}" > ~/.ssh/deploy_key
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          printf '%s\n' "${{ secrets.ORACLE_VM_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          printf '%s\n' "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
-      # The automated form of docs/DEPLOYMENT_ORACLE_0EUR.md §9.2, pinned to
-      # the tag this run just pushed rather than whatever IMAGE_TAG happens
-      # to be sitting in the VM's .env. Credentials are handed to the remote
-      # shell through env vars in the ssh command prefix, never interpolated
-      # into the script body, so nothing secret is echoed if a step ever logs
-      # its command line.
-      #
-      # ponytail: secret values are placed inside single-quoted shell words on
-      # the runner's own command line below (ACR SP passwords are Azure-issued
-      # GUID-like tokens with no embedded quotes). If that ever changes,
-      # switch to `printf '%q'` escaping before widening this assumption.
-      - name: Pull images and recreate the stack
+      # The image tag is passed as the "ssh command" and read back inside
+      # deploy.sh via $SSH_ORIGINAL_COMMAND — sshd's own mechanism for
+      # forced-command scripts to still take an argument. No registry
+      # credentials are needed here: `docker login` on the VPS already has
+      # a cached credential for globalcr01.azurecr.io from the first manual
+      # deploy, so deploy.sh only pulls and restarts `web` (the only
+      # service this release's image actually changes — `jobs` stays
+      # disabled behind `profiles: [jobs]`, see docker-compose.prod.yaml).
+      - name: Pull image and restart web on the VPS
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes \
-            "${{ secrets.ORACLE_VM_USER }}@${{ secrets.ORACLE_VM_HOST }}" \
-            "IMAGE_TAG='${{ needs.resolve-metadata.outputs.tag }}' ACR_SERVER='${{ vars.ACR_NAME }}.azurecr.io' ACR_USER='${{ secrets.ACR_PULL_USERNAME }}' ACR_PASS='${{ secrets.ACR_PULL_PASSWORD }}' bash -s" <<'SCRIPT'
-            set -euo pipefail
-            cd /opt/portfolio-webpage/application
-            docker login "$ACR_SERVER" -u "$ACR_USER" -p "$ACR_PASS"
-            docker compose -f docker-compose.prod.yaml pull
-            docker compose -f docker-compose.prod.yaml up -d --remove-orphans
-          SCRIPT
+          ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts -o StrictHostKeyChecking=yes \
+            "${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }}" "${{ needs.resolve-metadata.outputs.tag }}"
 
-      - name: Show running services
+      - name: Summary
+        if: success()
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes \
-            "${{ secrets.ORACLE_VM_USER }}@${{ secrets.ORACLE_VM_HOST }}" \
-            'cd /opt/portfolio-webpage/application && docker compose -f docker-compose.prod.yaml ps'
+          {
+            echo "### Deployed to production"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Tag | \`${{ needs.resolve-metadata.outputs.tag }}\` |"
+            echo "| Host | \`${{ vars.DEPLOY_HOST }}\` (compose service: web) |"
+          } >> "$GITHUB_STEP_SUMMARY"
