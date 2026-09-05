@@ -61,6 +61,27 @@ function getArmClient() {
     return armClient;
 }
 
+// Resource groups whose Container Apps are still checked via Azure's control
+// plane, i.e. still scale-to-zero apps living in Azure. This is the ONE place
+// that decides ARM-vs-HTTP (see resolveCheckMode below) — not a per-app
+// special case, so a monitor migrated off Azure only needs its containerApp
+// field cleared (or left stale; resolveCheckMode ignores a resourceGroup
+// that's fallen out of this list either way). Portfolio, status and
+// preussen-web left this list when they moved to the VPS on 2026-09-05.
+//
+// LATER: once netviz, dsai-containerapp and nutrilens also move off Azure,
+// this becomes empty, resolveCheckMode() never returns 'arm', and the whole
+// ARM branch can be deleted outright: this Set, getArmClient,
+// latestProductionRevision, revisionIsUp, checkContainerAppMonitor, the
+// PR_REVISION_RE/UP_RUNNING_STATES constants, and the @azure/arm-appcontainers
+// + @azure/identity imports. Every monitor by then is checked by pingUrl().
+const ARM_CHECKED_RESOURCE_GROUPS = new Set(
+    (process.env.CONTAINER_APP_RESOURCE_GROUPS || '')
+        .split(',')
+        .map((rg) => rg.trim())
+        .filter(Boolean),
+);
+
 // ── HTTP checks ───────────────────────────────────────────────────────────────
 async function pingUrl(url) {
     const start = Date.now();
@@ -192,23 +213,49 @@ async function checkContainerAppMonitor(monitor, client, context) {
     }
 }
 
+// The one place "ARM or HTTP" is decided per monitor — a property read off
+// the monitor document plus the ARM_CHECKED_RESOURCE_GROUPS allowlist, not a
+// judgment call scattered across callers:
+//   - containerApp set AND its resourceGroup is still ARM-managed → 'arm'.
+//   - otherwise, a plain url                                     → 'http'.
+//   - neither (e.g. preussen-bot: a Discord worker on the VPS with no
+//     ingress, and no Azure control-plane surface left to read since it
+//     moved) → 'skip'. There is no honest signal of its liveness available
+//     to this Function — it can't reach the VPS, and probing "some URL"
+//     would mean inventing an endpoint that doesn't exist. Skipping means no
+//     MonitorCheck row is written, so the status page's existing "no checks
+//     yet" state (`pending`, see status-checker.js) is what's shown — an
+//     honest "unmonitored", never a fabricated "up" or "down".
+function resolveCheckMode(monitor) {
+    if (
+        monitor.containerApp?.name &&
+        ARM_CHECKED_RESOURCE_GROUPS.has(monitor.containerApp.resourceGroup)
+    ) {
+        return 'arm';
+    }
+    if (monitor.url) return 'http';
+    return 'skip';
+}
+
 async function runCheckCycle(context) {
     const client = getArmClient();
 
-    // Container-app monitors are checked via ARM (credentials), plain-URL
-    // monitors via HTTP — one check per seeded monitor, no discovery.
     const monitors = await MonitorModel.find();
+    let skipped = 0;
     const results = await Promise.allSettled(
-        monitors.map((monitor) =>
-            monitor.containerApp?.name
-                ? checkContainerAppMonitor(monitor, client, context)
-                : checkMonitor(monitor),
-        ),
+        monitors.flatMap((monitor) => {
+            const mode = resolveCheckMode(monitor);
+            if (mode === 'arm') return [checkContainerAppMonitor(monitor, client, context)];
+            if (mode === 'http') return [checkMonitor(monitor)];
+            skipped += 1;
+            return [];
+        }),
     );
 
     const failed = results.filter((r) => r.status === 'rejected').length;
     context.log(
-        `monitor-checker: checked ${monitors.length} monitor(s)` +
+        `monitor-checker: checked ${results.length} monitor(s)` +
+            (skipped ? `, ${skipped} skipped (no url/ARM-managed containerApp)` : '') +
             (failed ? `, ${failed} check(s) threw` : ''),
     );
 }
@@ -224,4 +271,4 @@ app.timer('checkMonitors', {
 });
 
 // Exposed for tests.
-export { ensureConnected, runCheckCycle, MonitorModel, MonitorCheckModel };
+export { ensureConnected, runCheckCycle, resolveCheckMode, MonitorModel, MonitorCheckModel };
