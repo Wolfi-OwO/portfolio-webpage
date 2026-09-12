@@ -349,7 +349,7 @@ export default function DefaultLayout() {
                 never cover content the way `position: fixed` would. */}
             <footer className="relative z-20 shrink-0 border-t border-[var(--line)] bg-[var(--glass)] px-4 backdrop-blur-xl sm:px-6">
                 <div className="max-w-8xl mx-auto flex h-14 items-center justify-between gap-4 text-xs">
-                    <span className="flex shrink-0 flex-col leading-tight text-[var(--muted)]">
+                    <span className="flex shrink-0 flex-col text-2xs leading-tight text-[var(--muted)]">
                         <span>
                             <span className="font-mono">© 2026</span>{' '}
                             <span className="hidden sm:inline">Woofi-Developments</span>
