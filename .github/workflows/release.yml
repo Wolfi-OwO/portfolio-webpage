@@ -235,7 +235,14 @@ jobs:
           context: application/jobs
           file: application/jobs/dockerfile
           push: true
-          platforms: linux/amd64,linux/arm64
+          # amd64 only: mcr.microsoft.com/azure-functions/node:4-node22 (the
+          # base image, mirroring the Consumption plan this Function App runs
+          # on) never published a linux/arm64 manifest, so requesting arm64
+          # here failed every build since 2026-09-05 with "no match for
+          # platform in manifest: not found". Both real deploy targets are
+          # amd64 anyway — Azure's Consumption plan and the Contabo VPS
+          # (confirmed x86_64) — so amd64-only loses nothing.
+          platforms: linux/amd64
           # Same reasoning as push-image: a plain manifest list, no attestation
           # children an ACR cleanup could orphan.
           provenance: false
@@ -249,15 +256,15 @@ jobs:
   deploy-to-vps:
     name: Deploy to the Contabo VPS
     runs-on: ubuntu-latest
-    # NOT push-jobs-image: that job has failed since 2026-09-05 (the
-    # `mcr.microsoft.com/azure-functions/node:4-node22` base image no
-    # longer resolves for one of its two platforms) and, per
-    # docker-compose.prod.yaml's own comment, has never once pushed a
-    # working `portfolio-jobs` image under any name. `jobs` already runs
-    # behind `profiles: [jobs]` on the VPS specifically because of this —
-    # gating the one deploy that DOES work (web) on a build that has never
-    # worked would mean every release silently stops shipping the moment
-    # deploy.yml itself gets fixed, which is exactly what happened here.
+    # NOT push-jobs-image: that job builds successfully again as of
+    # 2026-09-12 (dropped the unresolvable arm64 target, see that job's own
+    # comment), but this is its first successful build, not a track record —
+    # `jobs` still runs behind `profiles: [jobs]` on the VPS (see
+    # docker-compose.prod.yaml) until the resulting image is actually proven
+    # to run correctly there, which is a separate concern from "does it
+    # build". Gating the one deploy that's proven to work (web) on a job
+    # that isn't yet would mean every release silently stops shipping the
+    # moment that job's image gets treated as ready before it is.
     needs: [resolve-metadata, push-image]
     environment: production
     steps:
