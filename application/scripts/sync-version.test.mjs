@@ -15,7 +15,11 @@ const VERSION_FIELD = /("version"\s*:\s*")[^"]*(")/;
 const alreadyCorrect = JSON.stringify({ name: 'server', version: '1.0.0' }, null, 2);
 assert.ok(VERSION_FIELD.test(alreadyCorrect), 'presence check must find an existing version field');
 const restamped = alreadyCorrect.replace(VERSION_FIELD, '$11.0.0$2');
-assert.equal(restamped, alreadyCorrect, 'same-value re-stamp is a no-op — this used to be misread as "missing"');
+assert.equal(
+    restamped,
+    alreadyCorrect,
+    'same-value re-stamp is a no-op — this used to be misread as "missing"',
+);
 
 // A genuinely missing field must still fail the presence check.
 const missing = JSON.stringify({ name: 'server' }, null, 2);

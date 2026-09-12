@@ -366,7 +366,7 @@ export default function DefaultLayout() {
                         {buildInfo && <BuildInfo info={buildInfo} />}
                     </div>
 
-                    <ul className="flex shrink-0 items-center justify-self-end gap-4 font-medium text-[var(--muted)]">
+                    <ul className="flex shrink-0 items-center gap-4 justify-self-end font-medium text-[var(--muted)]">
                         <li>
                             {/* Status lives on its own `status.` subdomain, not an in-app route.
                                 `window.location` (not the `location` var above, which is react-router's
