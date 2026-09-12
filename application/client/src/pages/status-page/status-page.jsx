@@ -168,7 +168,8 @@ function DayBar({ day, index = 0, total = 90 }) {
 
     // A centred w-60 popover overhangs the container on the first and last few
     // bars; pin those to the bar's edge so the tooltip stays on-screen.
-    const anchor = index < 4 ? 'left-0' : index >= total - 4 ? 'right-0' : 'left-1/2 -translate-x-1/2';
+    const anchor =
+        index < 4 ? 'left-0' : index >= total - 4 ? 'right-0' : 'left-1/2 -translate-x-1/2';
 
     return (
         <div
@@ -786,7 +787,9 @@ export default function StatusPage() {
     const monitors = [...groups.flatMap((g) => g.monitors), ...ungrouped];
     const existingGroups = groups.map((g) => g.name);
 
-    const upCount = monitors.filter((m) => m.status === 'operational' || m.status === 'idle').length;
+    const upCount = monitors.filter(
+        (m) => m.status === 'operational' || m.status === 'idle',
+    ).length;
     const known30d = monitors.map((m) => m.uptime.d30).filter((pct) => pct != null);
     const avgUptime = known30d.length
         ? round1(known30d.reduce((sum, pct) => sum + pct, 0) / known30d.length)
@@ -892,14 +895,14 @@ export default function StatusPage() {
                         ))}
 
                         {report && monitors.length === 0 && (
-                            <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-[var(--line)] py-16 px-6 text-center">
+                            <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-[var(--line)] px-6 py-16 text-center">
                                 <ServerIcon className="h-8 w-8 text-[var(--muted)]" />
                                 <p className="text-sm font-medium text-[var(--text)]">
                                     No monitored services yet
                                 </p>
                                 <p className="max-w-sm text-xs text-[var(--muted)]">
-                                    Live status and 90-day uptime history will appear here once
-                                    the first service is being watched.
+                                    Live status and 90-day uptime history will appear here once the
+                                    first service is being watched.
                                 </p>
                                 {admin && (
                                     <a

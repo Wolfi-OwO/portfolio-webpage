@@ -192,6 +192,9 @@ describe('GET /api/status', function () {
         const wobbly = res.body.ungrouped.find((m) => m.name === 'Wobbly');
 
         assert.equal(wobbly.status, 'degraded');
-        assert.ok(wobbly.uptime.h24 < 100, `degraded but flawless 24h uptime? ${wobbly.uptime.h24}%`);
+        assert.ok(
+            wobbly.uptime.h24 < 100,
+            `degraded but flawless 24h uptime? ${wobbly.uptime.h24}%`,
+        );
     });
 });
