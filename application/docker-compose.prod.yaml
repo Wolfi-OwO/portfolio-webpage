@@ -280,6 +280,11 @@ services:
       - GITLAB_USER=${GITLAB_USER:-WoofiOwO}
       - GITLAB_TOKEN=${GITLAB_TOKEN:-}
       - CONTRIBUTIONS_CRON=${CONTRIBUTIONS_CRON:-0 * * * * *}
+      # Metrion dual-write for uptime checks (mona's docs/adr/0007). Both
+      # optional: unset either and metrion-sink.js stays a no-op, same as
+      # local dev. See .env.example for what each one is.
+      - METRION_INGEST_URL=${METRION_INGEST_URL:-}
+      - METRION_API_KEY=${METRION_API_KEY:-}
     networks:
       - portfolio-net
 

@@ -2,6 +2,7 @@ import { app } from '@azure/functions';
 import mongoose from 'mongoose';
 import { DefaultAzureCredential } from '@azure/identity';
 import { ContainerAppsAPIClient } from '@azure/arm-appcontainers';
+import { createMetrionSink } from '../lib/metrion-sink.js';
 
 // Mirrors application/server/src/models/monitor.js and monitor-check.js.
 // Duplicated rather than imported because this Function App deploys
@@ -105,9 +106,11 @@ async function pingUrl(url) {
     }
 }
 
-async function checkMonitor(monitor) {
+async function checkMonitor(monitor, sink, context) {
     const result = await pingUrl(monitor.url);
-    await MonitorCheckModel.create({ monitor: monitor._id, at: Date.now(), ...result });
+    const check = { monitor: monitor._id, at: Date.now(), ...result };
+    await MonitorCheckModel.create(check);
+    sink.add(monitor, check, context);
 }
 
 // ── Container Apps — checked purely from Azure's control plane ───────────────
@@ -154,28 +157,30 @@ async function latestProductionRevision(client, resourceGroup, name) {
     return candidates[0] ?? null;
 }
 
-async function checkContainerAppMonitor(monitor, client, context) {
+async function checkContainerAppMonitor(monitor, client, context, sink) {
     const start = Date.now();
     try {
         const { resourceGroup, name } = monitor.containerApp;
         const revision = await latestProductionRevision(client, resourceGroup, name);
 
         if (!revision) {
-            await MonitorCheckModel.create({
+            const check = {
                 monitor: monitor._id,
                 at: Date.now(),
                 ok: false,
                 latencyMs: Date.now() - start,
                 error: 'No active non-PR revision found',
                 runningStatus: 'Unknown',
-            });
+            };
+            await MonitorCheckModel.create(check);
+            sink.add(monitor, check, context);
             return;
         }
 
         const runningStatus = revision.runningState ?? 'Unknown';
         const isUp = revisionIsUp(revision);
 
-        await MonitorCheckModel.create({
+        const check = {
             monitor: monitor._id,
             at: Date.now(),
             ok: isUp,
@@ -184,7 +189,9 @@ async function checkContainerAppMonitor(monitor, client, context) {
                 ? undefined
                 : `Revision ${revision.name} is ${runningStatus} (health: ${revision.healthState ?? 'unknown'})`,
             runningStatus,
-        });
+        };
+        await MonitorCheckModel.create(check);
+        sink.add(monitor, check, context);
     } catch (err) {
         // The Azure control-plane check couldn't run — no credentials / Reader
         // role, an ARM error, or the app no longer exists. As a second option,
@@ -197,19 +204,20 @@ async function checkContainerAppMonitor(monitor, client, context) {
                 `monitor-checker: ARM check failed for "${monitor.name}" (${err.message}); ` +
                     `falling back to HTTP probe of ${monitor.url}`,
             );
-            const result = await pingUrl(monitor.url);
-            await MonitorCheckModel.create({ monitor: monitor._id, at: Date.now(), ...result });
+            await checkMonitor(monitor, sink, context);
             return;
         }
 
-        await MonitorCheckModel.create({
+        const check = {
             monitor: monitor._id,
             at: Date.now(),
             ok: false,
             latencyMs: Date.now() - start,
             error: err.message,
             runningStatus: 'Unknown',
-        });
+        };
+        await MonitorCheckModel.create(check);
+        sink.add(monitor, check, context);
     }
 }
 
@@ -249,18 +257,25 @@ function resolveCheckMode(monitor) {
 
 async function runCheckCycle(context) {
     const client = getArmClient();
+    // One sink per cycle: it buffers every check in memory and flushes as a
+    // single POST below, never per-monitor (mona's ADR 0007). MongoDB writes
+    // above always run first — a Metrion outage must never cost a
+    // MonitorCheck row, so the sink only ever buffers, it never blocks a write.
+    const sink = createMetrionSink();
 
     const monitors = await MonitorModel.find();
     let skipped = 0;
     const results = await Promise.allSettled(
         monitors.flatMap((monitor) => {
             const mode = resolveCheckMode(monitor);
-            if (mode === 'arm') return [checkContainerAppMonitor(monitor, client, context)];
-            if (mode === 'http') return [checkMonitor(monitor)];
+            if (mode === 'arm') return [checkContainerAppMonitor(monitor, client, context, sink)];
+            if (mode === 'http') return [checkMonitor(monitor, sink, context)];
             skipped += 1;
             return [];
         }),
     );
+
+    await sink.flush(context);
 
     const failed = results.filter((r) => r.status === 'rejected').length;
     context.log(
@@ -281,4 +296,12 @@ app.timer('checkMonitors', {
 });
 
 // Exposed for tests.
-export { ensureConnected, runCheckCycle, resolveCheckMode, MonitorModel, MonitorCheckModel };
+export {
+    ensureConnected,
+    runCheckCycle,
+    resolveCheckMode,
+    checkMonitor,
+    checkContainerAppMonitor,
+    MonitorModel,
+    MonitorCheckModel,
+};
