@@ -348,8 +348,8 @@ export default function DefaultLayout() {
             {/* Anchored bottom bar: a row of the shell, not a fixed overlay, so it can
                 never cover content the way `position: fixed` would. */}
             <footer className="relative z-20 shrink-0 border-t border-[var(--line)] bg-[var(--glass)] px-4 backdrop-blur-xl sm:px-6">
-                <div className="max-w-8xl mx-auto flex h-14 items-center justify-between gap-4 text-xs">
-                    <span className="flex shrink-0 flex-col text-2xs leading-tight text-[var(--muted)]">
+                <div className="max-w-8xl mx-auto grid h-14 grid-cols-[1fr_auto_1fr] items-center gap-4 text-xs">
+                    <span className="flex shrink-0 flex-col justify-self-start text-2xs leading-tight text-[var(--muted)]">
                         <span>
                             <span className="font-mono">© 2026</span>{' '}
                             <span className="hidden sm:inline">Woofi-Developments</span>
@@ -362,11 +362,11 @@ export default function DefaultLayout() {
                         </span>
                     </span>
 
-                    <div className="hidden md:block">
+                    <div className="hidden justify-self-center md:block">
                         {buildInfo && <BuildInfo info={buildInfo} />}
                     </div>
 
-                    <ul className="flex shrink-0 items-center gap-4 font-medium text-[var(--muted)]">
+                    <ul className="flex shrink-0 items-center justify-self-end gap-4 font-medium text-[var(--muted)]">
                         <li>
                             {/* Status lives on its own `status.` subdomain, not an in-app route.
                                 `window.location` (not the `location` var above, which is react-router's
