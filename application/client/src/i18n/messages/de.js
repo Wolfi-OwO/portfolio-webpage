@@ -16,6 +16,13 @@ export default {
     'language.en': 'English',
     'language.de': 'Deutsch',
 
+    'status.source.metrion': 'über Metrion',
+    'status.uptime.noData': 'keine Daten',
+    'status.metrion.noDetail':
+        'Metrion liefert nur Verfügbarkeitsdaten — für diesen Dienst gibt es keine Fehlerdetails.',
+    'status.footer.sources':
+        'Die Statuswerte stammen aus zwei Quellen: den eigenen Prüfungen dieser Seite und der Verfügbarkeit von Metrion.',
+
     'footer.status': 'Status',
     'footer.privacyPolicy': 'Datenschutz',
     'footer.imprint': 'Impressum',

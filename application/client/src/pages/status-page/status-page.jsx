@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
+import { FormattedMessage } from 'react-intl';
 import {
     ArrowLeftIcon,
     ArrowPathIcon,
     ArrowTopRightOnSquareIcon,
     CheckCircleIcon,
+    CircleStackIcon,
     ClockIcon,
     ExclamationTriangleIcon,
     MoonIcon,
@@ -108,6 +110,19 @@ function uptimeColor(pct) {
 
 function fmtUptime(pct) {
     return pct == null ? '—' : `${pct}%`;
+}
+
+// Metrion entries are new to this page and share no history with the "—"
+// convention Mongo's pending monitors already trained users on, so a null
+// value here spells out "no data" instead of reusing a dash that could be
+// misread as a stale value rather than an absent one. Mongo-sourced null
+// uptime keeps the existing dash — unchanged, per scope.
+function UptimeValue({ pct, source }) {
+    if (pct != null) return `${pct}%`;
+    if (source === 'metrion') {
+        return <FormattedMessage id="status.uptime.noData" defaultMessage="no data" />;
+    }
+    return '—';
 }
 
 // A monitor's status word, in systems terms: a healthy scale-to-zero app reads
@@ -395,6 +410,19 @@ function MonitorMeta({ monitor }) {
         );
     }
 
+    // Metrion entries have neither a URL nor a Container App to describe, so
+    // this slot — otherwise empty — carries the quiet source marker instead:
+    // the same text-only treatment "Azure Container App" already uses above,
+    // not a new badge component invented for one purpose.
+    if (monitor.source === 'metrion') {
+        return (
+            <p className="flex items-center gap-1 truncate font-mono text-xs text-[var(--muted)]">
+                <CircleStackIcon className="h-3 w-3 shrink-0" />
+                <FormattedMessage id="status.source.metrion" defaultMessage="via Metrion" />
+            </p>
+        );
+    }
+
     return null;
 }
 
@@ -468,13 +496,13 @@ function MonitorRow({ monitor, admin, onEdit, onDelete, nested = false }) {
             <div className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 font-mono text-2xs">
                 <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
                     <span style={{ color: uptimeColor(monitor.uptime.d30) }}>
-                        {fmtUptime(monitor.uptime.d30)} · 30d
+                        <UptimeValue pct={monitor.uptime.d30} source={monitor.source} /> · 30d
                     </span>
                     <span style={{ color: uptimeColor(monitor.uptime.d7) }}>
-                        {fmtUptime(monitor.uptime.d7)} · 7d
+                        <UptimeValue pct={monitor.uptime.d7} source={monitor.source} /> · 7d
                     </span>
                     <span style={{ color: uptimeColor(monitor.uptime.h24) }}>
-                        {fmtUptime(monitor.uptime.h24)} · 24h
+                        <UptimeValue pct={monitor.uptime.h24} source={monitor.source} /> · 24h
                     </span>
                 </span>
                 <span className="flex items-center gap-1.5 text-[var(--muted)]">
@@ -495,6 +523,21 @@ function MonitorRow({ monitor, admin, onEdit, onDelete, nested = false }) {
                     }}
                 >
                     {monitor.lastError}
+                </p>
+            )}
+
+            {/* Where a Mongo-sourced row would show its red error line, a
+                down Metrion entry has none to show — Metrion's numeric-only
+                envelope carries no statusCode/error/runningStatus (ADR 0007
+                §3). Left blank that reads as a rendering bug; this names the
+                absence instead, in the page's existing quiet-note register
+                rather than the alarming red used for an actual error. */}
+            {monitor.source === 'metrion' && monitor.status === 'down' && (
+                <p className="mt-2 rounded-md border border-dashed border-[var(--line)] px-3 py-2 font-mono text-2xs text-[var(--muted)]">
+                    <FormattedMessage
+                        id="status.metrion.noDetail"
+                        defaultMessage="Metrion reports uptime only — no incident detail is available for this service."
+                    />
                 </p>
             )}
         </div>
@@ -786,6 +829,10 @@ export default function StatusPage() {
     const ungrouped = report?.ungrouped ?? [];
     const monitors = [...groups.flatMap((g) => g.monitors), ...ungrouped];
     const existingGroups = groups.map((g) => g.name);
+    // Only claim two data sources when Metrion actually contributed an entry —
+    // with METRION_STATUS_URL unset, mergeWithMetrion returns Mongo entries
+    // only, and naming a source that isn't present would be its own gap.
+    const hasMetrion = monitors.some((m) => m.source === 'metrion');
 
     const upCount = monitors.filter(
         (m) => m.status === 'operational' || m.status === 'idle',
@@ -924,6 +971,15 @@ export default function StatusPage() {
                         )}
                     </div>
                 </div>
+
+                {hasMetrion && (
+                    <p className="mt-4 font-mono text-2xs text-[var(--muted)]">
+                        <FormattedMessage
+                            id="status.footer.sources"
+                            defaultMessage="Status data combines this site's own checks with uptime pulled from Metrion."
+                        />
+                    </p>
+                )}
 
                 <a
                     href={`${location.protocol}//${location.host.replace(/^status\./, '')}`}
