@@ -13,32 +13,68 @@ const TIMEOUT_MS = 5000;
 // The client polls /api/status every 15s; this cache keeps that from fanning
 // out to Metrion more than once a minute.
 const CACHE_MS = 60 * 1000;
+// Failures get a shorter TTL than successes: a struggling Metrion is still
+// capped to one outbound attempt per window (the whole point of the cache),
+// but a full 60s would delay noticing recovery longer than necessary. 15s
+// keeps the same protection while halving worst-case staleness after a blip.
+const FAILURE_CACHE_MS = 15 * 1000;
 
-let cache = null; // { at: number, applications: Array }
+let cache = null; // { at: number, ttl: number, applications: Array }
+let pending = null; // in-flight fetch promise, shared by concurrent callers
 
-async function fetchMetrionApplications() {
-    const url = process.env.METRION_STATUS_URL;
-    if (!url) return [];
+// A malformed-but-200 body (null entries, non-array `history`, ...) must
+// degrade to "that one entry is dropped", never throw and take the whole
+// merge (and the already-fetched Mongo data) down with it. Validated here,
+// at the fetch boundary, so every consumer downstream gets the same
+// guarantee without re-checking.
+function isValidApplication(app) {
+    return (
+        app != null &&
+        typeof app === 'object' &&
+        (app.history == null || Array.isArray(app.history))
+    );
+}
 
-    if (cache && Date.now() - cache.at < CACHE_MS) return cache.applications;
-
+async function doFetch(url) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try {
         const response = await fetch(url, { signal: controller.signal });
         if (!response.ok) throw new Error(`responded ${response.status}`);
         const body = await response.json();
-        const applications = Array.isArray(body?.applications) ? body.applications : [];
-        cache = { at: Date.now(), applications };
+        const rawApplications = Array.isArray(body?.applications) ? body.applications : [];
+        const applications = rawApplications.filter(isValidApplication);
+        cache = { at: Date.now(), ttl: CACHE_MS, applications };
         return applications;
     } catch (err) {
-        // ponytail: no retry/backoff and no stale-cache fallback — the 60s
-        // cache already caps how often a struggling endpoint gets hit, and
-        // the next /api/status request just tries again.
+        // ponytail: no retry/backoff — the cache (now written on this path
+        // too, see FAILURE_CACHE_MS above) already caps how often a
+        // struggling endpoint gets hit, and the next /api/status request
+        // just tries again once the negative TTL expires.
         logger.warn(`metrion-source: fetch failed: ${err.message}`);
+        cache = { at: Date.now(), ttl: FAILURE_CACHE_MS, applications: [] };
         return [];
     } finally {
         clearTimeout(timeout);
+    }
+}
+
+async function fetchMetrionApplications() {
+    const url = process.env.METRION_STATUS_URL;
+    if (!url) return [];
+
+    if (cache && Date.now() - cache.at < cache.ttl) return cache.applications;
+
+    // Concurrent callers on a cold/expired cache all share the one in-flight
+    // fetch instead of each firing their own — without this, N simultaneous
+    // /api/status requests produced N outbound fetches to the same URL.
+    if (pending) return pending;
+
+    pending = doFetch(url);
+    try {
+        return await pending;
+    } finally {
+        pending = null;
     }
 }
 
@@ -47,6 +83,7 @@ async function fetchMetrionApplications() {
 // clear it between them.
 function resetMetrionCache() {
     cache = null;
+    pending = null;
 }
 
 export { fetchMetrionApplications, resetMetrionCache };

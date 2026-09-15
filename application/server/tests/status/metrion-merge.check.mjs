@@ -94,4 +94,110 @@ import { fetchMetrionApplications, resetMetrionCache } from '../../src/utils/met
     assert.strictEqual(entry.uptime.d30, null);
 }
 
+// ── A malformed-but-200 body degrades to a partial list, never throws ─────
+// Reproduces the three shapes the security review found crash the merge
+// downstream (status-checker.js's `[...history].reverse()` /
+// `mapMetrionHistory` assume `.map`/iterability with no guard): a null
+// application entry, `history` as a string, and `history` as a plain object.
+{
+    const monitors = [];
+    const mongoStatuses = [];
+
+    const cases = [
+        { name: 'applications: [null]', body: { applications: [null] } },
+        {
+            name: 'history is a string',
+            body: { applications: [{ key: 'bad-history-string', history: 'not-an-array' }] },
+        },
+        {
+            name: 'history is an object',
+            body: { applications: [{ key: 'bad-history-object', history: { day: 1 } }] },
+        },
+    ];
+
+    const originalFetch = globalThis.fetch;
+    const originalUrl = process.env.METRION_STATUS_URL;
+    process.env.METRION_STATUS_URL = 'https://metrion.invalid/api/v1/public/projects/x/uptime';
+
+    for (const { name, body } of cases) {
+        globalThis.fetch = async () => ({ ok: true, json: async () => body });
+        resetMetrionCache();
+
+        let metrionApps;
+        try {
+            metrionApps = await fetchMetrionApplications();
+        } catch (err) {
+            throw new Error(`${name}: fetchMetrionApplications threw: ${err.message}`);
+        }
+
+        assert.deepEqual(metrionApps, [], `${name}: malformed entry must be dropped, not kept`);
+
+        let merged;
+        try {
+            merged = mergeWithMetrion(monitors, mongoStatuses, metrionApps);
+        } catch (err) {
+            throw new Error(`${name}: mergeWithMetrion threw: ${err.message}`);
+        }
+        assert.deepEqual(merged, [], `${name}: must degrade to an empty (Mongo-only) result`);
+    }
+
+    globalThis.fetch = originalFetch;
+    if (originalUrl === undefined) delete process.env.METRION_STATUS_URL;
+    else process.env.METRION_STATUS_URL = originalUrl;
+    resetMetrionCache();
+}
+
+// ── 50 concurrent callers on a cold cache produce exactly 1 upstream fetch ─
+{
+    let fetchCount = 0;
+    const originalFetch = globalThis.fetch;
+    const originalUrl = process.env.METRION_STATUS_URL;
+    globalThis.fetch = async () => {
+        fetchCount += 1;
+        // Yield so concurrent callers actually overlap instead of the event
+        // loop serializing them one microtask apart.
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        return { ok: true, json: async () => ({ applications: [] }) };
+    };
+    process.env.METRION_STATUS_URL = 'https://metrion.invalid/api/v1/public/projects/x/uptime';
+    resetMetrionCache();
+
+    try {
+        await Promise.all(Array.from({ length: 50 }, () => fetchMetrionApplications()));
+    } finally {
+        globalThis.fetch = originalFetch;
+        if (originalUrl === undefined) delete process.env.METRION_STATUS_URL;
+        else process.env.METRION_STATUS_URL = originalUrl;
+        resetMetrionCache();
+    }
+
+    assert.equal(fetchCount, 1, '50 concurrent cold-cache callers must de-dupe to 1 upstream fetch');
+}
+
+// ── A failing upstream gets cached, not retried on every next call ────────
+{
+    let fetchCount = 0;
+    const originalFetch = globalThis.fetch;
+    const originalUrl = process.env.METRION_STATUS_URL;
+    globalThis.fetch = async () => {
+        fetchCount += 1;
+        throw new Error('simulated network failure');
+    };
+    process.env.METRION_STATUS_URL = 'https://metrion.invalid/api/v1/public/projects/x/uptime';
+    resetMetrionCache();
+
+    try {
+        const first = await fetchMetrionApplications();
+        const second = await fetchMetrionApplications();
+        assert.deepEqual(first, []);
+        assert.deepEqual(second, []);
+        assert.equal(fetchCount, 1, 'a cached failure must not trigger a second upstream fetch');
+    } finally {
+        globalThis.fetch = originalFetch;
+        if (originalUrl === undefined) delete process.env.METRION_STATUS_URL;
+        else process.env.METRION_STATUS_URL = originalUrl;
+        resetMetrionCache();
+    }
+}
+
 console.log('metrion-merge.check.mjs: all assertions passed');
