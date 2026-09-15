@@ -127,7 +127,7 @@ export default {
 
     'privacy.hosting.title': 'Hosting und Infrastruktur',
     'privacy.hosting.text':
-        'Die Seite läuft als Container auf Microsoft Azure, ihre Inhalte (Projekte, Technologien, Status-Messwerte) liegen in einer MongoDB-Atlas-Datenbank. Beide Anbieter verarbeiten Daten ausschließlich nach meinen Weisungen als Auftragsverarbeiter gemäß Art. 28 DSGVO, und beide bekommen zwangsläufig die oben beschriebenen technischen Verbindungsdaten zu sehen.\n\nIch habe sie wegen ihrer Zuverlässigkeit gewählt, nicht wegen irgendwelcher Daten. In der Datenbank liegen keine Besucherdaten — dort steht nur, was ich selbst über meine Arbeit hineingeschrieben habe.',
+        'Die Seite läuft als Container auf Microsoft Azure, ihre Inhalte (Projekte, Technologien, Status-Messwerte) liegen in einer MongoDB-Atlas-Datenbank. Beide Anbieter verarbeiten Daten ausschließlich nach meinen Weisungen als Auftragsverarbeiter gemäß Art. 28 DSGVO, und beide bekommen zwangsläufig die oben beschriebenen technischen Verbindungsdaten zu sehen.\n\nIch habe sie wegen ihrer Zuverlässigkeit gewählt, nicht wegen irgendwelcher Daten. In der Datenbank liegen keine Besucherdaten — dort steht nur, was ich selbst über meine Arbeit hineingeschrieben habe.\n\nDie Statusseite greift außerdem auf Metrion zurück, eine zweite Anwendung von mir, wodurch zwei weitere Hosts dazukommen: Metrion läuft als Container auf Microsoft Azure Container Apps, seine Datenbank ist eine selbst gehostete PostgreSQL/TimescaleDB-Instanz auf einem Contabo-VPS. Metrion ist mein eigener Dienst und kein Dritter — der einzige Datenverkehr, den es bekommt, ist die weiter unten beschriebene Server-zu-Server-Statusabfrage, also verarbeitet auch Metrion keine Besucherdaten.',
 
     'privacy.fonts.title': 'Schriftarten',
     'privacy.fonts.text':
@@ -143,7 +143,7 @@ export default {
 
     'privacy.status.title': 'Die Statusseite',
     'privacy.status.text':
-        'Die Statusseite zeigt, ob meine eigenen Dienste erreichbar sind. Die Prüfungen dahinter rufen in regelmäßigen Abständen meine eigenen Deployments auf und speichern das Ergebnis — Antwortzeit und erreichbar/nicht erreichbar — in meiner Datenbank. Gemessen wird meine Infrastruktur, nicht du: Besucherdaten landen dort keine.',
+        'Die Statusseite zeigt, ob meine eigenen Dienste erreichbar sind. Sie stützt sich auf zwei Systeme, die ich selbst betreibe: meine eigenen, planmäßigen Prüfungen, die meine Deployments aufrufen und das Ergebnis — Antwortzeit und erreichbar/nicht erreichbar — in meiner Datenbank speichern; und Metrion, eine eigenständige Monitoring-Anwendung von mir, die auf Microsoft Azure Container Apps läuft und eine eigene, selbst gehostete Datenbank hat.\n\nMein Server ruft die Werte von Metrion über dessen öffentliche API server-seitig ab, dein Browser stellt also nie eine Anfrage an Metrion, und keine Besucher-IP erreicht es auf diesem Weg. Beide Systeme messen meine Infrastruktur, nicht dich: Besucherdaten werden bei keinem der beiden erfasst.',
 
     'privacy.admin.title': 'Der Admin-Bereich',
     'privacy.admin.text':

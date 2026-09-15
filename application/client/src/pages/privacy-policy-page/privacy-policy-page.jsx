@@ -96,7 +96,7 @@ export default function PrivacyPolicyPage() {
                     <FormattedMessage
                         id="privacy.hosting.text"
                         defaultMessage={
-                            'The site runs as a container on Microsoft Azure, and its content (projects, technologies, status samples) lives in a MongoDB Atlas database. Both providers process data strictly on my instructions as processors under Art. 28 GDPR, and both necessarily handle the technical connection data described above.\n\nI chose them for reliability, not for data collection, and I store no visitor records in the database — the only rows in it are the ones I put there about my own work.'
+                            'The site runs as a container on Microsoft Azure, and its content (projects, technologies, status samples) lives in a MongoDB Atlas database. Both providers process data strictly on my instructions as processors under Art. 28 GDPR, and both necessarily handle the technical connection data described above.\n\nI chose them for reliability, not for data collection, and I store no visitor records in the database — the only rows in it are the ones I put there about my own work.\n\nThe status page also draws on Metrion, a second application of mine, which adds two more hosts to this list: Metrion runs as a container on Microsoft Azure Container Apps, and its database is a self-hosted PostgreSQL/TimescaleDB instance on a Contabo VPS. Metrion is my own service rather than a third party, and the only traffic it receives is the server-to-server status request described below — so it processes no visitor data either.'
                         }
                     />
                 </Section>
@@ -139,7 +139,9 @@ export default function PrivacyPolicyPage() {
                 <Section id="privacy.status" defaultTitle="The status page">
                     <FormattedMessage
                         id="privacy.status.text"
-                        defaultMessage="The status page shows whether my own services are reachable. The checks behind it ping my own deployments on a schedule and store the result — response time and up/down — in my database. They measure my infrastructure, not you: no visitor data of any kind is recorded there."
+                        defaultMessage={
+                            'The status page shows whether my own services are reachable. It draws on two systems I run myself: my own scheduled checks, which ping my deployments and store the result — response time and up/down — in my database; and Metrion, a separate monitoring application of mine that runs on Microsoft Azure Container Apps with its own self-hosted database.\n\nMy server fetches the figures from Metrion server-to-server through its public API, so your browser never makes a request to Metrion and no visitor IP reaches it that way. Both systems measure infrastructure, not you: neither records any visitor data.'
+                        }
                     />
                 </Section>
 
