@@ -2,7 +2,7 @@ import { FormattedDate, FormattedMessage } from 'react-intl';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import ImprintText from '../../components/imprint-text.jsx';
 
-const LAST_UPDATED = new Date('2026-07-11');
+const LAST_UPDATED = new Date('2026-09-20');
 
 const EMAIL = 'KoflerPhillip@outlook.com';
 const LINKEDIN = 'https://www.linkedin.com/in/kofler-phillip-8666ab338/';
@@ -87,7 +87,7 @@ export default function PrivacyPolicyPage() {
                     <FormattedMessage
                         id="privacy.logs.text"
                         defaultMessage={
-                            'When you open a page, your browser sends a request to my server, and that request is logged. A log entry can contain your IP address, the date and time, the requested URL, the HTTP status code, the referring page and your browser and operating system identification (user agent).\n\nI need this to run the site at all: to deliver the page, to find errors, and to notice abuse such as brute-force attempts against the admin login. The legal basis is my legitimate interest in operating a secure, functioning website (Art. 6(1)(f) GDPR). Log data is not merged with anything else, is never used to identify you, and is kept only as long as it is useful for those purposes — a short period, after which it is deleted or overwritten.'
+                            'When you open a page, your request reaches my web server (Caddy). It writes one log line per request containing the time, the requested host name, the HTTP method and protocol, the response status, the size and duration of the response, and technical TLS connection details. Before a line is written, your IP address, the requested path and query string, and all request and response headers (including referrer and user agent) are removed. I therefore do not store your IP address in the server log.\n\nI need this log to run the site: to deliver pages and to find errors. The legal basis is my legitimate interest in operating a secure, functioning website (Art. 6(1)(f) GDPR). Log lines are not merged with anything else, are never used to identify you, and are kept in a size-limited rotating log for a short time before being overwritten.\n\nTo slow down abuse such as brute-force attempts against the admin login, the application counts requests per connection address in working memory only. These counters are not written to disk or to the database and disappear when the application restarts.'
                         }
                     />
                 </Section>
@@ -96,7 +96,7 @@ export default function PrivacyPolicyPage() {
                     <FormattedMessage
                         id="privacy.hosting.text"
                         defaultMessage={
-                            'The site runs as a container on Microsoft Azure, and its content (projects, technologies, status samples) lives in a MongoDB Atlas database. Both providers process data strictly on my instructions as processors under Art. 28 GDPR, and both necessarily handle the technical connection data described above.\n\nI chose them for reliability, not for data collection, and I store no visitor records in the database — the only rows in it are the ones I put there about my own work.\n\nThe status page also draws on Metrion, a second application of mine, which adds two more hosts to this list: Metrion runs as a container on Microsoft Azure Container Apps, and its database is a self-hosted PostgreSQL/TimescaleDB instance on a Contabo VPS. Metrion is my own service rather than a third party, and the only traffic it receives is the server-to-server status request described below — so it processes no visitor data either.'
+                            "The site runs as a container on a virtual server (VPS) from Contabo, where the Caddy web server terminates the encrypted connection. This is the only host that sees your connection when you visit. The site content (projects, technologies, status samples) lives in a MongoDB Atlas database, and my scheduled status checks run as a Microsoft Azure Function. Atlas and Azure only exchange data with my own server and checker, not with your browser. Contabo, MongoDB and Microsoft process data strictly on my instructions as processors under Art. 28 GDPR.\n\nI chose them for reliability, not for data collection, and I store no visitor records in the database — the only rows in it are the ones I put there about my own work, plus the results of my own status checks.\n\nThe status page also draws on Metrion, a second application of mine. The figures come from Metrion's ingest service and its self-hosted PostgreSQL/TimescaleDB database, both on the same Contabo VPS; Metrion's dashboard runs on Microsoft Azure Container Apps but takes no part in the status request. Metrion is my own service rather than a third party, and the only traffic it receives from this site is the server-to-server status request described below, so it processes no visitor data either."
                         }
                     />
                 </Section>
@@ -140,7 +140,7 @@ export default function PrivacyPolicyPage() {
                     <FormattedMessage
                         id="privacy.status.text"
                         defaultMessage={
-                            'The status page shows whether my own services are reachable. It draws on two systems I run myself: my own scheduled checks, which ping my deployments and store the result — response time and up/down — in my database; and Metrion, a separate monitoring application of mine that runs on Microsoft Azure Container Apps with its own self-hosted database.\n\nMy server fetches the figures from Metrion server-to-server through its public API, so your browser never makes a request to Metrion and no visitor IP reaches it that way. Both systems measure infrastructure, not you: neither records any visitor data.'
+                            'The status page shows whether my own services are reachable. It draws on two systems I run myself: my own scheduled checks, which call my deployments once a minute (and once more straight away if a check fails) and store the result in my database — response time, up/down, the HTTP status code and, for a failed check, a short technical error message that may end in a network error code such as (ECONNRESET). Check results are deleted after 90 days. The page also shows the median and 95th-percentile response time over the last 24 hours, calculated from these stored response times. The second system is Metrion, a separate monitoring application of mine whose ingest service and self-hosted database run on my Contabo VPS.\n\nMy server fetches the figures from Metrion server-to-server through its public API, so your browser never makes a request to Metrion and no visitor IP reaches it that way. Both systems measure my infrastructure, not you: these check results describe my own services and contain no visitor data.'
                         }
                     />
                 </Section>
