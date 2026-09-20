@@ -11,7 +11,23 @@
     # the debug noise; everything the VM operator needs is here.
     log {
         output stdout
-        format json
+        # Same field deletions as the (access_log) snippet below. This logger
+        # is the catch-all: every site block routes away from it, but the
+        # automatic port-80 redirect for a hostname WITHOUT a site block does
+        # not - measured 2026-09-20, ~2.7k retained lines for host
+        # 167.86.115.79 and for spoofed Host headers, each with remote_ip,
+        # uri and the full header set. PRIVACY.md section 3 promises none of
+        # those are stored, so the promise has to hold here too.
+        format filter {
+            wrap json
+            fields {
+                request>remote_ip delete
+                request>client_ip delete
+                request>headers delete
+                request>uri delete
+                resp_headers delete
+            }
+        }
         level INFO
     }
     # DNS cutover verified 2026-09-04 (dig against the authoritative
@@ -33,6 +49,37 @@
     # certs from two CAs on the same VM: the rate limits and account users
     # are separate, and switching twice a day trips both.
     # acme_ca https://acme.zerossl.com/v2/DV90
+
+    # PR previews (pr-<n>[-<sha>].<app>.preview.woofi-developments.at, see
+    # the site blocks near the end of this file): each preview hostname is
+    # unpredictable and created/destroyed by CI, so there is no fixed list
+    # to write here the way the five production hostnames above are bare,
+    # static addresses. `on_demand_tls` lets Caddy request a cert for a
+    # hostname it has never seen at config-load time, the FIRST time a
+    # real request for it arrives — but that alone would let anyone point
+    # ANY hostname at this box's IP and make Caddy burn a Let's Encrypt
+    # attempt trying to get it a certificate. `ask` closes that: before
+    # issuing anything, Caddy first GETs http://127.0.0.1:9444/check?domain=
+    # (the internal-only site block below, bound to loopback and never
+    # published past this container) and only proceeds on a 200 — which
+    # that endpoint returns ONLY for a hostname with a matching file under
+    # /opt/previews/registry/, written by /opt/previews/create.sh once a
+    # preview container is confirmed running, and removed by
+    # /opt/previews/destroy.sh on teardown. A hostname with no live preview
+    # gets a non-200 and no ACME order is ever attempted for it — verified
+    # 2026-09-05 (dig/curl against the ask endpoint directly: a registered
+    # test hostname returned 200, an unregistered one and a path-traversal
+    # attempt in the query string both returned 400, see docs/PREVIEWS.md).
+    #
+    # `interval`/`burst` rate limiting on this directive was removed in
+    # current Caddy ("no longer supported", confirmed via `caddy adapt`
+    # against this exact config) — the `ask` gate above is now the primary
+    # control, backed by create.sh's own MAX_PREVIEWS=6 concurrency cap,
+    # which bounds how many distinct hostnames can ever be registered as
+    # askable at once regardless of request volume.
+    on_demand_tls {
+        ask http://127.0.0.1:9444/check
+    }
 }
 
 # Global edge error pages — one owner per failure class:
@@ -217,6 +264,53 @@ HTML {args[3]}
     }
 }
 
+# Per-site access logging for the metrics collector (vps-metrics-collector,
+# systemd timer, reads container logs via the Docker API once a minute and
+# extracts requests-per-hostname, status codes and latency). The global
+# `log` block at the top of this file only configures Caddy's OWN runtime
+# logger — errors, ACME, start/reload — never access logs: an access log is
+# only ever produced by a `log` directive *inside* a site block, one logger
+# per site. That distinction is why this file could look complete (a `log`
+# block right there at the top) and still emit zero access-log lines, which
+# is exactly what was measured before this change.
+#
+# One definition, imported into every production and preview site block
+# below rather than five copies of the same filter list — the "one owner
+# per job" rule applies to log config the same as anything else.
+#
+# The collector needs exactly three fields: hostname (`request>host`,
+# untouched), status and duration (both untouched, top-level). Everything
+# else that Caddy's default JSON access log would include is either
+# unneeded or outright personal data, and this deployment's logs leave the
+# box for Azure Blob via the collector, so GDPR (the operator is in
+# Austria) makes removing it a requirement, not a nice-to-have:
+#   - request>remote_ip, request>client_ip: the visitor's IP
+#   - request>headers: User-Agent, Cookie, Referer all live here
+#   - request>uri: the path AND query string — a query string can itself
+#     carry personal data (email in a reset link, session token in a
+#     redirect) and the collector has no use for the path either, so it is
+#     dropped whole rather than filtered down to "path only".
+#   - resp_headers: could carry a Set-Cookie on the way out; dropped for
+#     the same reason as the request-side cookie.
+# `delete` (not `ip_mask`) for the IP fields: the collector counts requests
+# by host, not by visitor, so there is no downstream use for even a
+# masked/truncated IP to justify keeping it.
+(access_log) {
+    log {
+        output stdout
+        format filter {
+            wrap json
+            fields {
+                request>remote_ip delete
+                request>client_ip delete
+                request>headers delete
+                request>uri delete
+                resp_headers delete
+            }
+        }
+    }
+}
+
 # The portfolio site plus its two aliases (www, status — all three pointed at
 # the same Azure Container App per docs/MIGRATION_CONTABO.md, so they get the
 # same Caddy treatment). Bare hostnames: automatic HTTPS provisions a cert
@@ -245,15 +339,11 @@ woofi-developments.at, www.woofi-developments.at, status.woofi-developments.at {
         Permissions-Policy "camera=(), microphone=(), geolocation=()"
     }
 
+    import access_log
     import error_pages
 
     # The Express container is reached name-only over the compose network;
-    # no port on this host maps to :8080. `web-blue`/`web-green` are the two
-    # blue-green slots defined in docker-compose.prod.yaml's `x-web` anchor —
-    # deploy.sh on the VPS rewrites this exact line (via a truncating `>`
-    # write, never `sed -i` — see /opt/caddy-reload.sh for why) to flip
-    # which slot gets traffic, then pushes the change through Caddy's admin
-    # API without a restart.
+    # no port on this host maps to :8080.
     reverse_proxy web-blue:8080 {
         import edge_upstream_errors
     }
@@ -290,16 +380,10 @@ preussen.woofi-developments.at {
         Permissions-Policy "camera=(), microphone=(), geolocation=()"
     }
 
+    import access_log
     import error_pages
 
-    # `preussen-web-blue`/`preussen-web-green` are the two blue-green edge-net
-    # aliases Preussenbot/docker-compose.prod.yml's `dashboard-blue`/
-    # `dashboard-green` register (see that file's `x-dashboard` comment) —
-    # deploy.sh on the VPS rewrites this exact line (via a truncating `>`
-    # write, never `sed -i` — see /opt/caddy-reload.sh for why) to flip
-    # which slot gets traffic, then pushes the change through Caddy's admin
-    # API without a restart.
-    reverse_proxy preussen-web-blue:8080 {
+    reverse_proxy preussen-web-green:8080 {
         import edge_upstream_errors
     }
 }
@@ -349,9 +433,188 @@ netviz.woofi-developments.at {
         Permissions-Policy "camera=(), microphone=(), geolocation=()"
     }
 
+    import access_log
     import error_pages
 
-    reverse_proxy netviz:8080 {
+    reverse_proxy netviz-blue:8080 {
+        import edge_upstream_errors
+    }
+}
+
+# metrion ingest API (metrion stack, /opt/metrion/docker-compose.prod.yml) —
+# reached by external collectors and the public uptime endpoint. The upstream
+# is addressed by CONTAINER name, not the `ingest` service alias: the alias is
+# generic enough to collide with another stack joining edge-net, and Docker's
+# DNS would then round-robin between the two.
+#
+# DNS confirmed 2026-09-20 (ns21/ns22.domaincontrol.com and 1.1.1.1 all
+# return 167.86.115.79) before this block was added, so the Let's Encrypt
+# HTTP-01 challenge can succeed on first request. No CSP: this serves JSON
+# only, there is nothing for a browser to load. No error_pages: collectors
+# parse the API's own JSON error bodies, and the HTML pages would hide them.
+# access_log strips headers, so API keys never reach the logs.
+metrion-ingest.woofi-developments.at {
+    encode zstd gzip
+
+    # ">" defers the write until after the upstream answered, so these
+    # REPLACE the ingest app's own helmet headers instead of duplicating them
+    # (plain set produced two HSTS and a DENY + SAMEORIGIN X-Frame-Options).
+    header {
+        >Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        >X-Content-Type-Options "nosniff"
+        >X-Frame-Options "DENY"
+        >Referrer-Policy "strict-origin-when-cross-origin"
+        >Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    }
+
+    import access_log
+
+    reverse_proxy metrion-ingest-1:8090
+}
+
+# nutrilens — migrated from Azure Container Apps (nutrilens-rg) to this VPS.
+# Its container lives in the separate nutrilens compose stack
+# (nutrilens/docker-compose.prod.yml) — reachable here as `nutrilens` because
+# that stack joins the external `edge-net` network too, same pattern as
+# netviz/preussen-web above. nutrilens-ai-server gets NO site block here: its
+# Azure ingress was internal-only (ADR-0001), and the VPS stack only puts it
+# on its own private `ai-net`, not `edge-net` at all — Caddy cannot reach it
+# even if a block were written for it by mistake.
+#
+# DNS cutover confirmed 2026-09-05 (dig against both authoritative
+# nameservers, ns21/ns22.domaincontrol.com: nutrilens.woofi-developments.at
+# now resolves to 167.86.115.79, TTL 600 — rollback value was the CNAME to
+# nutrilens.nicemoss-805249cc.westeurope.azurecontainerapps.io, TTL 3600).
+# Bare hostname like the blocks above: automatic HTTPS provisions a Let's
+# Encrypt cert here and adds the HTTP->HTTPS redirect. This block ran with
+# an explicit `http://` prefix and no cert from migration until this
+# cutover — same reasoning as netviz's own block above: a bare hostname
+# would have sent Caddy's ACME HTTP-01 challenge at a domain this VPS
+# couldn't yet answer for, burning into Let's Encrypt's
+# 5-failures-per-hostname-per-hour limit for nothing.
+nutrilens.woofi-developments.at {
+    encode zstd gzip
+
+    # Vite-built SPA, no inline <script> (confirmed: apps/frontend/index.html
+    # has none) — script-src stays 'self' with no 'unsafe-inline'. style-src
+    # needs 'unsafe-inline': meal/weight-log progress indicators render via
+    # inline `style={{...}}` in 7 components (grepped before writing this).
+    # No external font/stylesheet CDN — the build ships its own CSS bundle,
+    # unlike netviz — so font-src stays 'self' only. img-src stays as
+    # permissive as portfolio/netviz (data: https:) because avatars can come
+    # from any of three OAuth providers' own CDNs (GitHub, Google, Microsoft
+    # Graph — see apps/frontend/src/pages/profile.tsx's isFromHost checks),
+    # not one fixed host.
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    }
+
+    import access_log
+    import error_pages
+
+    reverse_proxy nutrilens-green:8080 {
+        import edge_upstream_errors
+    }
+}
+
+# ── PR previews — shared infrastructure only ────────────────────────────────
+# One preview per (app, PR number): pushing a new commit to an open PR
+# replaces whatever was running for that PR (enforced in
+# /opt/previews/create.sh itself, not just in a CI workflow, so a
+# cancelled/crashed run can never leave two containers answering the same
+# alias). Two hostnames route to the same container:
+#   pr-<n>-<sha>.<app>.preview.woofi-developments.at   — pinned to one commit
+#   pr-<n>.<app>.preview.woofi-developments.at         — stable across pushes,
+#                                                         the one to put in a
+#                                                         PR comment
+# `<app>` is its own DNS label (not folded into the pr-<n> label), so each
+# app needs its OWN wildcard A record — see docs/PREVIEWS.md for the exact
+# three records. Onboarded apps: netviz, nutrilens, preussen.
+#
+# This entire block is intentionally separate from the five production
+# blocks above: different hostname space, different (on-demand) TLS
+# lifecycle, own auth layer. It touches none of the five and none of them
+# touch it.
+
+# Internal-only ask endpoint for on_demand_tls above. Bound explicitly to
+# 127.0.0.1 (not a bare `:9444`) so it is unreachable even in principle
+# from outside this container — docker-compose.prod.yaml does not publish
+# this port either, but binding to loopback is the cheap second layer.
+# Checks for a file named exactly the requested hostname under the
+# read-only bind-mounted registry; Caddy's `file` matcher resolves that
+# safely against `root` (a path-traversal attempt in the query string was
+# tested and rejected, see docs/PREVIEWS.md) — no separate service needed
+# for this, Caddy already has everything required.
+#
+# `http://` prefix is NOT decoration — the exact trap already documented
+# at the top of this file (a bare hostname:port defaults to a :443/TLS
+# listener regardless of the global auto_https setting) bit this block
+# too on first deploy: Caddy answered "Client sent an HTTP request to an
+# HTTPS server" and even tried to provision it a certificate (harmless
+# here since 127.0.0.1 gets Caddy's internal/local issuer, never ACME —
+# confirmed in the logs, no Let's Encrypt attempt was made) — but on_demand
+# TLS's own `ask` HTTP client speaks plain HTTP, so the check always failed
+# closed (400) even for a genuinely registered hostname. Caught by testing
+# the registered case, not just the rejection case — a check that always
+# says no would have silently broken every preview. Fixed by making the
+# scheme explicit, exactly like this file's own top-of-file comment says.
+#
+# No `import access_log` here on purpose: this is Caddy talking to itself
+# over loopback, never a real visitor, so there is no request to attribute
+# to a host for the collector and nothing here that isn't already covered
+# by the operational (global) logger.
+http://127.0.0.1:9444 {
+    root * /etc/caddy/previews-registry
+    @exists file {http.request.uri.query.domain}
+    respond @exists 200
+    respond 400
+}
+
+# The three onboarded preview apps. One block (not three near-identical
+# ones) because the routing logic is identical for all of them — the
+# per-app distinction lives entirely in which wildcard DNS record and
+# which container alias resolves, not in anything Caddy needs to know.
+# `{http.request.host.labels.N}` counts labels from the right: for
+# pr-12-a1b2c3.netviz.preview.woofi-developments.at, label.3 is "netviz"
+# and label.4 is "pr-12-a1b2c3" — verified with a throwaway Caddy
+# container before this went anywhere near production (2026-09-05).
+*.netviz.preview.woofi-developments.at, *.nutrilens.preview.woofi-developments.at, *.preussen.preview.woofi-developments.at {
+    tls {
+        on_demand
+    }
+
+    # Previews are a lower-trust environment and must never be indexed —
+    # the random-looking hostname is not, by itself, treated as sufficient
+    # access control (see docs/PREVIEWS.md), hence basic_auth below too.
+    header X-Robots-Tag "noindex, nofollow"
+
+    # Shared preview password, bcrypt-hashed with `caddy hash-password`
+    # (the same caddy:alpine image already running here — no extra tool
+    # needed). This is deliberately a low-value, shared, disclosable
+    # credential — not a production secret — whose only job is keeping
+    # search engines and random bots off preview URLs; the commit-scoped
+    # hostname is the harder-to-guess half of the access control. Rotate
+    # by re-running `caddy hash-password` and updating this line plus
+    # /opt/previews/secrets/basic_auth_password.txt.
+    basic_auth {
+        preview REPLACE_WITH_BCRYPT_HASH_FROM_VPS
+    }
+
+    import access_log
+    import error_pages
+
+    # Dials the Docker network alias registered by create.sh for whichever
+    # container currently owns this hostname — both the pinned and the
+    # stable alias resolve on edge-net (confirmed: Docker's embedded DNS
+    # resolves a dotted --network-alias literally, tested 2026-09-05).
+    # Port 8080 is the convention all three apps' images already use in
+    # their own production compose files.
+    reverse_proxy {http.request.host.labels.4}.{http.request.host.labels.3}:8080 {
         import edge_upstream_errors
     }
 }
