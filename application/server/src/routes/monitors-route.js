@@ -14,10 +14,10 @@ import { authMiddleware } from '../middlewares/authMiddleware.js';
 /* ***************** CONFIG and CONSTS ********************* */
 const monitorsRouter = express.Router();
 
-/* ***************** PUBLIC ROUTES ************************* */
-monitorsRouter.get('/', getAllMonitors);
-
 /* ***************** PROTECTED ROUTES ********************** */
+// Admin-only raw monitor documents (containerApp resourceGroup/name). No client
+// read path uses it, and it had no rate limit while public.
+monitorsRouter.get('/', authMiddleware, getAllMonitors);
 monitorsRouter.post('/', authMiddleware, createMonitor);
 monitorsRouter.put('/:id', authMiddleware, updateMonitorById);
 monitorsRouter.delete('/:id', authMiddleware, deleteMonitorById);

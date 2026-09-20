@@ -381,7 +381,7 @@ function MonitorMeta({ monitor }) {
     const linkCls =
         'inline-flex min-w-0 max-w-full items-center gap-1 font-mono text-xs text-[var(--muted)] transition hover:text-[var(--accent)]';
 
-    if (monitor.containerApp?.name) {
+    if (monitor.containerApp) {
         const scaled = monitor.runningStatus === 'ScaledToZero';
         return (
             <p className="truncate font-mono text-xs text-[var(--muted)]">
@@ -577,7 +577,7 @@ function MonitorForm({ editing, existingGroups, onSubmit, onCancel }) {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
 
-    const isContainerApp = Boolean(editing?.containerApp?.name);
+    const isContainerApp = Boolean(editing?.containerApp);
 
     async function handleSubmit(event) {
         event.preventDefault();
@@ -755,7 +755,7 @@ export default function StatusPage() {
     const [editingMonitor, setEditingMonitor] = useState(null);
 
     const load = useCallback(() => {
-        return fetch('/api/status')
+        return fetch('/api/status', admin ? { headers: authHeaders() } : undefined)
             .then((response) => (response.ok ? response.json() : null))
             .then((data) => {
                 if (data) {
@@ -772,7 +772,7 @@ export default function StatusPage() {
                 // so this stays silent for a stale-but-there report.
                 setLoadError(true);
             });
-    }, []);
+    }, [admin]);
 
     useEffect(() => {
         let active = true;
