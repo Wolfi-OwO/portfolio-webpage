@@ -237,13 +237,16 @@ function UptimeBar({ history }) {
 function UptimeLegend() {
     const items = [
         ['operational', SEVERITY.operational.bar],
-        ['minor', SEVERITY.minor.bar],
-        ['major', SEVERITY.major.bar],
-        ['critical', SEVERITY.critical.bar],
+        ['minor ≥0.5%', SEVERITY.minor.bar],
+        ['major ≥5%', SEVERITY.major.bar],
+        ['critical ≥20%', SEVERITY.critical.bar],
         ['no data', SEVERITY['no-data'].bar],
     ];
     return (
-        <div className="hidden items-center gap-3 font-mono text-2xs text-[var(--muted)] sm:flex">
+        <div
+            className="hidden flex-wrap items-center justify-end gap-x-3 gap-y-1 font-mono text-2xs text-[var(--muted)] sm:flex"
+            title="Share of a day the service was down; matches the server's severityFor bands"
+        >
             {items.map(([label, bar]) => (
                 <span key={label} className="flex items-center gap-1.5">
                     <span className="h-2 w-2 rounded-sm" style={{ background: bar }} /> {label}
@@ -253,7 +256,7 @@ function UptimeLegend() {
     );
 }
 
-function StatTile({ label, value, Icon }) {
+function StatTile({ label, value, Icon, hint }) {
     return (
         <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
             <div className="flex items-center gap-1.5 text-[var(--muted)]">
@@ -261,8 +264,15 @@ function StatTile({ label, value, Icon }) {
                 <p className="text-xs font-medium">{label}</p>
             </div>
             <p className="mt-2 font-mono text-2xl font-semibold text-[var(--text)]">{value}</p>
+            {hint && <p className="mt-1 font-mono text-xs text-[var(--muted)]">{hint}</p>}
         </div>
     );
+}
+
+function median(values) {
+    const sorted = [...values].sort((a, b) => a - b);
+    const mid = sorted.length >> 1;
+    return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
 function OverallBanner({ report, upCount, total, error, onRetry }) {
@@ -841,9 +851,14 @@ export default function StatusPage() {
     const avgUptime = known30d.length
         ? round1(known30d.reduce((sum, pct) => sum + pct, 0) / known30d.length)
         : null;
-    const latencies = monitors.map((m) => m.latencyMs).filter((ms) => ms != null);
-    const avgLatency = latencies.length
-        ? Math.round(latencies.reduce((sum, ms) => sum + ms, 0) / latencies.length)
+    // Median of the per-monitor 24 h p50s, not a mean: one slow outlier used to
+    // drag the old mean of latest samples from ~400 ms to ~970 ms. p95 shows the
+    // worst monitor's p95, so it is labelled as such. Monitors without `latency`
+    // (Metrion-sourced, or an API that predates the field) sit out.
+    const latencyStats = monitors.map((m) => m.latency).filter((l) => l?.p50 != null);
+    const p50 = latencyStats.length ? Math.round(median(latencyStats.map((l) => l.p50))) : null;
+    const worstP95 = latencyStats.some((l) => l.p95 != null)
+        ? Math.round(Math.max(...latencyStats.map((l) => l.p95).filter((v) => v != null)))
         : null;
 
     return (
@@ -888,8 +903,15 @@ export default function StatusPage() {
                             Icon={CheckCircleIcon}
                         />
                         <StatTile
-                            label="Avg latency"
-                            value={avgLatency != null ? `${avgLatency}ms` : '—'}
+                            label="Latency · p50"
+                            value={p50 != null ? `${p50}ms` : '—'}
+                            hint={
+                                p50 == null
+                                    ? 'collecting…'
+                                    : worstP95 != null
+                                      ? `worst p95 ${worstP95}ms`
+                                      : undefined
+                            }
                             Icon={ClockIcon}
                         />
                     </div>
