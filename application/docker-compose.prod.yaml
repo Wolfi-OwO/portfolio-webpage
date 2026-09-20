@@ -122,6 +122,9 @@ x-web: &web-base
     - GIFT_CONTAINER=${GIFT_CONTAINER:-secret-gifts}
     - GIFT_BLOB=${GIFT_BLOB:-voucher-receipt.pdf}
     - STATUS_CHECK_INTERVAL_SECONDS=${STATUS_CHECK_INTERVAL_SECONDS:-60}
+    # Public Metrion uptime source for the status page. Unset = feature off,
+    # Mongo-only, same as local dev - see server/src/utils/metrion-source.js.
+    - METRION_STATUS_URL=${METRION_STATUS_URL:-}
     # Forge credentials for the activity heatmap. All optional: without them
     # /api/activity still answers, just with an empty GitHub half.
     - GITHUB_USER=${GITHUB_USER:-Wolfi-OwO}
