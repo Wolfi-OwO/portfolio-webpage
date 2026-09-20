@@ -122,8 +122,9 @@ x-web: &web-base
     - GIFT_CONTAINER=${GIFT_CONTAINER:-secret-gifts}
     - GIFT_BLOB=${GIFT_BLOB:-voucher-receipt.pdf}
     - STATUS_CHECK_INTERVAL_SECONDS=${STATUS_CHECK_INTERVAL_SECONDS:-60}
-    # Public Metrion uptime source for the status page. Unset = feature off,
-    # Mongo-only, same as local dev - see server/src/utils/metrion-source.js.
+    # Public Metrion uptime source for the status page (mona task 11 of the
+    # public-status-page plan). Unset = feature off, Mongo-only, same as
+    # local dev — see application/server/src/utils/metrion-source.js.
     - METRION_STATUS_URL=${METRION_STATUS_URL:-}
     # Forge credentials for the activity heatmap. All optional: without them
     # /api/activity still answers, just with an empty GitHub half.
@@ -170,6 +171,12 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data # certs, private keys, OCSP staples — must survive restarts
       - caddy_config:/config # the Caddy config API's state
+      # Read-only on purpose: the internal 127.0.0.1:9444 ask endpoint (see
+      # Caddyfile) only ever needs to check whether a file exists here, and
+      # must never be able to write into /opt/previews/registry itself —
+      # only create.sh/destroy.sh on the host do that. See
+      # docs/PREVIEWS.md in this repo for the full preview architecture.
+      - /opt/previews/registry:/etc/caddy/previews-registry:ro
     depends_on:
       - web-blue
       - web-green
