@@ -149,6 +149,26 @@ async function failurePct(monitorId, windowMs, since) {
     return (totals.down / totals.total) * 100;
 }
 
+// Median and p95 of the last 24 h of passing checks. The tile used to average
+// each monitor's single latest sample, so one slow outlier (a 5056 ms Metrion
+// netviz sample) dragged the headline to ~968 ms. Measured 24 h to 2026-09-20
+// on the VPS-hosted monitors: p50 146-224 ms against a mean of 306-404 ms and
+// a p95 of 1.1-1.2 s, i.e. the mean was ~2x the typical response.
+// Computed in JS from a bounded, latency-only query (~1.7k numbers per
+// monitor) rather than $percentile, which needs MongoDB >= 7 and would break
+// silently on an older server.
+async function latencyPercentiles(monitorId) {
+    const rows = await MonitorCheckModel.find(
+        { monitor: monitorId, ok: true, at: { $gte: Date.now() - DAY } },
+        { latencyMs: 1, _id: 0 },
+    ).lean();
+    if (!rows.length) return null;
+    const sorted = rows.map((r) => r.latencyMs).sort((a, b) => a - b);
+    const at = (p) =>
+        Math.round(sorted[Math.min(sorted.length - 1, Math.ceil(p * sorted.length) - 1)]);
+    return { p50: at(0.5), p95: at(0.95) };
+}
+
 async function buildMonitorStatus(monitor) {
     const first = await MonitorCheckModel.findOne({ monitor: monitor._id }).sort({ at: 1 });
     const latest = await MonitorCheckModel.findOne({ monitor: monitor._id }).sort({ at: -1 });
@@ -177,6 +197,7 @@ async function buildMonitorStatus(monitor) {
         containerApp: monitor.containerApp?.name ? monitor.containerApp : null,
         status,
         latencyMs: latest?.latencyMs ?? null,
+        latency: await latencyPercentiles(monitor._id),
         lastCheckedAt: latest?.at ?? null,
         lastError: !latest?.ok ? latest?.error : undefined,
         runningStatus: latest?.runningStatus ?? null,
@@ -272,6 +293,7 @@ function buildMetrionMonitorStatus(app) {
         containerApp: null,
         status,
         latencyMs: app.latencyMs ?? null,
+        latency: null,
         lastCheckedAt: app.lastSampleAt ?? null,
         lastError: undefined,
         runningStatus: null,
