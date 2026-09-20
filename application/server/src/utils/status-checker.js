@@ -44,10 +44,16 @@ const worstStatus = (statuses) => {
 // Discord-style: one bar per calendar day, colored by how much of that day
 // was down — not one bar per raw check (which, at a short check interval,
 // would only cover the last few minutes instead of the last 90 days).
+//
+// The colour reflects how LONG the day was down, not that a failure existed.
+// Under the old rule (any failure -> minor, up to 10% -> minor) 47 of Network
+// Visualizer's 58 amber days and 32 of the Preview's 40 came from <= 0.2% down
+// (1-3 failed checks), while a day with 9% downtime (2.2 h) rendered the very
+// same amber. 0.5% is ~7 min of a day.
 function severityFor(downRatio) {
-    if (downRatio <= 0) return 'operational';
-    if (downRatio <= 0.1) return 'minor';
-    if (downRatio <= 0.5) return 'major';
+    if (downRatio <= 0.005) return 'operational';
+    if (downRatio <= 0.05) return 'minor';
+    if (downRatio <= 0.2) return 'major';
     return 'critical';
 }
 
@@ -336,4 +342,11 @@ async function getStatusReport() {
 // checks in tests/status/*.check.mjs (see worst-status.check.mjs for why:
 // they're pure functions and don't need the Mongo-backed mocha harness the
 // rest of the status suite runs under).
-export { getStatusReport, worstStatus, mergeWithMetrion, buildMetrionMonitorStatus, slugify };
+export {
+    getStatusReport,
+    severityFor,
+    worstStatus,
+    mergeWithMetrion,
+    buildMetrionMonitorStatus,
+    slugify,
+};
