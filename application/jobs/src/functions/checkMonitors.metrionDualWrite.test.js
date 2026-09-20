@@ -31,8 +31,60 @@ const API_KEY = process.env.METRION_TEST_API_KEY;
 const DATABASE_URL =
     process.env.METRION_TEST_DATABASE_URL ?? 'postgres://metrion:metrion@localhost:5432/metrion';
 
-const { runCheckCycle, ensureConnected, MonitorModel, MonitorCheckModel } =
+const { runCheckCycle, checkMonitor, ensureConnected, MonitorModel, MonitorCheckModel } =
     await import('./checkMonitors.js');
+
+// Needs no services: fetch and the Mongo write are stubbed, so it runs in a plain `npm test`.
+test('checkMonitor: first probe fails, second succeeds -> exactly one ok document and one sink.add', async () => {
+    const realFetch = globalThis.fetch;
+    const realCreate = MonitorCheckModel.create;
+    const created = [];
+    const added = [];
+    let calls = 0;
+    globalThis.fetch = async () => {
+        calls += 1;
+        if (calls === 1) throw new TypeError('fetch failed');
+        return { status: 200 };
+    };
+    MonitorCheckModel.create = async (doc) => created.push(doc);
+    try {
+        await checkMonitor(
+            { _id: 'm1', url: 'http://x.invalid/' },
+            { add: (...a) => added.push(a) },
+            {},
+            0,
+        );
+    } finally {
+        globalThis.fetch = realFetch;
+        MonitorCheckModel.create = realCreate;
+    }
+    assert.equal(calls, 2);
+    assert.equal(created.length, 1);
+    assert.equal(created[0].ok, true);
+    assert.equal(added.length, 1);
+});
+
+test('checkMonitor: both probes fail -> one not-ok document carrying the second error', async () => {
+    const realFetch = globalThis.fetch;
+    const realCreate = MonitorCheckModel.create;
+    const created = [];
+    let calls = 0;
+    globalThis.fetch = async () => {
+        calls += 1;
+        throw new TypeError(`fetch failed ${calls}`);
+    };
+    MonitorCheckModel.create = async (doc) => created.push(doc);
+    try {
+        await checkMonitor({ _id: 'm1', url: 'http://x.invalid/' }, { add() {} }, {}, 0);
+    } finally {
+        globalThis.fetch = realFetch;
+        MonitorCheckModel.create = realCreate;
+    }
+    assert.equal(calls, 2, 'exactly one retry, no loop');
+    assert.equal(created.length, 1);
+    assert.equal(created[0].ok, false);
+    assert.equal(created[0].error, 'fetch failed 2');
+});
 
 if (!API_KEY) {
     test('dual-write against a real local Metrion instance', { skip: true }, () => {
