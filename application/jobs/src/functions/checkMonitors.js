@@ -102,7 +102,18 @@ async function pingUrl(url) {
             latencyMs: Date.now() - start,
         };
     } catch (err) {
-        return { ok: false, latencyMs: Date.now() - start, error: err.message };
+        // Node's fetch rejects with a bare "fetch failed" and hides the reason in
+        // err.cause. 15 rows in the 30 days to 2026-09-20 read exactly that, all
+        // on https://ml-visualizer.at (dual-stack A + AAAA), so IPv6-vs-IPv4
+        // could not be answered from stored data. Keep only the short code
+        // (ECONNRESET, ENETUNREACH, UND_ERR_CONNECT_TIMEOUT): this string is
+        // shown in the public lastError field, so never cause.stack or a URL.
+        const code = err.cause?.code;
+        return {
+            ok: false,
+            latencyMs: Date.now() - start,
+            error: code ? `${err.message} (${code})` : err.message,
+        };
     }
 }
 

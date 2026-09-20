@@ -34,6 +34,29 @@ const DATABASE_URL =
 const { runCheckCycle, checkMonitor, ensureConnected, MonitorModel, MonitorCheckModel } =
     await import('./checkMonitors.js');
 
+test('checkMonitor: a rejection carrying cause.code records the code; without cause the bare message', async () => {
+    const realFetch = globalThis.fetch;
+    const realCreate = MonitorCheckModel.create;
+    const created = [];
+    MonitorCheckModel.create = async (doc) => created.push(doc);
+    try {
+        for (const err of [
+            Object.assign(new TypeError('fetch failed'), { cause: { code: 'ECONNRESET' } }),
+            new TypeError('fetch failed'),
+        ]) {
+            globalThis.fetch = async () => {
+                throw err;
+            };
+            await checkMonitor({ _id: 'm1', url: 'http://x.invalid/' }, { add() {} }, {}, 0);
+        }
+    } finally {
+        globalThis.fetch = realFetch;
+        MonitorCheckModel.create = realCreate;
+    }
+    assert.equal(created[0].error, 'fetch failed (ECONNRESET)');
+    assert.equal(created[1].error, 'fetch failed');
+});
+
 // Needs no services: fetch and the Mongo write are stubbed, so it runs in a plain `npm test`.
 test('checkMonitor: first probe fails, second succeeds -> exactly one ok document and one sink.add', async () => {
     const realFetch = globalThis.fetch;
