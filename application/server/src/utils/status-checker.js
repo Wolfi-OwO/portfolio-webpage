@@ -208,8 +208,22 @@ function slugify(value) {
         .replace(/^-|-$/g, '');
 }
 
+// The URL's first hostname label also counts: Metrion's `netviz` key is the
+// subdomain of https://netviz.woofi-developments.at/, but the Mongo monitor is
+// named "Network Visualizer" with no containerApp, so no name-based candidate
+// matched and the app showed up twice ("8/8" on the page was really 7).
+function hostLabel(url) {
+    try {
+        return new URL(url).hostname.split('.')[0];
+    } catch {
+        return null;
+    }
+}
+
 function monitorSlugs(monitor) {
-    return [monitor.group, monitor.name, monitor.containerApp?.name].map(slugify).filter(Boolean);
+    return [monitor.group, monitor.name, monitor.containerApp?.name, hostLabel(monitor.url)]
+        .map(slugify)
+        .filter(Boolean);
 }
 
 // Maps Metrion's daily `{ day, upPct, samples }` buckets onto the same shape

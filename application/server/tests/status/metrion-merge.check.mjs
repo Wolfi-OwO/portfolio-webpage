@@ -38,6 +38,38 @@ import { fetchMetrionApplications, resetMetrionCache } from '../../src/utils/met
     assert.equal(merged[0].source, 'mongo', 'the surviving entry must be the Mongo one');
 }
 
+// ── A Mongo monitor matches Metrion's key via its URL's first hostname label ──
+{
+    const monitors = [
+        { name: 'Network Visualizer', group: null, url: 'https://netviz.woofi-developments.at/' },
+        { name: 'No URL at all', group: null },
+        { name: 'Garbage URL', group: null, url: 'not a url' },
+    ];
+    const mongoStatuses = monitors.map((m, i) => ({ _id: `m${i}`, name: m.name }));
+    const app = (key) => ({
+        key,
+        displayName: key,
+        uptime: { h24: 100, d7: 100, d30: 100 },
+        latencyMs: 1,
+        lastSampleAt: new Date().toISOString(),
+        history: [],
+    });
+
+    const merged = mergeWithMetrion(monitors, mongoStatuses, [app('netviz'), app('preussen-bot')]);
+
+    assert.equal(
+        merged.some((e) => e._id === 'metrion:netviz'),
+        false,
+        'netviz must be suppressed by the Mongo monitor at netviz.woofi-developments.at',
+    );
+    assert.equal(
+        merged.some((e) => e._id === 'metrion:preussen-bot'),
+        true,
+        'a Metrion key with no matching monitor is still appended',
+    );
+    assert.equal(merged.length, 4, 'three Mongo entries plus preussen-bot');
+}
+
 // ── An unreachable Metrion yields the Mongo-only report ────────────────────
 {
     const monitors = [{ name: 'Solid', group: null }];
@@ -171,7 +203,11 @@ import { fetchMetrionApplications, resetMetrionCache } from '../../src/utils/met
         resetMetrionCache();
     }
 
-    assert.equal(fetchCount, 1, '50 concurrent cold-cache callers must de-dupe to 1 upstream fetch');
+    assert.equal(
+        fetchCount,
+        1,
+        '50 concurrent cold-cache callers must de-dupe to 1 upstream fetch',
+    );
 }
 
 // ── A failing upstream gets cached, not retried on every next call ────────
