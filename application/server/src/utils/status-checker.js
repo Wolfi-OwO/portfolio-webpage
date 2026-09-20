@@ -169,7 +169,45 @@ async function latencyPercentiles(monitorId) {
     return { p50: at(0.5), p95: at(0.95) };
 }
 
-async function buildMonitorStatus(monitor) {
+// This report is served to ANONYMOUS callers (status-route.js is public on
+// purpose), so its default projection must not name infrastructure. Stored
+// errors come from two places in jobs/src/functions/checkMonitors.js:
+//   - the ARM branch: "Revision dsai-containerapp--0000004 is Failed
+//     (health: Unhealthy)" and, in its catch, the Azure SDK's OWN err.message
+//     - unbounded text that carries full resource ids including the
+//     subscription GUID when a credential or role breaks;
+//   - the HTTP branch: bounded, "fetch failed (ECONNRESET)".
+// Only the ARM branch ever sets runningStatus, so that field is the
+// discriminator - no string sniffing. The errno stays: it names a failure
+// mode, not a host. Full text stays in Mongo and in the admin projection.
+const ERRNO_RE = /\(([A-Z][A-Z0-9_]+)\)\s*$/;
+function publicError(check) {
+    if (!check || check.ok || !check.error) return undefined;
+    if (check.runningStatus) return 'Container app revision is not healthy';
+    const code = check.error.match(ERRNO_RE)?.[1];
+    return code ? `Request failed (${code})` : 'Request failed';
+}
+
+// The page only needs "is a container app" and "is it scaled to zero", so the
+// anonymous view gets those two facts instead of the resource group/name.
+function projectInfra(monitor, latest, detailed) {
+    const hasApp = Boolean(monitor.containerApp?.name);
+    return {
+        containerApp: !hasApp
+            ? null
+            : detailed
+              ? monitor.containerApp
+              : { scaleToZero: monitor.containerApp.scaleToZero ?? true },
+        lastError: detailed ? (!latest?.ok ? latest?.error : undefined) : publicError(latest),
+        runningStatus: detailed
+            ? (latest?.runningStatus ?? null)
+            : latest?.runningStatus === 'ScaledToZero'
+              ? 'ScaledToZero'
+              : null,
+    };
+}
+
+async function buildMonitorStatus(monitor, detailed = false) {
     const first = await MonitorCheckModel.findOne({ monitor: monitor._id }).sort({ at: 1 });
     const latest = await MonitorCheckModel.findOne({ monitor: monitor._id }).sort({ at: -1 });
     const monitoringSince = first?.at ?? Date.now();
@@ -194,13 +232,11 @@ async function buildMonitorStatus(monitor) {
         name: monitor.name,
         url: monitor.url,
         group: monitor.group ?? null,
-        containerApp: monitor.containerApp?.name ? monitor.containerApp : null,
+        ...projectInfra(monitor, latest, detailed),
         status,
         latencyMs: latest?.latencyMs ?? null,
         latency: await latencyPercentiles(monitor._id),
         lastCheckedAt: latest?.at ?? null,
-        lastError: !latest?.ok ? latest?.error : undefined,
-        runningStatus: latest?.runningStatus ?? null,
         monitoringSince,
         uptime: {
             h24: fail24 != null ? round1(100 - fail24) : null,
@@ -357,9 +393,12 @@ function buildGroups(statuses) {
     return { groups, ungrouped };
 }
 
-async function getStatusReport() {
+async function getStatusReport(detailed = false) {
     const monitors = await MonitorModel.find().sort({ createdAt: 1 });
-    const mongoStatuses = await Promise.all(monitors.map(buildMonitorStatus));
+    // Explicit arrow, NOT `monitors.map(buildMonitorStatus)`: map would pass the
+    // array index as `detailed`, and every monitor after the first would be
+    // served with full infrastructure detail to anonymous callers.
+    const mongoStatuses = await Promise.all(monitors.map((m) => buildMonitorStatus(m, detailed)));
     const metrionApps = await fetchMetrionApplications();
     const statuses = mergeWithMetrion(monitors, mongoStatuses, metrionApps);
 
@@ -380,6 +419,8 @@ async function getStatusReport() {
 // rest of the status suite runs under).
 export {
     getStatusReport,
+    publicError,
+    projectInfra,
     severityFor,
     worstStatus,
     mergeWithMetrion,

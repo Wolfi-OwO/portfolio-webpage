@@ -4,6 +4,8 @@ import assert from 'assert';
 import request from 'supertest';
 import { MonitorModel } from '../../src/models/monitor.js';
 import { MonitorCheckModel } from '../../src/models/monitor-check.js';
+import { clearStatusCache } from '../../src/handlers/status-handlers.js';
+import { adminToken } from '../tokens.js';
 
 /* ***************** CONFIG and CONSTS ********************* */
 const DAY = 24 * 60 * 60 * 1000;
@@ -39,6 +41,7 @@ async function seedChecks(monitorId, { days, failEvery, failStart = 0 }) {
 /* ***************** DECLARE testfunctions *********************** */
 describe('GET /api/status', function () {
     beforeEach(async () => {
+        clearStatusCache(); // the 10 s report cache would leak state between tests
         await httpServer.dropCurrentDatabase(process.env.MONGODB_CONNECTION_STRING);
     });
 
@@ -196,5 +199,82 @@ describe('GET /api/status', function () {
             wobbly.uptime.h24 < 100,
             `degraded but flawless 24h uptime? ${wobbly.uptime.h24}%`,
         );
+    });
+
+    describe('anonymous vs admin projection', function () {
+        async function seedFailedArm(error) {
+            const monitor = await MonitorModel.create({
+                name: 'Arm',
+                url: 'https://arm.test',
+                containerApp: { resourceGroup: 'dsai-5bhif-app', name: 'dsai-containerapp' },
+            });
+            await MonitorCheckModel.create({
+                monitor: monitor._id,
+                at: Date.now(),
+                ok: false,
+                latencyMs: 0,
+                error,
+                runningStatus: 'Failed',
+            });
+        }
+
+        it('hides infrastructure names and raw errors from anonymous callers', async function () {
+            await seedFailedArm(
+                'Revision dsai-containerapp--0000004 is Failed (health: Unhealthy)',
+            );
+
+            const res = await request(httpServer).get('/api/status').expect(200);
+            const arm = res.body.ungrouped.find((m) => m.name === 'Arm');
+
+            assert.equal(arm.lastError, 'Container app revision is not healthy');
+            assert.equal(arm.runningStatus, null);
+            assert.deepEqual(arm.containerApp, { scaleToZero: true });
+            assert.ok(!JSON.stringify(res.body).includes('dsai-containerapp'));
+            assert.ok(!JSON.stringify(res.body).includes('dsai-5bhif-app'));
+            assert.equal(res.headers.vary, 'Authorization');
+        });
+
+        it('gives an admin token the full detail', async function () {
+            const raw = 'Revision dsai-containerapp--0000004 is Failed (health: Unhealthy)';
+            await seedFailedArm(raw);
+
+            const res = await request(httpServer)
+                .get('/api/status')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .expect(200);
+            const arm = res.body.ungrouped.find((m) => m.name === 'Arm');
+
+            assert.equal(arm.lastError, raw);
+            assert.equal(arm.runningStatus, 'Failed');
+            assert.equal(arm.containerApp.name, 'dsai-containerapp');
+            assert.equal(arm.containerApp.resourceGroup, 'dsai-5bhif-app');
+        });
+
+        it('serves an invalid token the anonymous projection instead of a 401', async function () {
+            await seedFailedArm('boom');
+            const res = await request(httpServer)
+                .get('/api/status')
+                .set('Authorization', 'Bearer not-a-token')
+                .expect(200);
+            assert.ok(!JSON.stringify(res.body).includes('dsai-containerapp'));
+        });
+
+        it('requires an admin token for GET /api/monitors', async function () {
+            await request(httpServer).get('/api/monitors').expect(401);
+            await request(httpServer)
+                .get('/api/monitors')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .expect(200);
+        });
+
+        it('keys the rate limiter on the last proxy hop, not a client-forged X-Forwarded-For', async function () {
+            // supertest connects from ::ffff:127.0.0.1; with trust proxy = 1 the
+            // rightmost entry is the address Caddy appended.
+            const app = (await import('express')).default();
+            app.set('trust proxy', 1);
+            app.get('/ip', (req, res) => res.send(req.ip));
+            const res = await request(app).get('/ip').set('X-Forwarded-For', '1.2.3.4, 5.6.7.8');
+            assert.equal(res.text, '5.6.7.8');
+        });
     });
 });
