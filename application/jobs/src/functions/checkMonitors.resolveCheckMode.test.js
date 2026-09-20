@@ -43,3 +43,14 @@ test('stale containerApp outside the allowlist and no url -> skip, never a fabri
         'skip',
     );
 });
+
+test('revisionIsUp: Activating (scale-to-zero waking) is up unless the health probe is Unhealthy', async () => {
+    const { revisionIsUp } = await import('./checkMonitors.js');
+    assert.equal(revisionIsUp({ runningState: 'Activating', healthState: 'Healthy' }), true);
+    assert.equal(revisionIsUp({ runningState: 'Activating', healthState: 'Unhealthy' }), false);
+    for (const runningState of ['Stopped', 'Degraded', 'Failed', 'Processing', 'Unknown']) {
+        assert.equal(revisionIsUp({ runningState, healthState: 'Healthy' }), false, runningState);
+    }
+    assert.equal(revisionIsUp({ runningState: 'Running', healthState: 'Unhealthy' }), false);
+    assert.equal(revisionIsUp({ runningState: 'Running', healthState: 'Healthy' }), true);
+});

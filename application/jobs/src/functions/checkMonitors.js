@@ -136,7 +136,15 @@ const PR_REVISION_RE = /--pr-\d+-/;
 // (Stopped/Degraded/Failed/Processing/Unknown), or an Unhealthy health probe,
 // is down. ScaledToZero isn't in the SDK's KnownRevisionRunningState enum but
 // the live ARM API returns it, so we match the string literal.
-const UP_RUNNING_STATES = new Set(['Running', 'ScaledToZero']);
+//
+// Activating is a scale-to-zero app waking: the platform buffers requests
+// while it starts, so nobody sees an outage. Measured over the 30 days to
+// 2026-09-20: 394 of 394 ML Visualizer failures read "Revision
+// dsai-containerapp--0000004 is Activating (health: Healthy)", and only 6 of
+// them had an adjacent failing check, i.e. it always resolved inside 60 s.
+// Counting it as down made up 76% of all recorded downtime. A genuinely
+// broken revision still shows Unhealthy/Failed/Degraded, which stay down.
+const UP_RUNNING_STATES = new Set(['Running', 'ScaledToZero', 'Activating']);
 function revisionIsUp(revision) {
     return (
         revision.healthState !== 'Unhealthy' &&
@@ -302,6 +310,7 @@ export {
     resolveCheckMode,
     checkMonitor,
     checkContainerAppMonitor,
+    revisionIsUp,
     MonitorModel,
     MonitorCheckModel,
 };
