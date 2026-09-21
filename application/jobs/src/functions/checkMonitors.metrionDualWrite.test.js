@@ -154,10 +154,12 @@ if (!API_KEY) {
             name: 'Machine Learning Visualizer (Preview)',
             url: fixtureUrl,
             group: 'ML Visualizer',
+            metrionKey: 'ml-visualizer-preview',
         });
         downMonitor = await MonitorModel.create({
             name: 'Task26 Integration Down Monitor',
             url: closedPortUrl,
+            metrionKey: 'task26-integration-down-monitor',
         });
         skipMonitor = await MonitorModel.create({ name: 'Task26 Integration Skip Monitor' });
     });
@@ -167,7 +169,7 @@ if (!API_KEY) {
         await MonitorCheckModel.deleteMany({ monitor: { $in: monitorIds } });
         await MonitorModel.deleteMany({ _id: { $in: monitorIds } });
         await pool.query(
-            "DELETE FROM metrics WHERE project_id = $1 AND resource IN ('ml-visualizer', 'task26-integration-down-monitor')",
+            "DELETE FROM metrics WHERE project_id = $1 AND resource IN ('ml-visualizer-preview', 'task26-integration-down-monitor')",
             [projectId],
         );
         await pool.end();
@@ -205,14 +207,14 @@ if (!API_KEY) {
             `SELECT resource, sub_resource, name, avg(value) AS avg_value, count(*)
                FROM metrics
               WHERE project_id = $1 AND name = 'uptime.ok'
-                AND resource IN ('ml-visualizer', 'task26-integration-down-monitor')
+                AND resource IN ('ml-visualizer-preview', 'task26-integration-down-monitor')
               GROUP BY 1, 2, 3`,
             [projectId],
         );
         assert.equal(rows.length, 2, 'one uptime.ok row group per monitor');
 
-        const mlRow = rows.find((r) => r.resource === 'ml-visualizer');
-        assert.equal(mlRow.sub_resource, 'machine-learning-visualizer-preview');
+        const mlRow = rows.find((r) => r.resource === 'ml-visualizer-preview');
+        assert.equal(mlRow.sub_resource, null, 'sub_resource is never sent');
         assert.equal(Number(mlRow.avg_value), 1, 'the fixture server always answers 200');
 
         const downRow = rows.find((r) => r.resource === 'task26-integration-down-monitor');
@@ -233,7 +235,7 @@ if (!API_KEY) {
         // against real ingest rows rather than assumed.
         const { rows: latencyRows } = await pool.query(
             `SELECT resource FROM metrics WHERE project_id = $1 AND name = 'uptime.latency'
-                AND resource IN ('ml-visualizer', 'task26-integration-down-monitor')`,
+                AND resource IN ('ml-visualizer-preview', 'task26-integration-down-monitor')`,
             [projectId],
         );
         assert.equal(latencyRows.length, 2);

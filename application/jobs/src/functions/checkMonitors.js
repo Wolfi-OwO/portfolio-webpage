@@ -12,6 +12,9 @@ const monitorSchema = new mongoose.Schema(
         name: { type: String, required: true, index: true },
         url: { type: String },
         group: { type: String, trim: true, default: null, index: true },
+        // Metrion resource key; without it in this schema Mongoose would strip
+        // the field on load and the sink would skip every monitor.
+        metrionKey: { type: String },
         containerApp: {
             resourceGroup: { type: String },
             name: { type: String },

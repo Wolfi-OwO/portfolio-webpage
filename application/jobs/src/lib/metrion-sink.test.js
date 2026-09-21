@@ -1,38 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createMetrionSink, slugify, resourceFor } from './metrion-sink.js';
-
-// Pure-function slice of the mapping table (mona's docs/adr/0007), no DB, no
-// network — matches the repo's own convention for exported pure functions
-// (checkMonitors.resolveCheckMode.test.js).
-
-test("slugify strips everything Metrion's ingest charset rejects (parens, spaces)", () => {
-    // The live monitor name that motivated this task — verified separately
-    // against a running local ingest instance in the integration test below.
-    assert.equal(
-        slugify('Machine Learning Visualizer (Preview)'),
-        'machine-learning-visualizer-preview',
-    );
-    assert.equal(slugify('ML Visualizer'), 'ml-visualizer');
-});
-
-test('resourceFor: group present -> resource=group, subResource=name', () => {
-    assert.deepEqual(resourceFor({ group: 'ML Visualizer', name: 'Machine Learning Visualizer' }), {
-        resource: 'ml-visualizer',
-        subResource: 'machine-learning-visualizer',
-    });
-});
-
-test('resourceFor: no group -> resource=name, subResource=null', () => {
-    assert.deepEqual(resourceFor({ group: null, name: 'Nutrilens' }), {
-        resource: 'nutrilens',
-        subResource: null,
-    });
-});
-
-test('resourceFor: neither group nor name slugifies to anything -> null (caller drops the point)', () => {
-    assert.equal(resourceFor({ group: null, name: '???' }), null);
-});
+import { createMetrionSink } from './metrion-sink.js';
 
 function withEnv(vars, fn) {
     const saved = {};
@@ -56,7 +24,7 @@ test('add(): uptime.ok always emitted; uptime.latency only when runningStatus is
             };
 
             const sink = createMetrionSink();
-            const monitor = { name: 'Nutrilens', group: null };
+            const monitor = { name: 'Nutrilens', group: null, metrionKey: 'nutrilens' };
             sink.add(monitor, { at: 1_700_000_000_000, ok: true, latencyMs: 42 }); // HTTP check -> latency
             sink.add(monitor, {
                 at: 1_700_000_000_000,
@@ -75,7 +43,7 @@ test('add(): uptime.ok always emitted; uptime.latency only when runningStatus is
             const body = JSON.parse(calls[0][1].body);
             assert.equal(body.length, 1, 'both checks share one resource -> one envelope');
             const names = body[0].metrics.map((m) => m.name);
-            assert.deepEqual(names, ['uptime.ok', 'uptime.latency', 'uptime.ok']);
+            assert.deepEqual(names, ['uptime.ok', 'uptime.latency', 'uptime.ok', 'uptime.idle']);
         },
     );
 });
@@ -92,7 +60,7 @@ test('sink is a no-op when METRION_API_KEY is unset', async () => {
 
             const sink = createMetrionSink();
             sink.add(
-                { name: 'Nutrilens', group: null },
+                { name: 'Nutrilens', group: null, metrionKey: 'nutrilens' },
                 { at: Date.now(), ok: true, latencyMs: 1 },
             );
             await sink.flush();
@@ -114,7 +82,7 @@ test('an unreachable METRION_INGEST_URL logs one warning and does not throw', as
 
             const sink = createMetrionSink();
             sink.add(
-                { name: 'Nutrilens', group: null },
+                { name: 'Nutrilens', group: null, metrionKey: 'nutrilens' },
                 { at: Date.now(), ok: true, latencyMs: 1 },
                 context,
             );
@@ -123,4 +91,65 @@ test('an unreachable METRION_INGEST_URL logs one warning and does not throw', as
             assert.equal(warnings.length, 1);
         },
     );
+});
+
+function captureBody(fn) {
+    return withEnv(
+        { METRION_INGEST_URL: 'http://example.invalid/ingest', METRION_API_KEY: 'mtr_x_y' },
+        async () => {
+            const calls = [];
+            globalThis.fetch = async (...args) => {
+                calls.push(args);
+                return { ok: true, status: 202 };
+            };
+            const sink = createMetrionSink();
+            const warnings = [];
+            fn(sink, { warn: (m) => warnings.push(m) });
+            await sink.flush();
+            return { body: calls.length ? JSON.parse(calls[0][1].body) : null, warnings };
+        },
+    );
+}
+
+test('an HTTP monitor is addressed by metrionKey: one envelope, no subResource, two points', async () => {
+    const { body } = await captureBody((sink) =>
+        sink.add(
+            { name: 'Network Visualizer', group: 'Network Visualizer', metrionKey: 'netviz' },
+            { at: Date.now(), ok: true, latencyMs: 12 },
+        ),
+    );
+    assert.equal(body.length, 1);
+    assert.equal(body[0].resource, 'netviz');
+    assert.equal('subResource' in body[0], false);
+    assert.deepEqual(
+        body[0].metrics.map((m) => [m.name, m.value, m.unit, m.intervalSeconds]),
+        [
+            ['uptime.ok', 1, 'boolean', 60],
+            ['uptime.latency', 12, 'ms', 60],
+        ],
+    );
+});
+
+test('a ScaledToZero ARM check emits ok=1 and idle=1 but no latency', async () => {
+    const { body } = await captureBody((sink) =>
+        sink.add(
+            { name: 'ML', metrionKey: 'ml-visualizer' },
+            { at: Date.now(), ok: true, latencyMs: 300, runningStatus: 'ScaledToZero' },
+        ),
+    );
+    assert.deepEqual(
+        body[0].metrics.map((m) => [m.name, m.value]),
+        [
+            ['uptime.ok', 1],
+            ['uptime.idle', 1],
+        ],
+    );
+});
+
+test('a monitor without metrionKey is skipped with a warning and nothing is sent', async () => {
+    const { body, warnings } = await captureBody((sink, context) =>
+        sink.add({ name: 'Legacy' }, { at: Date.now(), ok: true, latencyMs: 1 }, context),
+    );
+    assert.equal(body, null);
+    assert.equal(warnings.length, 1);
 });

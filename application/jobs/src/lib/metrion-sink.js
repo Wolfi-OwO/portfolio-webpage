@@ -5,73 +5,44 @@
 // implemented here. Uses the global `fetch` the Functions Node runtime
 // already provides — no new dependency for one POST per run.
 
-// Mirrors the IDENTIFIER charset Metrion's ingest schema enforces
-// (mona/applications/ingest/src/schemas/ingest.schemas.ts) — duplicated
-// rather than imported for the same reason the Mongoose schemas above are:
-// this Function App deploys independently of Metrion.
-function slugify(value) {
-    return (value ?? '')
-        .toLowerCase()
-        .replace(/[^a-z0-9._:-]+/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
-}
-
-// resource = slugified monitor.group, falling back to slugified monitor.name
-// when group is empty; sub_resource = slugified monitor.name, or null when
-// name was already used as the resource. Returns null when even the
-// fallback slug is empty, so the caller can drop the point rather than send
-// ingest an identifier that would 400 the whole batch.
-function resourceFor(monitor) {
-    const group = slugify(monitor.group);
-    const name = slugify(monitor.name);
-    if (group) return { resource: group, subResource: name || null };
-    return name ? { resource: name, subResource: null } : null;
-}
-
 function createMetrionSink() {
     const url = process.env.METRION_INGEST_URL;
     const key = process.env.METRION_API_KEY;
     const enabled = Boolean(url && key);
-    const envelopes = new Map(); // "resource\0subResource" -> { resource, subResource, metrics }
+    const envelopes = new Map(); // metrionKey -> { resource, metrics }
 
+    // The resource is the monitor's explicit `metrionKey`, one resource per
+    // monitor and never a sub_resource: deriving it from group/name once made
+    // "Network Visualizer" land as `network-visualizer` (Metrion's key is
+    // `netviz`) and folded Portfolio + Status Page into one averaged resource.
     function add(monitor, check, context) {
         if (!enabled) return;
-        const target = resourceFor(monitor);
-        if (!target) {
-            context?.warn?.(`metrion-sink: monitor "${monitor.name}" has no usable slug, skipped`);
+        const resource = monitor.metrionKey;
+        if (!resource) {
+            context?.warn?.(`metrion-sink: monitor "${monitor.name}" has no metrionKey, skipped`);
             return;
         }
         const timestamp = new Date(check.at).toISOString();
-        const metrics = [
-            {
-                name: 'uptime.ok',
-                value: check.ok ? 1 : 0,
-                unit: 'boolean',
-                timestamp,
-                interval: 60,
-            },
-        ];
+        const point = (name, value, unit) => ({
+            name,
+            value,
+            unit,
+            intervalSeconds: 60,
+            timestamp,
+        });
+        const isArm = check.runningStatus != null;
+        const metrics = [point('uptime.ok', check.ok ? 1 : 0, 'boolean')];
         // Only a plain HTTP probe measures the monitored app's own latency —
         // an ARM check's latencyMs is the control-plane round trip (ADR 0007 §4).
-        if (check.runningStatus == null) {
-            metrics.push({
-                name: 'uptime.latency',
-                value: check.latencyMs,
-                unit: 'ms',
-                timestamp,
-                interval: 60,
-            });
+        if (!isArm) metrics.push(point('uptime.latency', check.latencyMs, 'ms'));
+        // Idle only exists for ARM-checked (scale-to-zero) monitors.
+        if (isArm) {
+            metrics.push(
+                point('uptime.idle', check.runningStatus === 'ScaledToZero' ? 1 : 0, 'boolean'),
+            );
         }
-        const bucketKey = `${target.resource}\0${target.subResource ?? ''}`;
-        if (!envelopes.has(bucketKey)) {
-            envelopes.set(bucketKey, {
-                resource: target.resource,
-                ...(target.subResource ? { subResource: target.subResource } : {}),
-                metrics: [],
-            });
-        }
-        envelopes.get(bucketKey).metrics.push(...metrics);
+        if (!envelopes.has(resource)) envelopes.set(resource, { resource, metrics: [] });
+        envelopes.get(resource).metrics.push(...metrics);
     }
 
     async function flush(context) {
@@ -94,4 +65,4 @@ function createMetrionSink() {
     return { add, flush };
 }
 
-export { createMetrionSink, slugify, resourceFor };
+export { createMetrionSink };
