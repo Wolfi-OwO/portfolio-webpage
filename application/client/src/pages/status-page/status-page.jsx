@@ -574,6 +574,7 @@ function MonitorForm({ editing, existingGroups, onSubmit, onCancel }) {
     const [name, setName] = useState(editing?.name ?? '');
     const [url, setUrl] = useState(editing?.url ?? '');
     const [group, setGroup] = useState(editing?.group ?? '');
+    const [metrionKey, setMetrionKey] = useState(editing?.metrionKey ?? '');
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
 
@@ -588,13 +589,24 @@ function MonitorForm({ editing, existingGroups, onSubmit, onCancel }) {
             return;
         }
 
+        if (!metrionKey.trim()) {
+            setError('Metrion key is required.');
+            return;
+        }
+
         setSubmitting(true);
         try {
-            await onSubmit({ name: name.trim(), url: url.trim(), group: group.trim() });
+            await onSubmit({
+                name: name.trim(),
+                url: url.trim(),
+                group: group.trim(),
+                metrionKey: metrionKey.trim(),
+            });
             if (!editing) {
                 setName('');
                 setUrl('');
                 setGroup('');
+                setMetrionKey('');
             }
         } catch (err) {
             setError(err.message || 'Failed to save monitor.');
@@ -662,6 +674,17 @@ function MonitorForm({ editing, existingGroups, onSubmit, onCancel }) {
                         <option key={g} value={g} />
                     ))}
                 </datalist>
+            </label>
+
+            <label className="flex-1 basis-40">
+                <span className={labelCls}>Metrion key</span>
+                <input
+                    type="text"
+                    value={metrionKey}
+                    onChange={(e) => setMetrionKey(e.target.value)}
+                    placeholder="e.g. netviz"
+                    className={`${inputCls} font-mono`}
+                />
             </label>
 
             <div className="flex items-center gap-2">
@@ -792,11 +815,11 @@ export default function StatusPage() {
         setRefreshing(false);
     }
 
-    async function handleCreate({ name, url, group }) {
+    async function handleCreate({ name, url, group, metrionKey }) {
         const response = await fetch('/api/monitors', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...authHeaders() },
-            body: JSON.stringify({ name, url, group }),
+            body: JSON.stringify({ name, url, group, metrionKey }),
         });
         if (!response.ok) {
             const payload = await response.json().catch(() => ({}));
@@ -805,11 +828,11 @@ export default function StatusPage() {
         await load();
     }
 
-    async function handleUpdate(monitor, { name, url, group }) {
+    async function handleUpdate(monitor, { name, url, group, metrionKey }) {
         const response = await fetch(`/api/monitors/${monitor._id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', ...authHeaders() },
-            body: JSON.stringify({ name, url, group }),
+            body: JSON.stringify({ name, url, group, metrionKey }),
         });
         if (!response.ok) {
             const payload = await response.json().catch(() => ({}));
