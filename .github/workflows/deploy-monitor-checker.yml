@@ -72,3 +72,27 @@ jobs:
         with:
           app-name: woofi-monitor-checker
           package: application/jobs
+
+      # A green deploy does not prove the app registered its functions (see the
+      # 2026-09-20 note above), so assert it. Azure indexes a fresh package
+      # asynchronously; wait briefly before the first look. If the list is
+      # still empty, one restart recovered it once, so try that before failing.
+      - name: Assert the Function App registered its functions
+        run: |
+          list_functions() {
+            az functionapp function list -g portfolio-webpage-rg -n woofi-monitor-checker --query 'length(@)' -o tsv
+          }
+          sleep 30
+          count=$(list_functions)
+          if [ "${count:-0}" -eq 0 ]; then
+            echo "::warning::Function list is empty after deploy; restarting once."
+            az functionapp restart -g portfolio-webpage-rg -n woofi-monitor-checker
+            sleep 90
+            count=$(list_functions)
+          fi
+          if [ "${count:-0}" -eq 0 ]; then
+            echo "::error::woofi-monitor-checker has zero registered functions after deploy and one restart."
+            exit 1
+          fi
+          echo "Registered functions: ${count}"
+          az functionapp function list -g portfolio-webpage-rg -n woofi-monitor-checker -o table
