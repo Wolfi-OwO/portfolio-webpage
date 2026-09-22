@@ -9,16 +9,26 @@ import { InternalServerError } from '../middlewares/error-handlers.js';
 // admin) in memory. The in-flight PROMISE is stored so concurrent requests
 // share one computation; a failed one is evicted so errors are not cached.
 const CACHE_MS = 10 * 1000;
-const cache = new Map(); // key: detailed (boolean) -> { at, promise }
+const cache = new Map(); // key: `${source}:${detailed}` -> { at, promise }
+
+// Read alongside getStatusReport's own default so the cache key always
+// matches whichever branch a call would actually take — otherwise flipping
+// STATUS_SOURCE mid-runtime could serve a stale mongo-keyed entry under the
+// metrion cache slot (or vice versa) for up to CACHE_MS.
+function currentSource() {
+    return process.env.STATUS_SOURCE === 'metrion' ? 'metrion' : 'mongo';
+}
 
 function cachedReport(detailed) {
-    const hit = cache.get(detailed);
+    const source = currentSource();
+    const key = `${source}:${detailed}`;
+    const hit = cache.get(key);
     if (hit && Date.now() - hit.at < CACHE_MS) return hit.promise;
-    const entry = { at: Date.now(), promise: getStatusReport(detailed) };
+    const entry = { at: Date.now(), promise: getStatusReport(detailed, source) };
     entry.promise.catch(() => {
-        if (cache.get(detailed) === entry) cache.delete(detailed);
+        if (cache.get(key) === entry) cache.delete(key);
     });
-    cache.set(detailed, entry);
+    cache.set(key, entry);
     return entry.promise;
 }
 

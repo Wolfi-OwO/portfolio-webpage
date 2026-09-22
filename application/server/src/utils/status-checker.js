@@ -1,6 +1,7 @@
 import { MonitorModel } from '../models/monitor.js';
 import { MonitorCheckModel } from '../models/monitor-check.js';
-import { fetchMetrionApplications } from './metrion-source.js';
+import { DAY, round1, severityFor } from './status-shared.js';
+import { buildMetrionStatuses } from './metrion-adapter.js';
 
 // This service no longer probes anything itself: the separate monitor-checker
 // Azure Function performs every check (~once per minute, 24/7) and writes the
@@ -14,9 +15,7 @@ import { fetchMetrionApplications } from './metrion-source.js';
 // implies. Every measurement below is therefore derived from the samples we
 // actually have, never from a wall-clock guess at how many should exist.
 const CHECK_MS = (Number(process.env.STATUS_CHECK_INTERVAL_SECONDS) || 60) * 1000;
-const DAY = 24 * 60 * 60 * 1000;
 const HISTORY_DAYS = 90;
-const round1 = (n) => Math.round(n * 10) / 10;
 
 // Worst-of ordering for rolled-up statuses (groups AND the overall report —
 // both call this one function, so the rule lives in exactly one place).
@@ -41,21 +40,9 @@ const worstStatus = (statuses) => {
     return STATUS_ORDER.find((s) => rollup.includes(s)) ?? 'operational';
 };
 
-// Discord-style: one bar per calendar day, colored by how much of that day
-// was down — not one bar per raw check (which, at a short check interval,
-// would only cover the last few minutes instead of the last 90 days).
-//
-// The colour reflects how LONG the day was down, not that a failure existed.
-// Under the old rule (any failure -> minor, up to 10% -> minor) 47 of Network
-// Visualizer's 58 amber days and 32 of the Preview's 40 came from <= 0.2% down
-// (1-3 failed checks), while a day with 9% downtime (2.2 h) rendered the very
-// same amber. 0.5% is ~7 min of a day.
-function severityFor(downRatio) {
-    if (downRatio <= 0.005) return 'operational';
-    if (downRatio <= 0.05) return 'minor';
-    if (downRatio <= 0.2) return 'major';
-    return 'critical';
-}
+// severityFor now lives in status-shared.js (reused by metrion-adapter.js);
+// re-exported below unchanged so existing importers (tests, this file) don't
+// need to change their import path.
 
 async function buildDailyHistory(monitorId) {
     const todayBucket = Math.floor(Date.now() / DAY);
@@ -247,114 +234,6 @@ async function buildMonitorStatus(monitor, detailed = false) {
     };
 }
 
-// ── Metrion merge ────────────────────────────────────────────────────────────
-// Mongo stays the richer, canonical source for anything it already monitors
-// (incident detail Metrion's numeric-only envelope can't carry); Metrion only
-// fills in applications Mongo has no monitor for at all. Matching is by slug,
-// not by any shared id — Metrion's `key` (e.g. "netviz") was assigned on
-// Metrion's side independently of Mongo's monitor documents, so a monitor's
-// group, name AND (when present) containerApp.name are all tried as
-// candidates. Duplicated from jobs/src/lib/metrion-sink.js's slugify rather
-// than imported: this app deploys independently of that one (see that file's
-// own comment for the same reasoning on the write side).
-function slugify(value) {
-    return (value ?? '')
-        .toLowerCase()
-        .replace(/[^a-z0-9._:-]+/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
-}
-
-// The URL's first hostname label also counts: Metrion's `netviz` key is the
-// subdomain of https://netviz.woofi-developments.at/, but the Mongo monitor is
-// named "Network Visualizer" with no containerApp, so no name-based candidate
-// matched and the app showed up twice ("8/8" on the page was really 7).
-function hostLabel(url) {
-    try {
-        return new URL(url).hostname.split('.')[0];
-    } catch {
-        return null;
-    }
-}
-
-function monitorSlugs(monitor) {
-    return [monitor.group, monitor.name, monitor.containerApp?.name, hostLabel(monitor.url)]
-        .map(slugify)
-        .filter(Boolean);
-}
-
-// Maps Metrion's daily `{ day, upPct, samples }` buckets onto the same shape
-// buildDailyHistory produces, so the client's 90-day bars render identically
-// regardless of which source an entry came from.
-function mapMetrionHistory(history) {
-    return (history ?? []).map(({ day, upPct, samples }) => {
-        const dayMs = new Date(day).getTime();
-        if (!samples) {
-            return { day: dayMs, severity: 'no-data', downPct: null, downMs: 0, totalChecks: 0 };
-        }
-        const downRatio = (100 - upPct) / 100;
-        const observedMs = Math.min(DAY, Date.now() - dayMs);
-        return {
-            day: dayMs,
-            severity: severityFor(downRatio),
-            downPct: round1(downRatio * 100),
-            downMs: Math.round(downRatio * observedMs),
-            totalChecks: samples,
-        };
-    });
-}
-
-// Same status ladder buildMonitorStatus uses, adapted to what Metrion's
-// envelope actually carries: no single "latest check" document, so "the
-// newest sample is 0" reads off the most recent day in history that
-// collected any samples at all.
-function buildMetrionMonitorStatus(app) {
-    const history = app.history ?? [];
-    const latestSampledDay = [...history].reverse().find((d) => d.samples > 0) ?? null;
-    const h24 = app.uptime?.h24 ?? null;
-    const status =
-        app.lastSampleAt == null
-            ? 'pending'
-            : latestSampledDay?.upPct === 0
-              ? 'down'
-              : h24 != null && h24 < 90
-                ? 'degraded'
-                : 'operational';
-
-    return {
-        _id: `metrion:${app.key}`,
-        name: app.displayName ?? app.key,
-        url: null,
-        group: null,
-        containerApp: null,
-        status,
-        latencyMs: app.latencyMs ?? null,
-        latency: null,
-        lastCheckedAt: app.lastSampleAt ?? null,
-        lastError: undefined,
-        runningStatus: null,
-        monitoringSince: null,
-        uptime: {
-            h24: app.uptime?.h24 ?? null,
-            d7: app.uptime?.d7 ?? null,
-            d30: app.uptime?.d30 ?? null,
-        },
-        history: mapMetrionHistory(history),
-        source: 'metrion',
-    };
-}
-
-// Pure merge step, split out from getStatusReport so it can be unit-checked
-// without a Mongo connection (see tests/status/metrion-merge.check.mjs).
-function mergeWithMetrion(monitors, mongoStatuses, metrionApps) {
-    const tagged = mongoStatuses.map((s) => ({ ...s, source: 'mongo' }));
-    const mongoSlugs = new Set(monitors.flatMap(monitorSlugs));
-    const metrionEntries = metrionApps
-        .filter((app) => !mongoSlugs.has(slugify(app.key)))
-        .map(buildMetrionMonitorStatus);
-    return [...tagged, ...metrionEntries];
-}
-
 // Groups member monitors under their shared `group` label with a summarized
 // (averaged) uptime and a worst-of status, so related services (e.g. a site
 // and its app subdomain) read as one entry on the status page.
@@ -393,18 +272,40 @@ function buildGroups(statuses) {
     return { groups, ungrouped };
 }
 
-async function getStatusReport(detailed = false) {
+// `STATUS_SOURCE` read once per call (as the default parameter, evaluated at
+// call time, not module load) so a test — or an operator flipping the env var
+// on a live process — sees the change on the very next call, no reimport
+// needed. Unset or any value other than 'metrion' keeps today's Mongo path.
+function defaultSource() {
+    return process.env.STATUS_SOURCE === 'metrion' ? 'metrion' : 'mongo';
+}
+
+async function getStatusReport(detailed = false, source = defaultSource()) {
     const monitors = await MonitorModel.find().sort({ createdAt: 1 });
+
+    if (source === 'metrion') {
+        const { entries, stale, staleSince } = await buildMetrionStatuses(monitors);
+        const status = worstStatus(entries.map((m) => m.status));
+        const { groups, ungrouped } = buildGroups(entries);
+        return { status, checkIntervalMs: CHECK_MS, groups, ungrouped, stale, staleSince };
+    }
+
     // Explicit arrow, NOT `monitors.map(buildMonitorStatus)`: map would pass the
     // array index as `detailed`, and every monitor after the first would be
     // served with full infrastructure detail to anonymous callers.
-    const mongoStatuses = await Promise.all(monitors.map((m) => buildMonitorStatus(m, detailed)));
-    const metrionApps = await fetchMetrionApplications();
-    const statuses = mergeWithMetrion(monitors, mongoStatuses, metrionApps);
+    const mongoStatuses = await Promise.all(
+        monitors.map(async (m) => ({
+            ...(await buildMonitorStatus(m, detailed)),
+            source: 'mongo',
+        })),
+    );
 
-    const status = worstStatus(statuses.map((m) => m.status));
-    const { groups, ungrouped } = buildGroups(statuses);
+    const status = worstStatus(mongoStatuses.map((m) => m.status));
+    const { groups, ungrouped } = buildGroups(mongoStatuses);
 
+    // No `stale`/`staleSince` keys here: the mongo branch's output must stay
+    // byte-identical to the pre-Metrion-adapter report (STATUS_SOURCE unset
+    // is the live default, so this is what every current caller still sees).
     return {
         status,
         checkIntervalMs: CHECK_MS,
@@ -413,17 +314,8 @@ async function getStatusReport(detailed = false) {
     };
 }
 
-// worstStatus and mergeWithMetrion exported for the framework-free unit
-// checks in tests/status/*.check.mjs (see worst-status.check.mjs for why:
-// they're pure functions and don't need the Mongo-backed mocha harness the
-// rest of the status suite runs under).
-export {
-    getStatusReport,
-    publicError,
-    projectInfra,
-    severityFor,
-    worstStatus,
-    mergeWithMetrion,
-    buildMetrionMonitorStatus,
-    slugify,
-};
+// worstStatus exported for the framework-free unit checks in
+// tests/status/*.check.mjs (see worst-status.check.mjs for why: it's a pure
+// function and doesn't need the Mongo-backed mocha harness the rest of the
+// status suite runs under).
+export { getStatusReport, publicError, projectInfra, severityFor, worstStatus };
