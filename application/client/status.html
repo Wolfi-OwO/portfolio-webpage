@@ -5,6 +5,21 @@
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="robots" content="noindex, follow" />
+        <!--
+          Same flash as the main app (see index.html): status-main.jsx already
+          sets `.dark` before its own render, but that's still inside a module
+          script — it can't run until the bundle is fetched/parsed, and the
+          light `--bg` in index.css paints as soon as CSS is ready, well before
+          that. This blocking, non-module script runs first and mirrors
+          status-main.jsx's system-only theme (no toggle on this standalone
+          bundle, so no localStorage read here).
+        -->
+        <script>
+            document.documentElement.classList.toggle(
+                'dark',
+                window.matchMedia('(prefers-color-scheme: dark)').matches,
+            );
+        </script>
         <title>Status - Woofi Developments</title>
         <meta
             name="description"
