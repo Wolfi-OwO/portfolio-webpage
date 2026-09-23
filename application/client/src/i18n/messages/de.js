@@ -23,6 +23,37 @@ export default {
     'status.footer.sources':
         'Die Statuswerte stammen aus zwei Quellen: den eigenen Prüfungen dieser Seite und der Verfügbarkeit von Metrion.',
 
+    // Task 16: the date-range picker.
+    'status.range.live': 'Aktuell',
+    'status.range.24h': '24 Std.',
+    'status.range.7d': '7 Tage',
+    'status.range.30d': '30 Tage',
+    'status.range.90d': '90 Tage',
+    'status.range.1y': '1 Jahr',
+    'status.range.all': 'Gesamter Zeitraum',
+    'status.range.custom': 'Benutzerdefiniert…',
+    'status.range.from': 'Von',
+    'status.range.to': 'Bis',
+    'status.range.apply': 'Anwenden',
+    'status.range.error.required': 'Dieses Datum ist erforderlich.',
+    'status.range.error.tooEarly': 'Das Datum darf nicht vor dem 1. Januar 2000 liegen.',
+    'status.range.error.future': 'Das Datum darf nicht in der Zukunft liegen.',
+    'status.range.error.order': 'Das Enddatum muss auf oder nach dem Startdatum liegen.',
+    'status.range.error.invalid':
+        'Dieser Zeitraum konnte nicht geladen werden — bitte einen anderen wählen.',
+    'status.range.unsupported':
+        'Zeiträume benötigen die Metrion-Quelle — es wird stattdessen die Standardansicht gezeigt.',
+    'status.range.periodLabel': 'Zeitraum',
+    'status.range.avgUptimeLabel': 'Ø Verfügbarkeit · Zeitraum',
+    'status.range.latencyLabel': 'Latenz · p50 (Zeitraum)',
+    'status.range.periodLatencyBoth': '{p50}ms p50 · {p95}ms p95 in diesem Zeitraum',
+    'status.range.periodLatencyP50': '{p50}ms p50 in diesem Zeitraum',
+    'status.incidents.heading': 'Vorfälle in diesem Zeitraum',
+    'status.incidents.ongoing': 'andauernd',
+    'status.incidents.more': '+{count} weitere',
+    'status.stale.note':
+        'Zeigt die zuletzt bekannten Daten — die Live-Quelle hat sich seit {since} nicht mehr gemeldet.',
+
     'footer.status': 'Status',
     'footer.privacyPolicy': 'Datenschutz',
     'footer.imprint': 'Impressum',
