@@ -11,9 +11,10 @@ import {
     buildEntry,
     mapMetrionHistory,
     buildMetrionStatuses,
+    fetchIdleLatencyOverlay,
     resetMetrionAdapterState,
 } from '../../src/utils/metrion-adapter.js';
-import { resetMetrionCache } from '../../src/utils/metrion-source.js';
+import { resetMetrionCache, resetMetrionRangeCache } from '../../src/utils/metrion-source.js';
 
 const NOW = Date.parse('2026-09-22T12:00:00.000Z');
 const monitor = (overrides = {}) => ({
@@ -225,5 +226,189 @@ const monitor = (overrides = {}) => ({
         resetMetrionAdapterState();
     }
 }
+
+// ── Task 16b: buildEntry itself stays exactly as byte-identical as before ──
+// (c85813d's own invariant) — idlePct is not a key at all here, and latency
+// is still null. The overlay (tested below) is layered on top by
+// getStatusReport, never inside buildEntry/buildMetrionStatuses.
+{
+    const apps = new Map([
+        [
+            'netviz',
+            {
+                key: 'netviz',
+                uptime: { h24: 100, d7: 100, d30: 100 },
+                latencyMs: 42,
+                lastSampleAt: new Date(NOW).toISOString(),
+                history: [],
+            },
+        ],
+    ]);
+
+    const entry = buildEntry(monitor(), apps, NOW);
+
+    assert.equal(entry.latency, null);
+    assert.ok(
+        !Object.prototype.hasOwnProperty.call(entry, 'idlePct'),
+        "buildEntry must not gain an idlePct key — that is the overlay layer's job, not this one",
+    );
+    for (const rangeOnlyField of ['incidents', 'truncated', 'totalIncidents']) {
+        assert.ok(
+            !Object.prototype.hasOwnProperty.call(entry, rangeOnlyField),
+            `buildEntry must never carry the range-only field "${rangeOnlyField}"`,
+        );
+    }
+    assert.equal(
+        entry.uptime.range,
+        undefined,
+        'uptime.range is a range-view-only field and must not appear on the default view',
+    );
+}
+
+// ── Task 16b: fetchIdleLatencyOverlay maps EXACTLY { idlePct, latency }, ──
+// nothing else — this is the bounded relaxation of the byte-identical rule:
+// only these two fields are now allowed to differ from "always null/absent"
+// on the default view.
+await (async () => {
+    const originalFetch = globalThis.fetch;
+    const originalUrl = process.env.METRION_STATUS_URL;
+    process.env.METRION_STATUS_URL = 'https://metrion.invalid/api/v1/public/projects/x/uptime';
+    resetMetrionCache();
+    resetMetrionRangeCache();
+
+    try {
+        globalThis.fetch = async () => ({
+            ok: true,
+            json: async () => ({
+                applications: [
+                    {
+                        key: 'netviz',
+                        idlePct: 37.5,
+                        latency: { p50: 120, p95: 480, approximate: false },
+                        buckets: [],
+                        incidents: [],
+                    },
+                ],
+                range: { from: '', to: '', granularity: '5m', bucketCount: 288 },
+            }),
+        });
+
+        const overlay = await fetchIdleLatencyOverlay([monitor()], NOW);
+        const netviz = overlay.get('m1');
+
+        assert.deepEqual(
+            Object.keys(netviz).sort(),
+            ['idlePct', 'latency'],
+            'the overlay must carry exactly idlePct and latency, never history/incidents/uptime.range',
+        );
+        assert.equal(netviz.idlePct, 37.5);
+        assert.deepEqual(netviz.latency, { p50: 120, p95: 480 });
+    } finally {
+        globalThis.fetch = originalFetch;
+        if (originalUrl === undefined) delete process.env.METRION_STATUS_URL;
+        else process.env.METRION_STATUS_URL = originalUrl;
+        resetMetrionCache();
+        resetMetrionRangeCache();
+    }
+})();
+
+// ── Task 16b: a monitor absent from the overlay window still gets the same ──
+// null/null the default view rendered before this feature existed.
+await (async () => {
+    const originalFetch = globalThis.fetch;
+    const originalUrl = process.env.METRION_STATUS_URL;
+    process.env.METRION_STATUS_URL = 'https://metrion.invalid/api/v1/public/projects/x/uptime';
+    resetMetrionCache();
+    resetMetrionRangeCache();
+
+    try {
+        globalThis.fetch = async () => ({
+            ok: true,
+            json: async () => ({ applications: [], range: null }),
+        });
+
+        const overlay = await fetchIdleLatencyOverlay([monitor()], NOW);
+        const netviz = overlay.get('m1');
+
+        assert.equal(netviz.idlePct, null);
+        assert.equal(netviz.latency, null);
+    } finally {
+        globalThis.fetch = originalFetch;
+        if (originalUrl === undefined) delete process.env.METRION_STATUS_URL;
+        else process.env.METRION_STATUS_URL = originalUrl;
+        resetMetrionCache();
+        resetMetrionRangeCache();
+    }
+})();
+
+// ── Task 16b: the overlay must NEVER throw or leave the default view stale ──
+// on a Metrion range outage — it degrades to the pre-Task-16b null/null,
+// same as a monitor missing from the window above. fetchMetrionUptimeRange
+// already guarantees this (see metrion-source.js); this proves the guarantee
+// actually reaches fetchIdleLatencyOverlay's own return shape too.
+await (async () => {
+    const originalFetch = globalThis.fetch;
+    const originalUrl = process.env.METRION_STATUS_URL;
+    process.env.METRION_STATUS_URL = 'https://metrion.invalid/api/v1/public/projects/x/uptime';
+    resetMetrionCache();
+    resetMetrionRangeCache();
+
+    try {
+        globalThis.fetch = async () => {
+            throw new Error('simulated range endpoint failure');
+        };
+
+        const overlay = await fetchIdleLatencyOverlay([monitor()], NOW);
+        const netviz = overlay.get('m1');
+
+        assert.equal(netviz.idlePct, null);
+        assert.equal(netviz.latency, null);
+    } finally {
+        globalThis.fetch = originalFetch;
+        if (originalUrl === undefined) delete process.env.METRION_STATUS_URL;
+        else process.env.METRION_STATUS_URL = originalUrl;
+        resetMetrionCache();
+        resetMetrionRangeCache();
+    }
+})();
+
+// ── Task 16b: repeated calls within the same 60s window share the overlay's ──
+// range-fetch cache key (minute-floored `toMs`), so only ONE outbound fetch
+// happens per minute regardless of how many report rebuilds land inside it —
+// the report cache in status-handlers.js rebuilds every 10s, so without this
+// the range endpoint would be hit up to 6x more often than necessary.
+await (async () => {
+    const originalFetch = globalThis.fetch;
+    const originalUrl = process.env.METRION_STATUS_URL;
+    process.env.METRION_STATUS_URL = 'https://metrion.invalid/api/v1/public/projects/x/uptime';
+    resetMetrionCache();
+    resetMetrionRangeCache();
+
+    let fetchCount = 0;
+    try {
+        globalThis.fetch = async () => {
+            fetchCount++;
+            return { ok: true, json: async () => ({ applications: [], range: null }) };
+        };
+
+        const bucketStart = Math.floor(NOW / (60 * 1000)) * 60 * 1000;
+        // Three calls scattered across the same 60s window (start, +10s, +59s).
+        await fetchIdleLatencyOverlay([monitor()], bucketStart);
+        await fetchIdleLatencyOverlay([monitor()], bucketStart + 10_000);
+        await fetchIdleLatencyOverlay([monitor()], bucketStart + 59_000);
+
+        assert.equal(
+            fetchCount,
+            1,
+            'three overlay calls inside one 60s window must hit the range endpoint exactly once',
+        );
+    } finally {
+        globalThis.fetch = originalFetch;
+        if (originalUrl === undefined) delete process.env.METRION_STATUS_URL;
+        else process.env.METRION_STATUS_URL = originalUrl;
+        resetMetrionCache();
+        resetMetrionRangeCache();
+    }
+})();
 
 console.log('metrion-adapter.check.mjs: all assertions passed');

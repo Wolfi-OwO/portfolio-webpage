@@ -48,13 +48,15 @@ function mapMetrionHistory(history) {
 // check" document, so "the newest sample is 0" reads off the most recent day
 // in RAW history (not the mapped severity shape) that collected any samples.
 //
-// `containerApp`/`runningStatus`/idle detection are Mongo-only here: Metrion's
-// public API never returns infrastructure names or an idle signal on
-// `/uptime` (only `/uptime/range` carries `idlePct`, and only for whatever
-// range a caller asks for) — ml-visualizer's scale-to-zero state is a
-// Mongo-sourced fact today and stays that way under source=metrion too. A
-// scope decision, not an oversight: nothing here blocks a later change to add
-// `idlePct` from a range call once the client range picker exists.
+// `containerApp`/`runningStatus` are Mongo-only here: Metrion's public API
+// never returns infrastructure names on `/uptime`. `idlePct` and the
+// `latency` window below are also absent from THIS function's output, but
+// (Task 16b) not from the default view as a whole any more — getStatusReport
+// overlays both onto every entry afterwards, from a trailing-24h
+// `fetchIdleLatencyOverlay` call (see that function below), so
+// buildEntry/buildMetrionStatuses staying range-blind is a layering choice,
+// not a feature gap: this function only ever measures "right now" from the
+// plain `/uptime` endpoint, same as before.
 function buildEntry(monitor, appsByKey, nowMs) {
     const app = monitor.metrionKey ? appsByKey.get(monitor.metrionKey) : undefined;
     const lastSampleAt = app?.lastSampleAt ?? null;
@@ -85,8 +87,10 @@ function buildEntry(monitor, appsByKey, nowMs) {
         status,
         latencyMs: app?.latencyMs ?? null,
         // /uptime carries one latest latency sample, not a p50/p95 window —
-        // that needs /uptime/range, which this report doesn't call (see the
-        // module comment; the range picker is a follow-up).
+        // that needs /uptime/range, which THIS function doesn't call. Left
+        // null here; getStatusReport's Task 16b overlay fills it in from a
+        // separate trailing-24h range fetch afterwards (or leaves it null on
+        // an overlay failure — same value this function already produces).
         latency: null,
         lastCheckedAt: lastSampleAt,
         lastError: undefined,
@@ -216,6 +220,7 @@ async function buildMetrionRangeStatuses(monitors, fromMs, toMs) {
 
         return {
             ...entry,
+            idlePct: rangeApp?.idlePct ?? null,
             latency: rangeApp?.latency
                 ? { p50: rangeApp.latency.p50, p95: rangeApp.latency.p95 }
                 : null,
@@ -246,11 +251,59 @@ async function buildMetrionRangeStatuses(monitors, fromMs, toMs) {
     };
 }
 
+// Task 16b: the default (no-range) view never calls `/uptime/range`, so
+// `idlePct` and windowed `latency.p50/p95` are always absent there — a
+// scaled-to-zero ml-visualizer is invisible on the plain status page even
+// though Metrion has already measured it. This is a LEANER sibling of
+// buildMetrionRangeStatuses, not a reuse of it: that function re-runs
+// buildMetrionStatuses internally and builds history bars/incidents/
+// uptimePct this overlay has no use for and would just discard — calling
+// fetchMetrionUptimeRange directly and mapping only the two fields needed is
+// less code, not more, and avoids computing the live entries twice.
+//
+// `toMs` is floored to the minute so repeated calls within the same 60s
+// window share one `fromMs:toMs` cache key in fetchMetrionUptimeRange's own
+// RANGE_CACHE_MS=60s cache (metrion-source.js) — an unrounded `Date.now()`
+// would produce a distinct key on every single call (millisecond precision),
+// defeating that cache entirely and turning every report rebuild into a
+// fresh outbound fetch instead of at most one per minute.
+//
+// fetchMetrionUptimeRange() already never throws (unset URL, timeout, non-200
+// and an unparseable body all resolve to `ok: false` — see its own doc
+// comment) and returns an empty application list on failure, so a struggling
+// range endpoint degrades every monitor here to `{ idlePct: null, latency:
+// null }` — exactly what the default view rendered before this overlay
+// existed. Nothing here needs its own try/catch on top of that guarantee, and
+// the default view's own stale/staleSince handling (Task 15, from the plain
+// `/uptime` endpoint) is entirely untouched by this failing.
+const OVERLAY_BUCKET_MS = 60 * 1000;
+
+async function fetchIdleLatencyOverlay(monitors, nowMs = Date.now()) {
+    const toMs = Math.floor(nowMs / OVERLAY_BUCKET_MS) * OVERLAY_BUCKET_MS;
+    const fromMs = toMs - DAY;
+    const { applications } = await fetchMetrionUptimeRange(fromMs, toMs);
+    const byKey = new Map(applications.map((a) => [a.key, a]));
+
+    return new Map(
+        monitors.map((m) => {
+            const app = m.metrionKey ? byKey.get(m.metrionKey) : undefined;
+            return [
+                m._id,
+                {
+                    idlePct: app?.idlePct ?? null,
+                    latency: app?.latency ? { p50: app.latency.p50, p95: app.latency.p95 } : null,
+                },
+            ];
+        }),
+    );
+}
+
 export {
     buildMetrionStatuses,
     buildMetrionRangeStatuses,
     buildEntry,
     mapMetrionHistory,
     mapRangeBuckets,
+    fetchIdleLatencyOverlay,
     resetMetrionAdapterState,
 };

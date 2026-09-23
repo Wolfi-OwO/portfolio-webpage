@@ -1,7 +1,11 @@
 import { MonitorModel } from '../models/monitor.js';
 import { MonitorCheckModel } from '../models/monitor-check.js';
 import { DAY, round1, severityFor } from './status-shared.js';
-import { buildMetrionStatuses, buildMetrionRangeStatuses } from './metrion-adapter.js';
+import {
+    buildMetrionStatuses,
+    buildMetrionRangeStatuses,
+    fetchIdleLatencyOverlay,
+} from './metrion-adapter.js';
 
 // This service no longer probes anything itself: the separate monitor-checker
 // Azure Function performs every check (~once per minute, 24/7) and writes the
@@ -317,9 +321,23 @@ async function getStatusReport(detailed = false, source = defaultSource(), range
             };
         }
 
-        const { entries, stale, staleSince } = await buildMetrionStatuses(monitors);
-        const status = worstStatus(entries.map((m) => m.status));
-        const { groups, ungrouped } = buildGroups(entries);
+        // Task 16b: default view + a cheap idlePct/latency overlay, run in
+        // parallel. c85813d's default view is byte-identical to the
+        // pre-Metrion-adapter mongo report EXCEPT for `stale`/`staleSince`
+        // (that commit's own carve-out) — this overlay adds exactly two more
+        // fields that are allowed to differ from "always null/absent",
+        // `idlePct` and `latency`, and nothing else: no `history`/`incidents`/
+        // `uptime.range`/`truncated`/`totalIncidents` here, those stay
+        // range-only (buildMetrionRangeStatuses, above). See
+        // fetchIdleLatencyOverlay's own doc comment in metrion-adapter.js for
+        // why this can't throw or go stale on a Metrion hiccup.
+        const [{ entries, stale, staleSince }, overlay] = await Promise.all([
+            buildMetrionStatuses(monitors),
+            fetchIdleLatencyOverlay(monitors),
+        ]);
+        const overlaidEntries = entries.map((entry) => ({ ...entry, ...overlay.get(entry._id) }));
+        const status = worstStatus(overlaidEntries.map((m) => m.status));
+        const { groups, ungrouped } = buildGroups(overlaidEntries);
         return { status, checkIntervalMs: CHECK_MS, groups, ungrouped, stale, staleSince };
     }
 
