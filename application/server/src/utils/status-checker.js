@@ -1,7 +1,7 @@
 import { MonitorModel } from '../models/monitor.js';
 import { MonitorCheckModel } from '../models/monitor-check.js';
 import { DAY, round1, severityFor } from './status-shared.js';
-import { buildMetrionStatuses } from './metrion-adapter.js';
+import { buildMetrionStatuses, buildMetrionRangeStatuses } from './metrion-adapter.js';
 
 // This service no longer probes anything itself: the separate monitor-checker
 // Azure Function performs every check (~once per minute, 24/7) and writes the
@@ -280,10 +280,43 @@ function defaultSource() {
     return process.env.STATUS_SOURCE === 'metrion' ? 'metrion' : 'mongo';
 }
 
-async function getStatusReport(detailed = false, source = defaultSource()) {
+/**
+ * @param {boolean} detailed - admin projection (container app names, raw errors)
+ * @param {string} source - 'metrion' or 'mongo'
+ * @param {{ from: number, to: number } | null} range - epoch-ms window from a
+ * date-range picker request, or `null` for the default "current" view
+ * (h24/d7/d30 + 90-day daily bars). Already validated by the caller
+ * (status-handlers.js's parseRangeQuery) — this function trusts `from < to`.
+ */
+async function getStatusReport(detailed = false, source = defaultSource(), range = null) {
     const monitors = await MonitorModel.find().sort({ createdAt: 1 });
 
     if (source === 'metrion') {
+        if (range) {
+            const {
+                entries,
+                stale,
+                staleSince,
+                range: rangeMeta,
+                rangeUnavailable,
+            } = await buildMetrionRangeStatuses(monitors, range.from, range.to);
+            const status = worstStatus(entries.map((m) => m.status));
+            const { groups, ungrouped } = buildGroups(entries);
+            return {
+                status,
+                checkIntervalMs: CHECK_MS,
+                groups,
+                ungrouped,
+                stale,
+                staleSince,
+                range: rangeMeta,
+                // Only present when the range fetch itself failed (Metrion's
+                // /uptime/range unreachable/erroring) — distinct from "no
+                // incidents"/"no bars", which is just an empty range.
+                ...(rangeUnavailable ? { rangeUnavailable: true } : {}),
+            };
+        }
+
         const { entries, stale, staleSince } = await buildMetrionStatuses(monitors);
         const status = worstStatus(entries.map((m) => m.status));
         const { groups, ungrouped } = buildGroups(entries);
@@ -306,11 +339,22 @@ async function getStatusReport(detailed = false, source = defaultSource()) {
     // No `stale`/`staleSince` keys here: the mongo branch's output must stay
     // byte-identical to the pre-Metrion-adapter report (STATUS_SOURCE unset
     // is the live default, so this is what every current caller still sees).
+    //
+    // A `range` request against `source=mongo` gets the SAME default view,
+    // flagged `rangeUnsupported: true` so the client can show a "date ranges
+    // need the Metrion source" note instead of silently ignoring what was
+    // asked for. Slicing Mongo's MonitorCheck documents to an arbitrary
+    // window would mean reimplementing buildDailyHistory/uptimePct/
+    // latencyPercentiles above against a caller-supplied window instead of
+    // their fixed DAY/7*DAY/30*DAY/90-day ones — real work, for a source
+    // that's being retired once Metrion fully replaces it (see this file's
+    // top module comment), so it isn't built here.
     return {
         status,
         checkIntervalMs: CHECK_MS,
         groups,
         ungrouped,
+        ...(range ? { rangeUnsupported: true } : {}),
     };
 }
 

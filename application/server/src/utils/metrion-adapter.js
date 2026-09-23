@@ -10,7 +10,7 @@
 // is exact (`monitor.metrionKey` -> Metrion's `key`, set explicitly per
 // monitor since commit 8cc6913), so there is nothing left to guess.
 import { DAY, round1, severityFor } from './status-shared.js';
-import { fetchMetrionUptime } from './metrion-source.js';
+import { fetchMetrionUptime, fetchMetrionUptimeRange } from './metrion-source.js';
 
 // The Metrion sink (jobs/src/lib/metrion-sink.js) writes at a 60s cadence.
 // The OLD buildMetrionMonitorStatus had no freshness check at all, so a feed
@@ -145,4 +145,112 @@ function resetMetrionAdapterState() {
     lastGood = null;
 }
 
-export { buildMetrionStatuses, buildEntry, mapMetrionHistory, resetMetrionAdapterState };
+// Range counterpart to mapMetrionHistory: maps Metrion's `{ t, upPct,
+// samples }` range buckets (arbitrary granularity — 1m/5m/15m/1d, auto-picked
+// server-side) onto the same { day, severity, downPct, downMs, totalChecks }
+// shape, so the client's existing bar renderer works unchanged regardless of
+// bucket width. `day` here means "bucket start ms", not necessarily a
+// calendar day; sub-daily granularities reuse the same key rather than
+// adding a second one for a client that doesn't otherwise care. A bucket
+// with no samples is `no-data`, same rule as mapMetrionHistory — before an
+// app's first sample and a hole inside its span read identically, never a
+// manufactured 100%.
+function mapRangeBuckets(buckets, bucketWidthMs) {
+    const nowMs = Date.now();
+    return (buckets ?? []).map(({ t, upPct, samples }) => {
+        const tMs = Date.parse(t);
+        if (!samples) {
+            return { day: tMs, severity: 'no-data', downPct: null, downMs: 0, totalChecks: 0 };
+        }
+        const downRatio = (100 - upPct) / 100;
+        const observedMs = Math.min(bucketWidthMs, Math.max(0, nowMs - tMs));
+        return {
+            day: tMs,
+            severity: severityFor(downRatio),
+            downPct: round1(downRatio * 100),
+            downMs: Math.round(downRatio * observedMs),
+            totalChecks: samples,
+        };
+    });
+}
+
+/**
+ * Range-mode counterpart to buildMetrionStatuses. The live/current tiles
+ * (status, uptime.h24/d7/d30, the latest latency sample, stale/staleSince) are
+ * exactly what buildMetrionStatuses already computes from the UNCHANGED plain
+ * `/uptime` endpoint — a caller picking a date range does not change what
+ * "currently up" means, and that band keeps its own Task 15 stale-retention
+ * regardless of whether the range fetch below succeeds. Only the per-monitor
+ * RANGE-specific fields (history bars, latency p50/p95 FOR THE WINDOW,
+ * incidents, the window's own uptimePct) are overlaid from Metrion's
+ * `/uptime/range` response, joined by the same `metrionKey` the current-view
+ * path uses.
+ *
+ * A monitor absent from the range response (no metrionKey, key not present in
+ * this window, or the whole range fetch failed) gets an honestly empty range
+ * — no bars, no incidents, never a fabricated uptime figure — while its live
+ * tiles above still read whatever buildMetrionStatuses already gave them.
+ */
+async function buildMetrionRangeStatuses(monitors, fromMs, toMs) {
+    const [live, rangeResult] = await Promise.all([
+        buildMetrionStatuses(monitors),
+        fetchMetrionUptimeRange(fromMs, toMs),
+    ]);
+
+    const rangeAppsByKey = new Map(rangeResult.applications.map((a) => [a.key, a]));
+    // Buckets are evenly spaced across [range.from, range.to), so dividing the
+    // span by the count gives the exact width regardless of which granularity
+    // Metrion auto-picked — no need to hardcode a name -> ms table here.
+    const bucketWidthMs =
+        rangeResult.range?.bucketCount > 0
+            ? (Date.parse(rangeResult.range.to) - Date.parse(rangeResult.range.from)) /
+              rangeResult.range.bucketCount
+            : DAY;
+
+    // Order parity with `monitors` is guaranteed by buildMetrionStatuses'
+    // own implementation (`monitors.map(buildEntry)`), so zipping by index
+    // here is safe and avoids a second _id-keyed lookup.
+    const entries = live.entries.map((entry, i) => {
+        const monitor = monitors[i];
+        const rangeApp = monitor.metrionKey ? rangeAppsByKey.get(monitor.metrionKey) : undefined;
+
+        return {
+            ...entry,
+            latency: rangeApp?.latency
+                ? { p50: rangeApp.latency.p50, p95: rangeApp.latency.p95 }
+                : null,
+            history: rangeApp ? mapRangeBuckets(rangeApp.buckets, bucketWidthMs) : [],
+            uptime: { ...entry.uptime, range: rangeApp?.uptimePct ?? null },
+            incidents: (rangeApp?.incidents ?? []).map((inc) => ({
+                startedAt: inc.startedAt,
+                endedAt: inc.endedAt ?? null,
+                durationSeconds: inc.durationSeconds,
+                downSamples: inc.downSamples,
+            })),
+            truncated: rangeApp?.truncated ?? false,
+            totalIncidents: rangeApp?.totalIncidents ?? 0,
+        };
+    });
+
+    return {
+        entries,
+        stale: live.stale,
+        staleSince: live.staleSince,
+        range: rangeResult.range ?? {
+            from: new Date(fromMs).toISOString(),
+            to: new Date(toMs).toISOString(),
+            granularity: null,
+            bucketCount: 0,
+        },
+        rangeUnavailable: !rangeResult.ok,
+    };
+}
+
+export {
+    buildMetrionStatuses,
+    buildMetrionRangeStatuses,
+    buildEntry,
+    mapMetrionHistory,
+    mapRangeBuckets,
+    resetMetrionAdapterState,
+};

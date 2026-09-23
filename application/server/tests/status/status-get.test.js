@@ -4,7 +4,11 @@ import assert from 'assert';
 import request from 'supertest';
 import { MonitorModel } from '../../src/models/monitor.js';
 import { MonitorCheckModel } from '../../src/models/monitor-check.js';
-import { clearStatusCache } from '../../src/handlers/status-handlers.js';
+import {
+    clearStatusCache,
+    statusCacheSize,
+    getServiceStatus,
+} from '../../src/handlers/status-handlers.js';
 import { adminToken } from '../tokens.js';
 
 /* ***************** CONFIG and CONSTS ********************* */
@@ -275,6 +279,92 @@ describe('GET /api/status', function () {
             app.get('/ip', (req, res) => res.send(req.ip));
             const res = await request(app).get('/ip').set('X-Forwarded-For', '1.2.3.4, 5.6.7.8');
             assert.equal(res.text, '5.6.7.8');
+        });
+    });
+
+    describe('date range (?from=&to=)', function () {
+        it('answers 400, in the standard error shape, when from is after to', async function () {
+            const res = await request(httpServer)
+                .get('/api/status')
+                .query({ from: '2026-09-10T00:00:00.000Z', to: '2026-09-01T00:00:00.000Z' })
+                .expect(400);
+            assert.equal(res.body.status, 400);
+            assert.ok(res.body.message);
+        });
+
+        it('answers 400 for a garbage date', async function () {
+            const res = await request(httpServer)
+                .get('/api/status')
+                .query({ from: 'not-a-date', to: '2026-09-01T00:00:00.000Z' })
+                .expect(400);
+            assert.equal(res.body.status, 400);
+        });
+
+        it('answers 400 when only one of from/to is given', async function () {
+            await request(httpServer)
+                .get('/api/status')
+                .query({ from: '2026-09-01T00:00:00.000Z' })
+                .expect(400);
+        });
+
+        it('answers 400 for a from before the year 2000', async function () {
+            await request(httpServer)
+                .get('/api/status')
+                .query({ from: '1999-01-01T00:00:00.000Z', to: '2026-09-01T00:00:00.000Z' })
+                .expect(400);
+        });
+
+        it('answers 400 for a to far in the future', async function () {
+            await request(httpServer)
+                .get('/api/status')
+                .query({ from: '2026-09-01T00:00:00.000Z', to: '2099-01-01T00:00:00.000Z' })
+                .expect(400);
+        });
+
+        it('returns the default view flagged rangeUnsupported on source=mongo (the live default)', async function () {
+            const monitor = await MonitorModel.create({
+                name: 'Ranged',
+                url: 'https://ranged.test',
+            });
+            await seedChecks(monitor._id, { days: 1, failEvery: 0 });
+
+            const res = await request(httpServer)
+                .get('/api/status')
+                .query({ from: '2026-09-01T00:00:00.000Z', to: '2026-09-10T00:00:00.000Z' })
+                .expect(200);
+
+            assert.equal(res.body.rangeUnsupported, true);
+            const ranged = res.body.ungrouped.find((m) => m.name === 'Ranged');
+            assert.equal(
+                ranged.uptime.d30,
+                100,
+                'the mongo path still answers its normal default-view shape',
+            );
+        });
+
+        it('bounds the report cache to CACHE_MAX_ENTRIES distinct ranges', async function () {
+            this.timeout(30000);
+            await MonitorModel.create({ name: 'Bounded', url: 'https://bounded.test' });
+
+            // Calls the handler directly, bypassing the route's rate limiter
+            // (60/min) — this asserts on the CACHE's eviction policy, not on
+            // request throughput, and 270 requests through the real rate
+            // limit would just prove the limiter works, which is already
+            // covered elsewhere.
+            for (let i = 0; i < 270; i++) {
+                const from = new Date(Date.UTC(2020, 0, 1) + i * 1000).toISOString();
+                const to = new Date(Date.UTC(2020, 0, 2) + i * 1000).toISOString();
+                const req = { query: { from, to }, header: () => undefined };
+                const res = { set: () => {}, json: () => {} };
+                await getServiceStatus(req, res, (err) => {
+                    if (err) throw err;
+                });
+            }
+
+            assert.ok(
+                statusCacheSize() <= 256,
+                `cache grew to ${statusCacheSize()} entries, expected <= 256`,
+            );
         });
     });
 });

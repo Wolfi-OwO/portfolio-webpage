@@ -24,6 +24,18 @@ const FAILURE_CACHE_MS = 15 * 1000;
 let cache = null; // { at: number, ttl: number, applications: Array, ok: boolean }
 let pending = null; // in-flight fetch promise, shared by concurrent callers
 
+// The range endpoint (below) varies by (from, to), so unlike the plain
+// endpoint's single-slot cache this needs one entry per requested window —
+// capped the same way mona's own public-uptime-range-service.ts caches
+// itself (CACHE_MAX_ENTRIES = 256), so a caller cycling through distinct
+// ranges can't grow this Map without bound. Map iteration order is insertion
+// order, and a hit re-inserts itself, so the first key is always the oldest.
+const RANGE_CACHE_MS = 60 * 1000;
+const RANGE_FAILURE_CACHE_MS = 15 * 1000;
+const RANGE_CACHE_MAX_ENTRIES = 256;
+let rangeCache = new Map(); // key `${fromMs}:${toMs}` -> { at, ttl, applications, range, ok }
+let rangePending = new Map(); // key -> in-flight promise, shared by concurrent callers on the same range
+
 // A malformed-but-200 body (null entries, non-array `history`, ...) must
 // degrade to "that one entry is dropped", never throw and take the whole
 // report (or the already-cached last-good one) down with it. Validated here,
@@ -34,6 +46,18 @@ function isValidApplication(app) {
         app != null &&
         typeof app === 'object' &&
         (app.history == null || Array.isArray(app.history))
+    );
+}
+
+// Same guarantee as isValidApplication, for the range endpoint's shape
+// (`buckets`/`incidents` instead of `history`).
+function isValidRangeApplication(app) {
+    return (
+        app != null &&
+        typeof app === 'object' &&
+        typeof app.key === 'string' &&
+        (app.buckets == null || Array.isArray(app.buckets)) &&
+        (app.incidents == null || Array.isArray(app.incidents))
     );
 }
 
@@ -96,6 +120,92 @@ async function fetchMetrionApplications() {
     return (await fetchMetrionUptime()).applications;
 }
 
+function evictRangeCacheOverBudget() {
+    while (rangeCache.size > RANGE_CACHE_MAX_ENTRIES) {
+        const oldest = rangeCache.keys().next();
+        if (oldest.done) return;
+        rangeCache.delete(oldest.value);
+    }
+}
+
+async function doFetchRange(url, key) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    try {
+        const response = await fetch(url, { signal: controller.signal });
+        if (!response.ok) throw new Error(`responded ${response.status}`);
+        const body = await response.json();
+        const rawApplications = Array.isArray(body?.applications) ? body.applications : [];
+        const applications = rawApplications.filter(isValidRangeApplication);
+        const range = body?.range && typeof body.range === 'object' ? body.range : null;
+        rangeCache.set(key, { at: Date.now(), ttl: RANGE_CACHE_MS, applications, range, ok: true });
+        evictRangeCacheOverBudget();
+        return { applications, range, ok: true };
+    } catch (err) {
+        // ponytail: no retry/backoff, same reasoning as doFetch above — the
+        // cache already caps how often one window gets re-fetched, and there
+        // is no last-good retention here (see fetchMetrionUptimeRange's doc
+        // comment for why that's the right call for a range, not an oversight).
+        logger.warn(`metrion-source: range fetch failed: ${err.message}`);
+        rangeCache.set(key, {
+            at: Date.now(),
+            ttl: RANGE_FAILURE_CACHE_MS,
+            applications: [],
+            range: null,
+            ok: false,
+        });
+        evictRangeCacheOverBudget();
+        return { applications: [], range: null, ok: false };
+    } finally {
+        clearTimeout(timeout);
+    }
+}
+
+/**
+ * Range counterpart to fetchMetrionUptime(): calls Metrion's
+ * `GET /uptime/range?from=&to=` (mona's public-uptime-range-service.ts)
+ * instead of the plain `/uptime` endpoint, by appending `/range` to
+ * METRION_STATUS_URL (which already points at `.../uptime`) — no separate
+ * env var needed. `fromMs`/`toMs` are epoch ms, already validated by the
+ * caller (status-handlers.js's parseRangeQuery).
+ *
+ * Deliberately NO last-good retention here, unlike fetchMetrionUptime: a
+ * stale answer to an arbitrary date range a caller just picked is not a
+ * meaningful "last known good" the way the live dashboard tiles are (Task
+ * 15's fallback exists so the CURRENT status band never goes blank). A
+ * failed range fetch returns `ok: false` and an empty application list; the
+ * caller (metrion-adapter.js) renders that range's bars/incidents as
+ * honestly empty rather than reusing unrelated data — the live tiles
+ * (status/uptime.h24/d7/d30) still come from the unchanged plain endpoint
+ * and keep ITS retention regardless of whether the range fetch succeeded.
+ */
+async function fetchMetrionUptimeRange(fromMs, toMs) {
+    const baseUrl = process.env.METRION_STATUS_URL;
+    if (!baseUrl) return { applications: [], range: null, ok: false };
+
+    const key = `${fromMs}:${toMs}`;
+    const cached = rangeCache.get(key);
+    if (cached && Date.now() - cached.at < cached.ttl) {
+        rangeCache.delete(key); // re-insert so this key is no longer the oldest
+        rangeCache.set(key, cached);
+        return { applications: cached.applications, range: cached.range, ok: cached.ok };
+    }
+
+    if (rangePending.has(key)) return rangePending.get(key);
+
+    const url = new URL(`${baseUrl}/range`);
+    url.searchParams.set('from', new Date(fromMs).toISOString());
+    url.searchParams.set('to', new Date(toMs).toISOString());
+
+    const promise = doFetchRange(url.toString(), key);
+    rangePending.set(key, promise);
+    try {
+        return await promise;
+    } finally {
+        rangePending.delete(key);
+    }
+}
+
 // Test-only escape hatch: the 60s cache is a module-level singleton, so a
 // check script exercising multiple scenarios in one process needs a way to
 // clear it between them.
@@ -104,4 +214,16 @@ function resetMetrionCache() {
     pending = null;
 }
 
-export { fetchMetrionUptime, fetchMetrionApplications, resetMetrionCache };
+// Same, for the range cache.
+function resetMetrionRangeCache() {
+    rangeCache.clear();
+    rangePending.clear();
+}
+
+export {
+    fetchMetrionUptime,
+    fetchMetrionApplications,
+    fetchMetrionUptimeRange,
+    resetMetrionCache,
+    resetMetrionRangeCache,
+};
