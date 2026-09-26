@@ -175,8 +175,20 @@ export function parseRangeFromLocation() {
 }
 
 // Date-only URL/state -> full ISO instants for the actual API call.
+//
+// The "now" cap is floored to the minute so repeated calls within the same
+// 60s window share one `from:to` cache key — status-handlers' 10s report
+// cache and metrion-adapter's RANGE_CACHE_MS=60s range cache are both keyed
+// on the exact string, and an unrounded `Date.now()` produces a distinct
+// key on every single call (millisecond precision), forcing a full report
+// rebuild and a fresh outbound Metrion fetch on every page view/refresh
+// instead of at most one per minute. Same rule fetchIdleLatencyOverlay
+// already follows in metrion-adapter.js.
 export function toApiRange({ from, to }) {
-    const toMs = Math.min(Date.parse(`${to}T23:59:59.999Z`), Date.now());
+    const toMs = Math.min(
+        Date.parse(`${to}T23:59:59.999Z`),
+        Math.floor(Date.now() / 60_000) * 60_000,
+    );
     return { from: `${from}T00:00:00.000Z`, to: new Date(toMs).toISOString() };
 }
 
