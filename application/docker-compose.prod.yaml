@@ -126,6 +126,13 @@ x-web: &web-base
     # public-status-page plan). Unset = feature off, Mongo-only, same as
     # local dev — see application/server/src/utils/metrion-source.js.
     - METRION_STATUS_URL=${METRION_STATUS_URL:-}
+    # Selects which backing store getStatusReport() reads from -
+    # 'mongo' (default) or 'metrion'. Flipped to metrion 2026-09-26
+    # after the Metrion adapter's staleness guard, idle/latency overlay
+    # and range support all shipped and were verified end to end;
+    # Mongo's write path and the VPS checker keep running as a
+    # fallback until a separate follow-up task retires them.
+    - STATUS_SOURCE=${STATUS_SOURCE:-mongo}
     # Forge credentials for the activity heatmap. All optional: without them
     # /api/activity still answers, just with an empty GitHub half.
     - GITHUB_USER=${GITHUB_USER:-Wolfi-OwO}
