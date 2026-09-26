@@ -15,8 +15,9 @@ import {
 } from '../../src/utils/metrion-adapter.js';
 import { resetMetrionCache, resetMetrionRangeCache } from '../../src/utils/metrion-source.js';
 
+const DAY_MS = 24 * 60 * 60 * 1000;
 const NOW = Date.now();
-const FROM_MS = NOW - 7 * 24 * 60 * 60 * 1000;
+const FROM_MS = NOW - 7 * DAY_MS;
 const TO_MS = NOW;
 
 const monitor = (overrides = {}) => ({
@@ -257,6 +258,118 @@ await withMockedMetrion(
         );
         assert.deepEqual(entry.history, []);
         assert.deepEqual(entry.incidents, []);
+    },
+)();
+
+// ── Task: downsampling caps history at 91 bars regardless of bucket count ──
+function bucketsFixture(count, spanMs) {
+    return Array.from({ length: count }, (_, i) => ({
+        t: new Date(FROM_MS + Math.floor((i * spanMs) / count)).toISOString(),
+        upPct: 100,
+        samples: 10,
+    }));
+}
+
+function rangeHandler(buckets, from, to, bucketCount) {
+    return async (url) => {
+        const u = new URL(url);
+        if (u.pathname.endsWith('/uptime')) {
+            return { ok: true, json: async () => ({ applications: [] }) };
+        }
+        return {
+            ok: true,
+            json: async () => ({
+                applications: [
+                    {
+                        key: 'netviz',
+                        uptimePct: 99,
+                        latency: { p50: 10, p95: 20, approximate: false },
+                        idlePct: null,
+                        buckets,
+                        incidents: [],
+                        truncated: false,
+                        totalIncidents: 0,
+                    },
+                ],
+                range: {
+                    from: new Date(from).toISOString(),
+                    to: new Date(to).toISOString(),
+                    granularity: '1m',
+                    bucketCount,
+                },
+            }),
+        };
+    };
+}
+
+// 24h: 501 buckets, the exact bug that rendered 0px bars.
+await withMockedMetrion(
+    rangeHandler(bucketsFixture(501, DAY_MS), FROM_MS, TO_MS, 501),
+    async () => {
+        const result = await buildMetrionRangeStatuses([monitor()], FROM_MS, TO_MS);
+        assert.ok(
+            result.entries[0].history.length <= 91,
+            `expected <=91 history entries, got ${result.entries[0].history.length}`,
+        );
+        // range.bucketCount describes Metrion's own grid and must stay untouched.
+        assert.equal(result.range.bucketCount, 501);
+    },
+)();
+
+// 1y preset: 366 buckets, the same bug measured at 0.25px.
+await withMockedMetrion(
+    rangeHandler(bucketsFixture(366, DAY_MS), FROM_MS, TO_MS, 366),
+    async () => {
+        const result = await buildMetrionRangeStatuses([monitor()], FROM_MS, TO_MS);
+        assert.ok(
+            result.entries[0].history.length <= 91,
+            `expected <=91 history entries, got ${result.entries[0].history.length}`,
+        );
+    },
+)();
+
+// 7d: already under the cap, must pass through byte-identical (groupSize===1).
+await withMockedMetrion(rangeHandler(bucketsFixture(8, DAY_MS), FROM_MS, TO_MS, 8), async () => {
+    const result = await buildMetrionRangeStatuses([monitor()], FROM_MS, TO_MS);
+    assert.equal(result.entries[0].history.length, 8);
+})();
+
+// ── Task: range uptime/latency are rounded, matching the Mongo path's output ──
+await withMockedMetrion(
+    async (url) => {
+        const u = new URL(url);
+        if (u.pathname.endsWith('/uptime')) {
+            return { ok: true, json: async () => ({ applications: [] }) };
+        }
+        return {
+            ok: true,
+            json: async () => ({
+                applications: [
+                    {
+                        key: 'netviz',
+                        uptimePct: 99.97835263556662,
+                        latency: { p50: 42.4, p95: 1048.75, approximate: false },
+                        idlePct: null,
+                        buckets: [],
+                        incidents: [],
+                        truncated: false,
+                        totalIncidents: 0,
+                    },
+                ],
+                range: {
+                    from: new Date(FROM_MS).toISOString(),
+                    to: new Date(TO_MS).toISOString(),
+                    granularity: '1d',
+                    bucketCount: 0,
+                },
+            }),
+        };
+    },
+    async () => {
+        const result = await buildMetrionRangeStatuses([monitor()], FROM_MS, TO_MS);
+        const entry = result.entries[0];
+        assert.equal(entry.uptime.range, 100, '99.978... rounds to 100.0 at 1 decimal');
+        assert.deepEqual(entry.latency, { p50: 42, p95: 1049 });
     },
 )();
 

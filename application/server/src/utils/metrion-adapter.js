@@ -69,6 +69,9 @@ function buildEntry(monitor, appsByKey, nowMs) {
 
     const rawHistory = app?.history ?? [];
     const latestSampledDay = [...rawHistory].reverse().find((d) => d.samples > 0) ?? null;
+    // Threshold comparisons below run on the RAW (unrounded) h24 — rounding
+    // is an output-shaping step applied only to the `uptime` object further
+    // down, same rule status-checker.js follows for round1(100 - fail24).
     const h24 = app?.uptime?.h24 ?? null;
     const status = stale
         ? 'pending'
@@ -97,9 +100,9 @@ function buildEntry(monitor, appsByKey, nowMs) {
         runningStatus: null,
         monitoringSince: null,
         uptime: {
-            h24: app?.uptime?.h24 ?? null,
-            d7: app?.uptime?.d7 ?? null,
-            d30: app?.uptime?.d30 ?? null,
+            h24: h24 != null ? round1(h24) : null,
+            d7: app?.uptime?.d7 != null ? round1(app.uptime.d7) : null,
+            d30: app?.uptime?.d30 != null ? round1(app.uptime.d30) : null,
         },
         history: mapMetrionHistory(rawHistory),
         source: 'metrion',
@@ -178,6 +181,34 @@ function mapRangeBuckets(buckets, bucketWidthMs) {
     });
 }
 
+// Measured against the live 823px status-page bar container: a 90-day range
+// (91 daily buckets) renders each bar at 7.063px, the largest bucket count
+// that still produces a visible bar; a 24h range (501 1m/5m buckets, measured
+// 2026-09-26) rendered every bar at 0px, and the 1y preset (366 daily
+// buckets) at 0.25px. 91 is the cap below which "one bar per bucket" still
+// draws something.
+const MAX_BARS = 91;
+
+// Merges `groupSize` consecutive buckets into one, weighting upPct by each
+// bucket's own sample count so a heavily-sampled bucket doesn't get diluted
+// by a sparse neighbour. `t` is the first bucket's own timestamp (the merged
+// bucket's start), matching how mapRangeBuckets already treats `t` as
+// "bucket start" rather than a midpoint. groupSize===1 is a no-op map, not a
+// special case, so already-capped ranges (7d/30d/90d/whole-period) pass
+// through byte-identical.
+function mergeBuckets(buckets, groupSize) {
+    const merged = [];
+    for (let i = 0; i < buckets.length; i += groupSize) {
+        const group = buckets.slice(i, i + groupSize);
+        const totalSamples = group.reduce((sum, b) => sum + (b.samples || 0), 0);
+        const upPct = totalSamples
+            ? group.reduce((sum, b) => sum + b.upPct * b.samples, 0) / totalSamples
+            : null;
+        merged.push({ t: group[0].t, upPct, samples: totalSamples });
+    }
+    return merged;
+}
+
 /**
  * Range-mode counterpart to buildMetrionStatuses. The live/current tiles
  * (status, uptime.h24/d7/d30, the latest latency sample, stale/staleSince) are
@@ -218,14 +249,28 @@ async function buildMetrionRangeStatuses(monitors, fromMs, toMs) {
         const monitor = monitors[i];
         const rangeApp = monitor.metrionKey ? rangeAppsByKey.get(monitor.metrionKey) : undefined;
 
+        // groupSize>1 merges this app's own bucket count down to MAX_BARS —
+        // computed per-application (not from range.bucketCount, which stays
+        // Metrion's own grid-describing value below, untouched) so a shorter
+        // app history still downsamples correctly against its own length.
+        const rawBuckets = rangeApp?.buckets ?? [];
+        const groupSize = Math.max(1, Math.ceil(rawBuckets.length / MAX_BARS));
+        const merged = groupSize === 1 ? rawBuckets : mergeBuckets(rawBuckets, groupSize);
+
         return {
             ...entry,
             idlePct: rangeApp?.idlePct ?? null,
+            // Math.round, not round1 — matches latencyPercentiles' own
+            // whole-millisecond rounding (status-checker.js), so a latency
+            // reads identically regardless of which source built the entry.
             latency: rangeApp?.latency
-                ? { p50: rangeApp.latency.p50, p95: rangeApp.latency.p95 }
+                ? { p50: Math.round(rangeApp.latency.p50), p95: Math.round(rangeApp.latency.p95) }
                 : null,
-            history: rangeApp ? mapRangeBuckets(rangeApp.buckets, bucketWidthMs) : [],
-            uptime: { ...entry.uptime, range: rangeApp?.uptimePct ?? null },
+            history: rangeApp ? mapRangeBuckets(merged, bucketWidthMs * groupSize) : [],
+            uptime: {
+                ...entry.uptime,
+                range: rangeApp?.uptimePct != null ? round1(rangeApp.uptimePct) : null,
+            },
             incidents: (rangeApp?.incidents ?? []).map((inc) => ({
                 startedAt: inc.startedAt,
                 endedAt: inc.endedAt ?? null,

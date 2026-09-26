@@ -142,6 +142,55 @@ const monitor = (overrides = {}) => ({
     }
 }
 
+// ── Task: uptime is rounded to 1 decimal in the output, matching status-checker's round1 ──
+{
+    const apps = new Map([
+        [
+            'netviz',
+            {
+                key: 'netviz',
+                uptime: { h24: 99.97835263556662, d7: 100, d30: 99.97835263556662 },
+                latencyMs: 42,
+                lastSampleAt: new Date(NOW).toISOString(),
+                history: [],
+            },
+        ],
+    ]);
+
+    const entry = buildEntry(monitor(), apps, NOW);
+
+    assert.equal(entry.uptime.h24, 100, '99.978... rounds to 100.0 at 1 decimal');
+    assert.equal(entry.uptime.d30, 100);
+}
+
+// ── Task: the degraded threshold reads the RAW h24, not the rounded one ──
+// 89.96 rounds to 90.0 (round1), which would read as NOT degraded (90 is not
+// <90) if rounding ran before the comparison. The raw 89.96 IS <90, so this
+// must still come back degraded — proving rounding is output-shaping only.
+{
+    const apps = new Map([
+        [
+            'netviz',
+            {
+                key: 'netviz',
+                uptime: { h24: 89.96, d7: 100, d30: 100 },
+                latencyMs: 42,
+                lastSampleAt: new Date(NOW).toISOString(),
+                history: [],
+            },
+        ],
+    ]);
+
+    const entry = buildEntry(monitor(), apps, NOW);
+
+    assert.equal(
+        entry.status,
+        'degraded',
+        'the degraded threshold must compare the raw h24 (89.96 < 90), not the rounded 90.0',
+    );
+    assert.equal(entry.uptime.h24, 90, 'the OUTPUT value is still rounded to 90.0');
+}
+
 // ── Task 15: a Metrion outage retains the last good report, marked stale ──
 {
     resetMetrionAdapterState();
