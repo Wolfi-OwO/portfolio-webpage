@@ -237,9 +237,15 @@ export default function IncidentsPage() {
                 )}
 
                 {!report && !loadError && (
-                    <p className="font-mono text-sm text-[var(--muted)]">
-                        <FormattedMessage id="status.incidents.loading" defaultMessage="Loading…" />
-                    </p>
+                    <div className="mb-6 flex animate-pulse items-center gap-4 rounded-lg border border-[var(--line)] bg-[var(--surface)] p-5">
+                        <span className="h-3 w-3 shrink-0 rounded-full bg-[var(--line)]" />
+                        <p className="font-mono text-sm text-[var(--muted)]">
+                            <FormattedMessage
+                                id="status.incidents.loading"
+                                defaultMessage="Loading…"
+                            />
+                        </p>
+                    </div>
                 )}
 
                 <a
