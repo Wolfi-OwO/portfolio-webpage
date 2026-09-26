@@ -4,36 +4,60 @@
         <meta charset="UTF-8" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Woofi Developments - Fullstack &amp; AI-Powered Web Development</title>
+        <!--
+          `:root` in index.css defines the LIGHT palette as the unqualified default
+          (`--bg: #eef2f9`, applied to <body> unconditionally), and the theme class
+          that flips it to dark only gets set by DefaultLayout's useLayoutEffect —
+          which can't run until the module bundle has been fetched, parsed and
+          React has mounted. The browser paints the light background the moment
+          CSS is ready, well before that, so a dark-preferring visitor saw a flash
+          of light background on every load. This blocking, non-module script
+          mirrors DefaultLayout's theme resolution (see default-layout.jsx) and
+          runs before the stylesheet can paint anything, so `.dark` is already on
+          <html> at first paint. Kept in sync by hand, not shared code — a
+          blocking head script and the React bundle can't import from each other.
+        -->
+        <script>
+            (function () {
+                try {
+                    var theme = localStorage.getItem('theme') || 'system';
+                    var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    var isDark = theme === 'dark' || (theme === 'system' && systemDark);
+                    document.documentElement.classList.toggle('dark', isDark);
+                } catch (e) {
+                    // Storage blocked (private browsing, disabled cookies, etc.) — fall
+                    // back to system preference so the page still themes correctly.
+                    document.documentElement.classList.toggle(
+                        'dark',
+                        window.matchMedia('(prefers-color-scheme: dark)').matches,
+                    );
+                }
+            })();
+        </script>
+        <title>Woofi Developments - Fullstack Web Development</title>
         <meta
             name="description"
-            content="Woofi Developments builds modern, AI-powered web applications with React, Node.js, and cloud technologies - fullstack software development based in Carinthia, Austria."
+            content="Woofi Developments builds modern web applications with React, Node.js, and cloud technologies - fullstack software development based in Carinthia, Austria."
         />
         <link rel="canonical" href="https://www.woofi-developments.at/" />
 
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="Woofi Developments" />
         <meta property="og:url" content="https://www.woofi-developments.at/" />
-        <meta
-            property="og:title"
-            content="Woofi Developments - Fullstack &amp; AI-Powered Web Development"
-        />
+        <meta property="og:title" content="Woofi Developments - Fullstack Web Development" />
         <meta
             property="og:description"
-            content="Modern, AI-powered web applications with React, Node.js, and cloud technologies - fullstack software development based in Carinthia, Austria."
+            content="Modern web applications with React, Node.js, and cloud technologies - fullstack software development based in Carinthia, Austria."
         />
         <meta property="og:image" content="https://www.woofi-developments.at/og-image.png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
 
         <meta name="twitter:card" content="summary_large_image" />
-        <meta
-            name="twitter:title"
-            content="Woofi Developments - Fullstack &amp; AI-Powered Web Development"
-        />
+        <meta name="twitter:title" content="Woofi Developments - Fullstack Web Development" />
         <meta
             name="twitter:description"
-            content="Modern, AI-powered web applications with React, Node.js, and cloud technologies - fullstack software development based in Carinthia, Austria."
+            content="Modern web applications with React, Node.js, and cloud technologies - fullstack software development based in Carinthia, Austria."
         />
         <meta name="twitter:image" content="https://www.woofi-developments.at/og-image.png" />
 

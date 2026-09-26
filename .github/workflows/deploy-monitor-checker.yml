@@ -16,9 +16,18 @@ name: Deploy Monitor Checker
 # with its own narrowly scoped role assignment (Website Contributor on just
 # this Function App, not the whole resource group). Declares the
 # `production` environment because that's where AZURE_CLIENT_ID lives
-# (AZURE_TENANT_ID/AZURE_SUBSCRIPTION_ID are repo-level) — as of this writing
-# that environment has no protection rules, so this doesn't add an approval
-# gate to a manual run.
+# (AZURE_TENANT_ID/AZURE_SUBSCRIPTION_ID are repo-level). That environment
+# now has a required-reviewer approval, so a run waits until the owner
+# approves it.
+#
+# Verify after every run — a green run does not prove the app works. On
+# 2026-09-20 a green deploy left the app with zero functions: package.json
+# `main` was `src/functions/*.js`, which also matched the *.test.js files; one
+# of them imports `pg` (a devDependency, absent after `npm ci --omit=dev`), so
+# indexing failed for the whole app and the timers silently stopped. `main`
+# now excludes tests. Check that this is non-empty:
+#   az functionapp function list -g portfolio-webpage-rg -n woofi-monitor-checker -o table
+# and that a new monitorchecks document arrives within ~2 minutes.
 
 on:
   workflow_dispatch:
@@ -63,3 +72,27 @@ jobs:
         with:
           app-name: woofi-monitor-checker
           package: application/jobs
+
+      # A green deploy does not prove the app registered its functions (see the
+      # 2026-09-20 note above), so assert it. Azure indexes a fresh package
+      # asynchronously; wait briefly before the first look. If the list is
+      # still empty, one restart recovered it once, so try that before failing.
+      - name: Assert the Function App registered its functions
+        run: |
+          list_functions() {
+            az functionapp function list -g portfolio-webpage-rg -n woofi-monitor-checker --query 'length(@)' -o tsv
+          }
+          sleep 30
+          count=$(list_functions)
+          if [ "${count:-0}" -eq 0 ]; then
+            echo "::warning::Function list is empty after deploy; restarting once."
+            az functionapp restart -g portfolio-webpage-rg -n woofi-monitor-checker
+            sleep 90
+            count=$(list_functions)
+          fi
+          if [ "${count:-0}" -eq 0 ]; then
+            echo "::error::woofi-monitor-checker has zero registered functions after deploy and one restart."
+            exit 1
+          fi
+          echo "Registered functions: ${count}"
+          az functionapp function list -g portfolio-webpage-rg -n woofi-monitor-checker -o table

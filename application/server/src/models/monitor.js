@@ -22,6 +22,15 @@ const monitorSchema = new mongoose.Schema(
             default: null,
             index: true,
         },
+        // The Metrion resource this monitor's uptime is written under (one
+        // resource per monitor, sub_resource is never used). Charset mirrors
+        // Metrion's ingest identifier. Not `required` here so documents that
+        // predate the field still load; the handlers require it on create.
+        metrionKey: {
+            type: String,
+            trim: true,
+            match: /^[A-Za-z0-9._:-]{1,200}$/,
+        },
         // Set only for monitors auto-discovered from Azure Container Apps (see
         // monitor-checker's syncContainerAppMonitors). Identifies the ARM
         // resource so the checker can query runningStatus without an HTTP call.
@@ -41,6 +50,9 @@ const monitorSchema = new mongoose.Schema(
         timestamps: true,
     },
 );
+
+// Sparse so the old documents without a key don't collide on "missing".
+monitorSchema.index({ metrionKey: 1 }, { unique: true, sparse: true });
 
 const MonitorModel = mongoose.model('Monitor', monitorSchema);
 

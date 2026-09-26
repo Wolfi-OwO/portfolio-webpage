@@ -1,0 +1,11 @@
+# Azurite emulator's well-known public account key, published as
+# DevelopmentConnectionString in @azure/storage-blob. Targets the local
+# azurite container only; authenticates against nothing real.
+application/docker-compose.yaml:generic-api-key:97
+application/docker-compose.prod.yaml:generic-api-key:283
+
+# Test fixture signed with the throwaway secret in
+# tests/helpers/env-setup.js:9. Verified: HMAC matches that literal only.
+# Production is guarded against ever using this secret (see server.js's
+# boot-time check added alongside this entry).
+application/server/tests/tokens.js:jwt:4

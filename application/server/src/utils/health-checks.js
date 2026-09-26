@@ -8,8 +8,20 @@ function setupHealthChecks(server) {
     const terminusOptions = {
         signal: ['SIGINT', 'SIGTERM'],
         healthChecks: {
+            // `/api/live` stays: docker-compose.prod.yaml's HEALTHCHECK still
+            // targets it. `/livez`/`/readyz` are the canonical paths shared
+            // with the other two apps behind the same Caddy edge (netviz,
+            // preussen-web), so one external monitor can probe the same two
+            // paths everywhere instead of a different one per app. Terminus
+            // intercepts these at the raw HTTP server, before the SPA
+            // catch-all in this file's caller ever sees the request -- that
+            // catch-all answers 200 (or, since the SPA-404 fix, 404 with
+            // index.html) for any unmatched path, neither of which is the
+            // real JSON health response these two paths need.
             '/api/ready': onReadinessCheck,
             '/api/live': onLivenessCheck,
+            '/readyz': onReadinessCheck,
+            '/livez': onLivenessCheck,
         },
         beforeShutdown: () => {
             logger.info('Backend - Stopping with grace period of 5 secs');

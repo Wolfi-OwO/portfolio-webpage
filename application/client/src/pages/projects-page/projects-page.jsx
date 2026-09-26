@@ -524,7 +524,9 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                         <div
                             role="alert"
                             className="rounded-2xl border border-[var(--down)] px-4 py-3 text-sm text-[var(--down)]"
-                            style={{ background: 'color-mix(in srgb, var(--down) 10%, transparent)' }}
+                            style={{
+                                background: 'color-mix(in srgb, var(--down) 10%, transparent)',
+                            }}
                         >
                             {error}
                         </div>

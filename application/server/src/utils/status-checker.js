@@ -1,5 +1,11 @@
 import { MonitorModel } from '../models/monitor.js';
 import { MonitorCheckModel } from '../models/monitor-check.js';
+import { DAY, round1, severityFor } from './status-shared.js';
+import {
+    buildMetrionStatuses,
+    buildMetrionRangeStatuses,
+    fetchIdleLatencyOverlay,
+} from './metrion-adapter.js';
 
 // This service no longer probes anything itself: the separate monitor-checker
 // Azure Function performs every check (~once per minute, 24/7) and writes the
@@ -13,25 +19,34 @@ import { MonitorCheckModel } from '../models/monitor-check.js';
 // implies. Every measurement below is therefore derived from the samples we
 // actually have, never from a wall-clock guess at how many should exist.
 const CHECK_MS = (Number(process.env.STATUS_CHECK_INTERVAL_SECONDS) || 60) * 1000;
-const DAY = 24 * 60 * 60 * 1000;
 const HISTORY_DAYS = 90;
-const round1 = (n) => Math.round(n * 10) / 10;
 
-// Worst-of ordering for rolled-up statuses (groups and the overall report).
-// `idle` sits above `pending`: a scaled-to-zero app is verified-healthy, just
-// at rest; a never-checked monitor is simply unknown.
-const STATUS_ORDER = ['down', 'degraded', 'pending', 'idle', 'operational'];
-const worstStatus = (statuses) => STATUS_ORDER.find((s) => statuses.includes(s)) ?? 'operational';
+// Worst-of ordering for rolled-up statuses (groups AND the overall report —
+// both call this one function, so the rule lives in exactly one place).
+//
+// `idle` is deliberately NOT a rung on this ladder. A scaled-to-zero app is
+// verified-healthy (buildMonitorStatus only assigns `idle` when the latest
+// check's `ok` is true — a stopped/errored/unreachable app is `down` before
+// `idle` is ever considered), so for a rollup it counts exactly as
+// `operational` does. Before this, `idle` outranked `operational` in the
+// order below, so ml-visualizer's permanent scale-to-zero idle state pinned
+// the whole page's banner to "idle" forever, even with every other monitor
+// green — a banner that never turns green gets ignored, and a real outage
+// stops standing out. `idle` still prints per-monitor (buildMonitorStatus
+// sets it directly, not via this function), so the distinction isn't lost —
+// only the top-level summary treats it as healthy.
+//
+// `pending` (never checked) stays a real rung, above `operational`: unknown
+// is not the same as healthy, and must not be folded in with `idle`.
+const STATUS_ORDER = ['down', 'degraded', 'pending', 'operational'];
+const worstStatus = (statuses) => {
+    const rollup = statuses.map((s) => (s === 'idle' ? 'operational' : s));
+    return STATUS_ORDER.find((s) => rollup.includes(s)) ?? 'operational';
+};
 
-// Discord-style: one bar per calendar day, colored by how much of that day
-// was down — not one bar per raw check (which, at a short check interval,
-// would only cover the last few minutes instead of the last 90 days).
-function severityFor(downRatio) {
-    if (downRatio <= 0) return 'operational';
-    if (downRatio <= 0.1) return 'minor';
-    if (downRatio <= 0.5) return 'major';
-    return 'critical';
-}
+// severityFor now lives in status-shared.js (reused by metrion-adapter.js);
+// re-exported below unchanged so existing importers (tests, this file) don't
+// need to change their import path.
 
 async function buildDailyHistory(monitorId) {
     const todayBucket = Math.floor(Date.now() / DAY);
@@ -125,7 +140,65 @@ async function failurePct(monitorId, windowMs, since) {
     return (totals.down / totals.total) * 100;
 }
 
-async function buildMonitorStatus(monitor) {
+// Median and p95 of the last 24 h of passing checks. The tile used to average
+// each monitor's single latest sample, so one slow outlier (a 5056 ms Metrion
+// netviz sample) dragged the headline to ~968 ms. Measured 24 h to 2026-09-20
+// on the VPS-hosted monitors: p50 146-224 ms against a mean of 306-404 ms and
+// a p95 of 1.1-1.2 s, i.e. the mean was ~2x the typical response.
+// Computed in JS from a bounded, latency-only query (~1.7k numbers per
+// monitor) rather than $percentile, which needs MongoDB >= 7 and would break
+// silently on an older server.
+async function latencyPercentiles(monitorId) {
+    const rows = await MonitorCheckModel.find(
+        { monitor: monitorId, ok: true, at: { $gte: Date.now() - DAY } },
+        { latencyMs: 1, _id: 0 },
+    ).lean();
+    if (!rows.length) return null;
+    const sorted = rows.map((r) => r.latencyMs).sort((a, b) => a - b);
+    const at = (p) =>
+        Math.round(sorted[Math.min(sorted.length - 1, Math.ceil(p * sorted.length) - 1)]);
+    return { p50: at(0.5), p95: at(0.95) };
+}
+
+// This report is served to ANONYMOUS callers (status-route.js is public on
+// purpose), so its default projection must not name infrastructure. Stored
+// errors come from two places in jobs/src/functions/checkMonitors.js:
+//   - the ARM branch: "Revision dsai-containerapp--0000004 is Failed
+//     (health: Unhealthy)" and, in its catch, the Azure SDK's OWN err.message
+//     - unbounded text that carries full resource ids including the
+//     subscription GUID when a credential or role breaks;
+//   - the HTTP branch: bounded, "fetch failed (ECONNRESET)".
+// Only the ARM branch ever sets runningStatus, so that field is the
+// discriminator - no string sniffing. The errno stays: it names a failure
+// mode, not a host. Full text stays in Mongo and in the admin projection.
+const ERRNO_RE = /\(([A-Z][A-Z0-9_]+)\)\s*$/;
+function publicError(check) {
+    if (!check || check.ok || !check.error) return undefined;
+    if (check.runningStatus) return 'Container app revision is not healthy';
+    const code = check.error.match(ERRNO_RE)?.[1];
+    return code ? `Request failed (${code})` : 'Request failed';
+}
+
+// The page only needs "is a container app" and "is it scaled to zero", so the
+// anonymous view gets those two facts instead of the resource group/name.
+function projectInfra(monitor, latest, detailed) {
+    const hasApp = Boolean(monitor.containerApp?.name);
+    return {
+        containerApp: !hasApp
+            ? null
+            : detailed
+              ? monitor.containerApp
+              : { scaleToZero: monitor.containerApp.scaleToZero ?? true },
+        lastError: detailed ? (!latest?.ok ? latest?.error : undefined) : publicError(latest),
+        runningStatus: detailed
+            ? (latest?.runningStatus ?? null)
+            : latest?.runningStatus === 'ScaledToZero'
+              ? 'ScaledToZero'
+              : null,
+    };
+}
+
+async function buildMonitorStatus(monitor, detailed = false) {
     const first = await MonitorCheckModel.findOne({ monitor: monitor._id }).sort({ at: 1 });
     const latest = await MonitorCheckModel.findOne({ monitor: monitor._id }).sort({ at: -1 });
     const monitoringSince = first?.at ?? Date.now();
@@ -150,12 +223,11 @@ async function buildMonitorStatus(monitor) {
         name: monitor.name,
         url: monitor.url,
         group: monitor.group ?? null,
-        containerApp: monitor.containerApp?.name ? monitor.containerApp : null,
+        ...projectInfra(monitor, latest, detailed),
         status,
         latencyMs: latest?.latencyMs ?? null,
+        latency: await latencyPercentiles(monitor._id),
         lastCheckedAt: latest?.at ?? null,
-        lastError: !latest?.ok ? latest?.error : undefined,
-        runningStatus: latest?.runningStatus ?? null,
         monitoringSince,
         uptime: {
             h24: fail24 != null ? round1(100 - fail24) : null,
@@ -204,19 +276,108 @@ function buildGroups(statuses) {
     return { groups, ungrouped };
 }
 
-async function getStatusReport() {
+// `STATUS_SOURCE` read once per call (as the default parameter, evaluated at
+// call time, not module load) so a test — or an operator flipping the env var
+// on a live process — sees the change on the very next call, no reimport
+// needed. Unset or any value other than 'metrion' keeps today's Mongo path.
+function defaultSource() {
+    return process.env.STATUS_SOURCE === 'metrion' ? 'metrion' : 'mongo';
+}
+
+/**
+ * @param {boolean} detailed - admin projection (container app names, raw errors)
+ * @param {string} source - 'metrion' or 'mongo'
+ * @param {{ from: number, to: number } | null} range - epoch-ms window from a
+ * date-range picker request, or `null` for the default "current" view
+ * (h24/d7/d30 + 90-day daily bars). Already validated by the caller
+ * (status-handlers.js's parseRangeQuery) — this function trusts `from < to`.
+ */
+async function getStatusReport(detailed = false, source = defaultSource(), range = null) {
     const monitors = await MonitorModel.find().sort({ createdAt: 1 });
-    const statuses = await Promise.all(monitors.map(buildMonitorStatus));
 
-    const status = worstStatus(statuses.map((m) => m.status));
-    const { groups, ungrouped } = buildGroups(statuses);
+    if (source === 'metrion') {
+        if (range) {
+            const {
+                entries,
+                stale,
+                staleSince,
+                range: rangeMeta,
+                rangeUnavailable,
+            } = await buildMetrionRangeStatuses(monitors, range.from, range.to);
+            const status = worstStatus(entries.map((m) => m.status));
+            const { groups, ungrouped } = buildGroups(entries);
+            return {
+                status,
+                checkIntervalMs: CHECK_MS,
+                groups,
+                ungrouped,
+                stale,
+                staleSince,
+                range: rangeMeta,
+                // Only present when the range fetch itself failed (Metrion's
+                // /uptime/range unreachable/erroring) — distinct from "no
+                // incidents"/"no bars", which is just an empty range.
+                ...(rangeUnavailable ? { rangeUnavailable: true } : {}),
+            };
+        }
 
+        // Task 16b: default view + a cheap idlePct/latency overlay, run in
+        // parallel. c85813d's default view is byte-identical to the
+        // pre-Metrion-adapter mongo report EXCEPT for `stale`/`staleSince`
+        // (that commit's own carve-out) — this overlay adds exactly two more
+        // fields that are allowed to differ from "always null/absent",
+        // `idlePct` and `latency`, and nothing else: no `history`/`incidents`/
+        // `uptime.range`/`truncated`/`totalIncidents` here, those stay
+        // range-only (buildMetrionRangeStatuses, above). See
+        // fetchIdleLatencyOverlay's own doc comment in metrion-adapter.js for
+        // why this can't throw or go stale on a Metrion hiccup.
+        const [{ entries, stale, staleSince }, overlay] = await Promise.all([
+            buildMetrionStatuses(monitors),
+            fetchIdleLatencyOverlay(monitors),
+        ]);
+        const overlaidEntries = entries.map((entry) => ({ ...entry, ...overlay.get(entry._id) }));
+        const status = worstStatus(overlaidEntries.map((m) => m.status));
+        const { groups, ungrouped } = buildGroups(overlaidEntries);
+        return { status, checkIntervalMs: CHECK_MS, groups, ungrouped, stale, staleSince };
+    }
+
+    // Explicit arrow, NOT `monitors.map(buildMonitorStatus)`: map would pass the
+    // array index as `detailed`, and every monitor after the first would be
+    // served with full infrastructure detail to anonymous callers.
+    const mongoStatuses = await Promise.all(
+        monitors.map(async (m) => ({
+            ...(await buildMonitorStatus(m, detailed)),
+            source: 'mongo',
+        })),
+    );
+
+    const status = worstStatus(mongoStatuses.map((m) => m.status));
+    const { groups, ungrouped } = buildGroups(mongoStatuses);
+
+    // No `stale`/`staleSince` keys here: the mongo branch's output must stay
+    // byte-identical to the pre-Metrion-adapter report (STATUS_SOURCE unset
+    // is the live default, so this is what every current caller still sees).
+    //
+    // A `range` request against `source=mongo` gets the SAME default view,
+    // flagged `rangeUnsupported: true` so the client can show a "date ranges
+    // need the Metrion source" note instead of silently ignoring what was
+    // asked for. Slicing Mongo's MonitorCheck documents to an arbitrary
+    // window would mean reimplementing buildDailyHistory/uptimePct/
+    // latencyPercentiles above against a caller-supplied window instead of
+    // their fixed DAY/7*DAY/30*DAY/90-day ones — real work, for a source
+    // that's being retired once Metrion fully replaces it (see this file's
+    // top module comment), so it isn't built here.
     return {
         status,
         checkIntervalMs: CHECK_MS,
         groups,
         ungrouped,
+        ...(range ? { rangeUnsupported: true } : {}),
     };
 }
 
-export { getStatusReport };
+// worstStatus exported for the framework-free unit checks in
+// tests/status/*.check.mjs (see worst-status.check.mjs for why: it's a pure
+// function and doesn't need the Mongo-backed mocha harness the rest of the
+// status suite runs under).
+export { getStatusReport, publicError, projectInfra, severityFor, worstStatus };

@@ -11,12 +11,13 @@ import {
 } from '../handlers/services-handlers.js';
 
 import { authMiddleware } from '../middlewares/authMiddleware.js';
+import { optionalAuth } from '../middlewares/optionalAuth.js';
 
 /* ***************** CONFIG and CONSTS ********************* */
 const servicesRouter = express.Router();
 
 /* ***************** PUBLIC ROUTES ************************* */
-servicesRouter.get('/', getAllServices);
+servicesRouter.get('/', optionalAuth, getAllServices);
 servicesRouter.get('/:id', getServiceById);
 
 /* ***************** PROTECTED ROUTES ********************** */

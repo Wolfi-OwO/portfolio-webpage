@@ -23,6 +23,14 @@ async function getAllAvailability(req, res, next) {
             'updatedAt',
         );
 
+        // `published` is client-enforced everywhere else (the timeline hides
+        // drafts by filtering after the fetch); this is the one place it must
+        // also be server-enforced, since this route has no auth at all for
+        // anonymous visitors. Only a verified admin (see optionalAuth) sees drafts.
+        if (req.user?.role !== 'admin') {
+            filter.published = true;
+        }
+
         const entries = await AvailabilityModel.find(filter)
             .sort(sort || { startDate: 1 })
             .limit(limit)

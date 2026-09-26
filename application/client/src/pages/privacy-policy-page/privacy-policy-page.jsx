@@ -1,7 +1,8 @@
 import { FormattedDate, FormattedMessage } from 'react-intl';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
+import ImprintText from '../../components/imprint-text.jsx';
 
-const LAST_UPDATED = new Date('2026-07-11');
+const LAST_UPDATED = new Date('2026-09-21');
 
 const EMAIL = 'KoflerPhillip@outlook.com';
 const LINKEDIN = 'https://www.linkedin.com/in/kofler-phillip-8666ab338/';
@@ -86,7 +87,7 @@ export default function PrivacyPolicyPage() {
                     <FormattedMessage
                         id="privacy.logs.text"
                         defaultMessage={
-                            'When you open a page, your browser sends a request to my server, and that request is logged. A log entry can contain your IP address, the date and time, the requested URL, the HTTP status code, the referring page and your browser and operating system identification (user agent).\n\nI need this to run the site at all: to deliver the page, to find errors, and to notice abuse such as brute-force attempts against the admin login. The legal basis is my legitimate interest in operating a secure, functioning website (Art. 6(1)(f) GDPR). Log data is not merged with anything else, is never used to identify you, and is kept only as long as it is useful for those purposes — a short period, after which it is deleted or overwritten.'
+                            'When you open a page, your request reaches my web server (Caddy). It writes one log line per request containing the time, the requested host name, the HTTP method and protocol, the response status, the size and duration of the response, and technical TLS connection details. Before a line is written, your IP address, the requested path and query string, and all request and response headers (including referrer and user agent) are removed. I therefore do not store your IP address in the server log.\n\nI need this log to run the site: to deliver pages and to find errors. The legal basis is my legitimate interest in operating a secure, functioning website (Art. 6(1)(f) GDPR). Log lines are not merged with anything else, are never used to identify you, and are kept in a size-limited rotating log for a short time before being overwritten.\n\nTo slow down abuse such as brute-force attempts against the admin login, the application counts requests per connection address in working memory only. These counters are not written to disk or to the database and disappear when the application restarts.'
                         }
                     />
                 </Section>
@@ -95,7 +96,7 @@ export default function PrivacyPolicyPage() {
                     <FormattedMessage
                         id="privacy.hosting.text"
                         defaultMessage={
-                            'The site runs as a container on Microsoft Azure, and its content (projects, technologies, status samples) lives in a MongoDB Atlas database. Both providers process data strictly on my instructions as processors under Art. 28 GDPR, and both necessarily handle the technical connection data described above.\n\nI chose them for reliability, not for data collection, and I store no visitor records in the database — the only rows in it are the ones I put there about my own work.'
+                            "The site runs as a container on a virtual server (VPS) from Contabo, where the Caddy web server terminates the encrypted connection. This is the only host that sees your connection when you visit. The site content (projects, technologies, status samples) lives in a MongoDB Atlas database, and my scheduled status checks run as a Microsoft Azure Function. Atlas and Azure only exchange data with my own server and checker, not with your browser. Contabo, MongoDB and Microsoft process data strictly on my instructions as processors under Art. 28 GDPR.\n\nI chose them for reliability, not for data collection, and I store no visitor records in the database — the only rows in it are the ones I put there about my own work, plus the results of my own status checks.\n\nThe status page also draws on Metrion, a second application of mine. The figures come from Metrion's ingest service and its self-hosted PostgreSQL/TimescaleDB database, both on the same Contabo VPS, which keeps uptime measurements (monitor name, up/down, response time) with no fixed deletion date; Metrion's dashboard runs on Microsoft Azure Container Apps but takes no part in the status request. Metrion is my own service rather than a third party, and the only traffic it receives from this site is the server-to-server status request described below, so it processes no visitor data either."
                         }
                     />
                 </Section>
@@ -103,7 +104,7 @@ export default function PrivacyPolicyPage() {
                 <Section id="privacy.fonts" defaultTitle="Fonts">
                     <FormattedMessage
                         id="privacy.fonts.text"
-                        defaultMessage="The typefaces used here (Manrope and JetBrains Mono) are loaded from Google Fonts. That means your browser requests the font files from a Google server, and Google therefore receives your IP address for the duration of that request. The legal basis is again my legitimate interest in a consistent presentation (Art. 6(1)(f) GDPR). No cookie is set by that request."
+                        defaultMessage="The typefaces used here (Manrope and JetBrains Mono) are served from my own server. Your browser makes no request to Google Fonts or any other outside host for them, so no IP address is passed to a third party in order to render this page."
                     />
                 </Section>
 
@@ -138,7 +139,9 @@ export default function PrivacyPolicyPage() {
                 <Section id="privacy.status" defaultTitle="The status page">
                     <FormattedMessage
                         id="privacy.status.text"
-                        defaultMessage="The status page shows whether my own services are reachable. The checks behind it ping my own deployments on a schedule and store the result — response time and up/down — in my database. They measure my infrastructure, not you: no visitor data of any kind is recorded there."
+                        defaultMessage={
+                            "The status page shows whether my own services are reachable. It draws on two systems I run myself. The first is my own scheduled checks, which call my deployments once a minute (and once more straight away if a check fails) and store the result in my MongoDB database — response time, up/down, the HTTP status code and, for a failed check, a short technical error message that may end in a network error code such as (ECONNRESET). These results in MongoDB are deleted after 90 days. On 21 September 2026 I additionally copied the up/down and response-time results of all checks collected until then (not the status code or error message) into Metrion, where they are kept with no fixed deletion date so that my services' availability history stays available beyond 90 days. The second system is Metrion, a separate monitoring application of mine whose ingest service and self-hosted PostgreSQL/TimescaleDB database run on my Contabo VPS; it keeps the monitor name, up/down and response time of its own checks in the same way, with no fixed deletion date. The page also shows the median and 95th-percentile response time over the last 24 hours, calculated from stored response times.\n\nMy server fetches the figures from Metrion server-to-server through its public API, so your browser never makes a request to Metrion and no visitor IP reaches it that way. Both systems measure my infrastructure, not you: these check results describe my own services and contain no visitor data. My legal basis for keeping this history is my legitimate interest in documenting the availability of my own services (Art. 6(1)(f) GDPR)."
+                        }
                     />
                 </Section>
 
@@ -146,6 +149,13 @@ export default function PrivacyPolicyPage() {
                     <FormattedMessage
                         id="privacy.admin.text"
                         defaultMessage="There is a login route that only I use, to maintain the content of the site. It issues a signed token to my own browser and stores no data about visitors. Passwords are never stored in plain text, only as a hash."
+                    />
+                </Section>
+
+                <Section id="privacy.career" defaultTitle="Career and education history">
+                    <FormattedMessage
+                        id="privacy.career.text"
+                        defaultMessage="The homepage's career timeline shows my own employment and education history — the organisations I worked or studied at and the relevant dates. This is personal data about me, the person running this site, that I choose to publish myself as a professional record; none of it is data about you or any other visitor. The organisation names shown there (such as Infineon Technologies, HTL Villach or BG/BRG Peraugymnasium) are not personal data under the GDPR, which protects natural persons, not companies or schools — and no individual person at any of them is named. My legal basis for publishing my own history this way is my legitimate interest, as someone offering software development services, in showing my qualifications and experience (Art. 6(1)(f) GDPR)."
                     />
                 </Section>
 
@@ -189,13 +199,10 @@ export default function PrivacyPolicyPage() {
                     />
                 </Section>
 
+                {/* Also reachable on its own at /impressum — same message ids,
+                    rendered through the same component, so they cannot drift. */}
                 <Section id="privacy.imprint" defaultTitle="Imprint">
-                    <FormattedMessage
-                        id="privacy.imprint.text"
-                        defaultMessage={
-                            'Information pursuant to §5 ECG and §25 MedienG:\n\nPhillip Kofler\nSoftware Engineer | Fullstack Developer\nVillach, Carinthia, Austria\n\nBusiness activity: software development, web development and digital solutions — modern web applications, REST APIs, dashboards and cloud-based systems.\n\nResponsible for the content of this site: Phillip Kofler. The contents are written with care, but I give no guarantee of accuracy, completeness or currentness. Where this site links to external pages, I have no influence over their content and take no responsibility for it. All content here is protected by copyright; use beyond the statutory limits needs my permission first.'
-                        }
-                    />
+                    <ImprintText />
                 </Section>
             </div>
         </div>

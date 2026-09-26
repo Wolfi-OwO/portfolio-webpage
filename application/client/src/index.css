@@ -2,7 +2,21 @@
    mono — JetBrains Mono: the structural voice. Prompts, output, labels, numbers.
    sans — Manrope: prose and headings. Weight 800 with negative tracking is what
           carries the headlines; there is no second display face. */
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+/* Self-hosted rather than fetched from Google's font CDN. Such a request
+   sets no cookie but still transmits the visitor's IP to a US server on first
+   paint, before any consent — LG München I, 20.01.2022, Az. 3 O 17493/20
+   awarded damages for exactly that and rejected legitimate interest as a basis,
+   because self-hosting is trivially available. These are the same families and
+   the same weights the old URL requested, and @fontsource ships
+   `font-display: swap`, so rendering is unchanged. */
+@import '@fontsource/manrope/400.css';
+@import '@fontsource/manrope/500.css';
+@import '@fontsource/manrope/600.css';
+@import '@fontsource/manrope/700.css';
+@import '@fontsource/manrope/800.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+@import '@fontsource/jetbrains-mono/700.css';
 
 @tailwind base;
 @tailwind components;
