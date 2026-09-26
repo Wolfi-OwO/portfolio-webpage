@@ -133,6 +133,14 @@ async function getServiceStatus(req, res, next) {
         // The body differs by Authorization, so shared caches must key on it.
         res.set('Vary', 'Authorization');
         const report = await cachedReport(isAdminRequest(req), range);
+        // 10 == CACHE_MS above, so the browser never shows anything staler
+        // than this server's own cache floor already permits; 50 fills the
+        // rest of the Metrion 60s window, so a reload or back-navigation
+        // paints from cache and refreshes behind it. `private`, never
+        // `public`, because the body carries admin-only container names and
+        // raw error text when isAdminRequest() is true — a shared cache must
+        // not serve one visitor's cached admin response to another.
+        res.set('Cache-Control', 'private, max-age=10, stale-while-revalidate=50');
         return res.json(report);
     } catch (err) {
         next(new InternalServerError(err));

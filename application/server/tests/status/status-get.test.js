@@ -367,4 +367,31 @@ describe('GET /api/status', function () {
             );
         });
     });
+
+    describe('cache-control', function () {
+        it('answers with a browser-cacheable, private, max-age=10 header on success', async function () {
+            await MonitorModel.create({ name: 'Cacheable', url: 'https://cacheable.test' });
+
+            const res = await request(httpServer).get('/api/status').expect(200);
+
+            assert.equal(
+                res.headers['cache-control'],
+                'private, max-age=10, stale-while-revalidate=50',
+            );
+            assert.equal(res.headers['vary'], 'Authorization');
+        });
+
+        it('carries no cache-control on a 400 from a bad range', async function () {
+            // parseRangeQuery throws before res.set('Vary', ...) runs (it sits
+            // in the *second* try block, after the range is already known
+            // valid) — Vary was never set on this path before this change
+            // either, so only Cache-Control's absence is asserted here.
+            const res = await request(httpServer)
+                .get('/api/status')
+                .query({ from: '2030-01-01T00:00:00.000Z', to: '2031-01-01T00:00:00.000Z' })
+                .expect(400);
+
+            assert.equal(res.headers['cache-control'], undefined);
+        });
+    });
 });

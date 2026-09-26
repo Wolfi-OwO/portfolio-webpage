@@ -126,7 +126,23 @@ app.use(
 // use build folder of vite as static directory
 // `index: false` — the SPA fallback below picks index.html vs status.html by
 // hostname, so static must not shortcut `/` to index.html on its own.
-app.use(express.static(CLIENT_DIST, { index: false }));
+const ASSETS_DIST = path.join(CLIENT_DIST, 'assets') + path.sep;
+app.use(
+    express.static(CLIENT_DIST, {
+        index: false,
+        setHeaders: (res, filePath) => {
+            // Vite content-hashes every filename under assets/ (e.g.
+            // src-iZnCNtKj.js), so a changed file is always a NEW url — the
+            // old filename can never point at different content. Safe to
+            // cache for a year as immutable. Everything else (index.html,
+            // status.html, favicon.svg, ...) must keep revalidating, or a
+            // visitor keeps referencing dead hashes after a deploy.
+            if (filePath.startsWith(ASSETS_DIST)) {
+                res.set('Cache-Control', 'public, max-age=31536000, immutable');
+            }
+        },
+    }),
+);
 
 // setup routes
 app.use('/auth/', authRouter);
