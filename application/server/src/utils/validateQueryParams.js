@@ -64,7 +64,11 @@ function convertFilterParams(filter) {
         if (key.startsWith('$')) {
             continue;
         }
-        if (filterValue !== null && typeof filterValue === 'object' && !Array.isArray(filterValue)) {
+        if (
+            filterValue !== null &&
+            typeof filterValue === 'object' &&
+            !Array.isArray(filterValue)
+        ) {
             continue;
         }
 

@@ -101,7 +101,10 @@ function toPayload(form, technologies) {
  * component fetches for itself when no list is handed down. Mirrors the
  * `standalone` prop contract in availability-timeline.jsx verbatim.
  */
-export default function CareerTimeline({ entries: providedEntries, setEntries: providedSetEntries }) {
+export default function CareerTimeline({
+    entries: providedEntries,
+    setEntries: providedSetEntries,
+}) {
     const intl = useIntl();
     const [ownEntries, setOwnEntries] = useState(null); // null = still loading
     const [failed, setFailed] = useState(false);
