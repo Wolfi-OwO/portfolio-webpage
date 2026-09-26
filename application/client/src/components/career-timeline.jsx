@@ -337,10 +337,13 @@ export default function CareerTimeline({
             )}
 
             {visible.length > 0 && (
-                <ol className="relative mt-6 grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-[1fr_2px_1fr]">
-                    {/* The rail. Explicitly placed in the middle column and spanning
+                <ol className="relative mt-6 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-[1fr_2px_1fr]">
+                    {/* The spine. Explicitly placed in the middle column and spanning
                         every row the grid ends up with, so it never affects where the
-                        auto-placed cards land in columns 1 and 3. */}
+                        auto-placed cards land in columns 1 and 3. Each entry then draws
+                        its own connector + node reaching into this same column (see
+                        CareerEntry below) — that's what turns this from a decorative
+                        divider into a line every card actually attaches to. */}
                     <div
                         aria-hidden="true"
                         className="hidden sm:col-start-2 sm:row-span-full sm:block sm:w-px sm:justify-self-center sm:bg-[var(--line)]"
@@ -417,12 +420,41 @@ function CareerEntry({ entry, admin, onEdit, onDelete }) {
     const Icon = isWork ? BriefcaseIcon : AcademicCapIcon;
     const isCurrent = entry.endDate == null;
 
+    // Work cards flip to flex-row-reverse (avatar on the right, facing the
+    // spine); education cards keep the default order (avatar on the left,
+    // also facing the spine — it sits in column 3). Either way the avatar's
+    // outer edge is the one that needs to reach across `gap-x-6` (24px) to the
+    // shared line, so the connector/node just mirror whichever edge that is.
+    const facingSpine = isWork
+        ? 'left-full' // card's right edge — spine sits 24px further right
+        : 'right-full'; // card's left edge — spine sits 24px further left
+    const nodeOffset = isWork ? 'ml-6 -translate-x-1/2' : 'mr-6 translate-x-1/2';
+
     return (
         <li
-            className={`flex items-start gap-3 rounded-xl border border-[var(--line)] bg-[var(--bg)] p-4 ${
+            className={`relative flex items-start gap-3 rounded-xl border border-[var(--line)] bg-[var(--bg)] p-5 ${
                 isWork ? 'sm:col-start-1 sm:flex-row-reverse' : 'sm:col-start-3'
             }`}
         >
+            {/* Connector + node bridging this card to the shared spine. Both are
+                sized off real values: `w-6`/`ml-6`/`mr-6` match the grid's own
+                `gap-x-6` exactly, and `top-10` lands on the avatar's vertical
+                centre (p-5 padding + half of the h-10 avatar = 2.5rem). Hidden
+                below `sm` along with the spine itself — collapsed to one column
+                there's no left/right split left to reconnect. */}
+            <span
+                aria-hidden="true"
+                className={`absolute top-10 hidden h-px w-6 -translate-y-1/2 bg-[var(--line)] sm:block ${facingSpine}`}
+            />
+            <span
+                aria-hidden="true"
+                className={`absolute top-10 hidden -translate-y-1/2 rounded-full sm:block ${facingSpine} ${nodeOffset} ${
+                    isCurrent
+                        ? 'h-3 w-3 animate-live border-2 border-[var(--live)] bg-[var(--live)]'
+                        : 'h-2.5 w-2.5 border-2 border-[var(--line)] bg-[var(--surface)]'
+                }`}
+            />
+
             <Avatar organisation={entry.organisation} logo={entry.logo} />
 
             <div className="min-w-0 flex-1">
@@ -475,7 +507,10 @@ function CareerEntry({ entry, admin, onEdit, onDelete }) {
                     {entry.location ? ` · ${entry.location}` : ''}
                 </p>
 
-                <p className="mt-1 font-mono text-2xs uppercase tracking-wider text-[var(--muted)]">
+                {/* Plain (not uppercase/wide-tracked like the kind eyebrow above) so
+                    the two mono lines don't read as duplicate labels — this one is
+                    data to scan, not a tag. */}
+                <p className="mt-1 font-mono text-xs text-[var(--muted)]">
                     <FormattedDate
                         value={entry.startDate}
                         day="2-digit"
