@@ -67,6 +67,7 @@ export default {
 
     'availability.badge.openToWork': 'Offen für Arbeit',
     'availability.badge.openForCommissions': 'Offen für Aufträge',
+    'availability.badge.notAvailable': 'Nicht verfügbar',
     'availability.heading': 'Verfügbarkeit',
     'availability.intro':
         'Ich bin offen für Arbeit, will aber beim Zeitplan ehrlich sein: Bis Ende September bin ich im Praktikum, ab Oktober leiste ich meine sechs Monate beim Bundesheer. Kleinere Freelance-Aufträge gehen nebenher — alles Größere startet realistisch im April 2027.',
@@ -85,6 +86,7 @@ export default {
     'availability.kind.military': 'Bundesheer',
     'availability.kind.education': 'Ausbildung',
     'availability.kind.available': 'Verfügbar',
+    'availability.kind.unavailable': 'Nicht verfügbar',
 
     'career.heading': 'Werdegang & Ausbildung',
     'career.error': 'Werdegang konnte gerade nicht geladen werden.',
@@ -92,6 +94,11 @@ export default {
     'career.empty': 'Noch nichts veröffentlicht.',
     'career.kind.work': 'Arbeit',
     'career.kind.education': 'Ausbildung',
+    'career.new': 'Neuer Eintrag',
+    'career.form.new': 'Neuer Eintrag',
+    'career.form.edit': 'Eintrag bearbeiten',
+    'career.error.required': 'Titel und Startdatum sind erforderlich.',
+    'career.error.dateOrder': 'Das Enddatum darf nicht vor dem Startdatum liegen.',
 
     'activity.heading': 'Woran ich gerade baue',
     'activity.total': '{count} Beiträge seit {since}',
