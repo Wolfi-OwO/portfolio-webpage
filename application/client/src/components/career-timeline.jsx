@@ -337,28 +337,40 @@ export default function CareerTimeline({
             )}
 
             {visible.length > 0 && (
-                <ol className="relative mt-6 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-[1fr_2px_1fr]">
-                    {/* The spine. Explicitly placed in the middle column and spanning
-                        every row the grid ends up with, so it never affects where the
-                        auto-placed cards land in columns 1 and 3. Each entry then draws
-                        its own connector + node reaching into this same column (see
-                        CareerEntry below) — that's what turns this from a decorative
-                        divider into a line every card actually attaches to. */}
+                <div className="relative mt-6">
+                    {/* The spine. NOT a grid item spanning rows — `row-span-full`
+                        compiles to `grid-row: 1 / -1`, and `-1` resolves against the
+                        *explicit* grid's line count, which is 1 (no `grid-template-rows`
+                        is authored; every row below the first is implicit). That's why
+                        the previous version stopped dead at the bottom of the first
+                        entry regardless of how many followed — verified live: computed
+                        `grid-template-rows` was 5 rows tall, the spine's rendered height
+                        was exactly the first row's height.
+                        Instead this is a plain absolutely-positioned sibling of the grid,
+                        living in this `relative` wrapper. `inset-y-0` stretches it to the
+                        wrapper's own content height — which flow layout sets from the
+                        `<ol>`'s real rendered height — so it's correct for any entry
+                        count or card height without knowing either up front. Centered
+                        with `left-1/2 -translate-x-1/2` rather than a grid column: the
+                        grid's `[1fr_2px_1fr]` columns are symmetric, so the wrapper's
+                        horizontal center already lands exactly on that middle track. */}
                     <div
                         aria-hidden="true"
-                        className="hidden sm:col-start-2 sm:row-span-full sm:block sm:w-px sm:justify-self-center sm:bg-[var(--line)]"
+                        className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-px -translate-x-1/2 bg-[var(--line)] sm:block"
                     />
 
-                    {visible.map((entry) => (
-                        <CareerEntry
-                            key={entry._id}
-                            entry={entry}
-                            admin={admin}
-                            onEdit={(e) => setForm(toForm(e))}
-                            onDelete={handleDelete}
-                        />
-                    ))}
-                </ol>
+                    <ol className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-[1fr_2px_1fr]">
+                        {visible.map((entry) => (
+                            <CareerEntry
+                                key={entry._id}
+                                entry={entry}
+                                admin={admin}
+                                onEdit={(e) => setForm(toForm(e))}
+                                onDelete={handleDelete}
+                            />
+                        ))}
+                    </ol>
+                </div>
             )}
         </section>
     );
@@ -400,7 +412,7 @@ function Avatar({ organisation, logo }) {
                 src={src}
                 alt=""
                 onError={() => setFailed(true)}
-                className="h-10 w-10 shrink-0 rounded-full border border-[var(--line)] object-cover"
+                className="h-8 w-8 shrink-0 rounded-full border border-[var(--line)] object-cover"
             />
         );
     }
@@ -408,10 +420,49 @@ function Avatar({ organisation, logo }) {
     return (
         <span
             aria-hidden="true"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--surface)] font-mono text-xs font-semibold text-[var(--muted)]"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--surface)] font-mono text-2xs font-semibold text-[var(--muted)]"
         >
             {initials(organisation)}
         </span>
+    );
+}
+
+/** ~2 lines of the `text-sm` body copy this renders into — long enough that a
+ * short bullet never gets a needless toggle, short enough that the one
+ * multi-sentence entry in real data (Infineon) does. A character count, not a
+ * measured line count: cheap, and correct within a line either way since the
+ * toggle only ever hides or reveals text, never layout.
+ * ponytail: char-count heuristic, not a real overflow measurement — revisit
+ * with a ResizeObserver/line-count check if entries start varying a lot more
+ * in width or font size than they do today. */
+const DESCRIPTION_TRUNCATE_AT = 180;
+
+function EntryDescription({ text }) {
+    const [expanded, setExpanded] = useState(false);
+    const isLong = text.length > DESCRIPTION_TRUNCATE_AT;
+
+    if (!isLong) {
+        return <p className="mt-2 text-sm text-[var(--muted)]">{text}</p>;
+    }
+
+    return (
+        <div className="mt-2">
+            <p className={`text-sm text-[var(--muted)] ${expanded ? '' : 'line-clamp-2'}`}>
+                {text}
+            </p>
+            <button
+                type="button"
+                onClick={() => setExpanded((current) => !current)}
+                aria-expanded={expanded}
+                className="mt-1 cursor-pointer font-mono text-2xs uppercase tracking-wider text-[var(--accent)] hover:underline"
+            >
+                {expanded ? (
+                    <FormattedMessage id="career.showLess" defaultMessage="Show less" />
+                ) : (
+                    <FormattedMessage id="career.showMore" defaultMessage="Show more" />
+                )}
+            </button>
+        </div>
     );
 }
 
@@ -432,23 +483,28 @@ function CareerEntry({ entry, admin, onEdit, onDelete }) {
 
     return (
         <li
-            className={`relative flex items-start gap-3 rounded-xl border border-[var(--line)] bg-[var(--bg)] p-5 ${
+            // No border/box: a boxed card per entry was itself part of what read as
+            // heavy — LinkedIn's own experience list is plain rows separated by
+            // whitespace and the connecting line, not stacked bordered containers.
+            // `hover:bg` keeps a row affordance for the admin edit/delete controls
+            // without a permanent outline.
+            className={`group relative flex items-start gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-[var(--surface)] ${
                 isWork ? 'sm:col-start-1 sm:flex-row-reverse' : 'sm:col-start-3'
             }`}
         >
             {/* Connector + node bridging this card to the shared spine. Both are
                 sized off real values: `w-6`/`ml-6`/`mr-6` match the grid's own
-                `gap-x-6` exactly, and `top-10` lands on the avatar's vertical
-                centre (p-5 padding + half of the h-10 avatar = 2.5rem). Hidden
+                `gap-x-6` exactly, and `top-7` lands on the avatar's vertical
+                centre (py-3 padding + half of the h-8 avatar = 1.75rem). Hidden
                 below `sm` along with the spine itself — collapsed to one column
                 there's no left/right split left to reconnect. */}
             <span
                 aria-hidden="true"
-                className={`absolute top-10 hidden h-px w-6 -translate-y-1/2 bg-[var(--line)] sm:block ${facingSpine}`}
+                className={`absolute top-7 hidden h-px w-6 -translate-y-1/2 bg-[var(--line)] sm:block ${facingSpine}`}
             />
             <span
                 aria-hidden="true"
-                className={`absolute top-10 hidden -translate-y-1/2 rounded-full sm:block ${facingSpine} ${nodeOffset} ${
+                className={`absolute top-7 hidden -translate-y-1/2 rounded-full sm:block ${facingSpine} ${nodeOffset} ${
                     isCurrent
                         ? 'h-3 w-3 animate-live border-2 border-[var(--live)] bg-[var(--live)]'
                         : 'h-2.5 w-2.5 border-2 border-[var(--line)] bg-[var(--surface)]'
@@ -532,9 +588,7 @@ function CareerEntry({ entry, admin, onEdit, onDelete }) {
                     )}
                 </p>
 
-                {entry.description && (
-                    <p className="mt-2 text-sm text-[var(--muted)]">{entry.description}</p>
-                )}
+                {entry.description && <EntryDescription text={entry.description} />}
 
                 {entry.tags?.length > 0 && (
                     <ul className="mt-3 flex flex-wrap gap-2">
