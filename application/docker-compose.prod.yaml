@@ -219,6 +219,10 @@ services:
   # the timer bookkeeping survives container restarts/recreates.
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite:latest
+    # Its only consumer, `jobs`, is already gated behind `profiles: ['jobs']`
+    # (see the comment on that service below) — without this, `docker compose
+    # up -d` started azurite unconditionally for a consumer that never runs.
+    profiles: ['jobs']
     restart: unless-stopped
     command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --location /data
     # BUDGET ALLOCATION, not a measurement — the emulator has no Azure-side

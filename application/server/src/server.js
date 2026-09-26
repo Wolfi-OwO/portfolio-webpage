@@ -49,6 +49,24 @@ if (missingEnvVars.length > 0) {
     process.exit(1);
 }
 
+// This literal is the throwaway secret from tests/helpers/env-setup.js:9 and
+// signs a checked-in admin token valid until 2036 (tests/tokens.js). There is
+// no legitimate production use, so any deployed instance setting it is
+// treated as instantly compromised and refused at boot. Scoped to
+// NODE_ENV === 'production' (same convention as error-handlers.js) rather
+// than unconditional: env-setup.js defaults JWT_SECRET to exactly this
+// literal for the mocha suite, and every *.test.js imports this file
+// directly (e.g. tests/api-404.test.js), so an unconditional check killed
+// every test run before a single one executed — measured by actually
+// running `mocha tests/api-404.test.js`, not assumed.
+if (
+    process.env.NODE_ENV === 'production' &&
+    process.env.JWT_SECRET === 'test-jwt-secret-do-not-use-in-production'
+) {
+    logger.error('Backend - JWT_SECRET is set to the test-only value; refusing to start.');
+    process.exit(1);
+}
+
 const app = express();
 
 // Exactly one proxy hop sits in front of this app: Caddy (portfolio-caddy-1 ->
