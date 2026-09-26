@@ -4,84 +4,37 @@ import {
     ArrowLeftIcon,
     ArrowPathIcon,
     ArrowTopRightOnSquareIcon,
-    CalendarIcon,
     CheckCircleIcon,
     CircleStackIcon,
     ClockIcon,
     ExclamationTriangleIcon,
-    MoonIcon,
     PencilSquareIcon,
     PlusIcon,
     ServerIcon,
     TrashIcon,
-    XCircleIcon,
 } from '@heroicons/react/24/outline';
 import { authHeaders, isAdmin } from '../../utils/auth.js';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
+import { StatusDot, RangeSelector } from './status-shared-client.jsx';
+import {
+    BADGE,
+    BADGE_HINT,
+    SEVERITY,
+    useRangeState,
+    fmtDate,
+    fmtDateTime,
+    fmtDuration,
+    formatMaxDecimals,
+    toApiRange,
+    inputCls,
+    labelCls,
+} from './status-shared.js';
 
 const POLL_MS = 15000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Task 16: the range picker's presets, each a whole-day span ending "today".
-const RANGE_PRESETS = [
-    { id: '24h', days: 1, labelId: 'status.range.24h', label: '24h' },
-    { id: '7d', days: 7, labelId: 'status.range.7d', label: '7d' },
-    { id: '30d', days: 30, labelId: 'status.range.30d', label: '30d' },
-    { id: '90d', days: 90, labelId: 'status.range.90d', label: '90d' },
-    { id: '1y', days: 365, labelId: 'status.range.1y', label: '1y' },
-];
-
-// Exactly the server's own floor (status-handlers.js#parseRangeQuery,
-// MIN_FROM_MS = 2000-01-01). Using the floor itself rather than one day
-// earlier means "Whole period" never trips the server's exclusive `<` check,
-// and Metrion simply has nothing before a monitor's first sample — those
-// buckets render `no-data` (mapRangeBuckets), same honest treatment as any
-// other gap, so there is no need to know each monitor's real earliest date.
-const WHOLE_PERIOD_FROM = '2000-01-01';
-const MIN_RANGE_DATE = '2000-01-01';
-
 // How many incidents to render inline before folding the rest into "+N more".
 const INCIDENT_DISPLAY_CAP = 5;
-
-const BADGE = {
-    operational: { label: 'Operational', color: 'var(--live)', Icon: CheckCircleIcon },
-    down: { label: 'Down', color: 'var(--down)', Icon: XCircleIcon },
-    // Still responding, but more than 10% of the last 24h of checks failed.
-    degraded: {
-        label: 'Degraded',
-        color: 'color-mix(in srgb, var(--live) 45%, var(--down))',
-        Icon: ExclamationTriangleIcon,
-    },
-    pending: { label: 'Pending', color: 'var(--muted)', Icon: ExclamationTriangleIcon },
-    // A healthy scale-to-zero app: still up, just resting. Distinct label, same green.
-    idle: { label: 'Idle', color: 'var(--live)', Icon: MoonIcon },
-};
-
-// Extra context for statuses whose word alone invites the wrong reading — most
-// importantly `idle`, which is healthy, not an outage. Surfaced as a `title`
-// (mouse hover) on the badges below; screen-reader/keyboard users get the
-// same explanation for free from MonitorMeta's permanent, non-hover text.
-const BADGE_HINT = {
-    idle: 'Idle means healthy but scaled to zero — it wakes automatically on the next request, this is not an outage.',
-};
-
-// Discord-style severity tiers for a day's bar — the longer a service was down
-// that day, the deeper the red, instead of a flat binary up/down.
-const SEVERITY = {
-    operational: { label: 'Operational', bar: 'var(--live)', Icon: CheckCircleIcon },
-    minor: {
-        label: 'Minor outage',
-        bar: 'color-mix(in srgb, var(--down) 45%, transparent)',
-        Icon: ExclamationTriangleIcon,
-    },
-    major: {
-        label: 'Partial outage',
-        bar: 'color-mix(in srgb, var(--down) 70%, transparent)',
-        Icon: ExclamationTriangleIcon,
-    },
-    critical: { label: 'Major outage', bar: 'var(--down)', Icon: XCircleIcon },
-    'no-data': { label: 'No data', bar: 'var(--line)', Icon: ExclamationTriangleIcon },
-};
 
 function round1(n) {
     return Math.round(n * 10) / 10;
@@ -103,38 +56,8 @@ function fmtRelative(at) {
     return `${Math.round(hours / 24)}d ago`;
 }
 
-function fmtDate(ms) {
-    return new Date(ms).toLocaleDateString(undefined, {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-    });
-}
-
-// Same as fmtDate but with a time — used for sub-daily bucket labels (a range
-// request can come back hourly/minute-granular) and for incident timestamps,
-// where "23 September 2026" alone would make every bucket that day look
-// identical.
-function fmtDateTime(ms) {
-    return new Date(ms).toLocaleString(undefined, {
-        day: 'numeric',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-}
-
 function fmtRangeSpan(range) {
     return `${fmtDate(Date.parse(`${range.from}T00:00:00.000Z`))} – ${fmtDate(Date.parse(`${range.to}T00:00:00.000Z`))}`;
-}
-
-function fmtDuration(ms) {
-    const totalMinutes = Math.round(ms / 60000);
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    if (hours && minutes) return `${hours} hrs ${minutes} mins`;
-    if (hours) return `${hours} hrs`;
-    return `${minutes} mins`;
 }
 
 function summarizeHistory(history, subDaily = false) {
@@ -143,70 +66,6 @@ function summarizeHistory(history, subDaily = false) {
     const badDays = known.filter((day) => day.severity !== 'operational').length;
     const unit = subDaily ? 'periods' : 'days';
     return `${known.length - badDays} of ${known.length} ${unit} fully operational`;
-}
-
-// ---- Date-range picker helpers (Task 16) ---------------------------------
-//
-// The picker is built on native <input type="date">, which only carries a
-// date, no time-of-day, and the URL mirrors that (`?from=YYYY-MM-DD&to=...`)
-// for a shareable link. So every range here — presets included — is a whole
-// UTC-day span: "from" is start-of-day UTC, "to" is end-of-day UTC (capped at
-// "now" so a `to` of today never asks the server for a moment in the future;
-// see parseRangeQuery's FUTURE_SLACK_MS on the server).
-//
-// ponytail: presets round to whole UTC days rather than a rolling instant
-// (e.g. "24h" is "today and yesterday, UTC", not a strict trailing 24h) — one
-// time semantic for both presets and the custom picker instead of two.
-// Upgrade to precise instants if a user asks for tighter precision; that
-// needs the URL to carry a time component too.
-
-function isoDateUTC(date) {
-    return date.toISOString().slice(0, 10);
-}
-
-function addDaysUTC(dateStr, deltaDays) {
-    const d = new Date(`${dateStr}T00:00:00.000Z`);
-    d.setUTCDate(d.getUTCDate() + deltaDays);
-    return isoDateUTC(d);
-}
-
-function todayUTC() {
-    return isoDateUTC(new Date());
-}
-
-function presetDateRange(days) {
-    const to = todayUTC();
-    return { from: addDaysUTC(to, -days), to };
-}
-
-function isValidDateStr(s) {
-    return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(s));
-}
-
-// Which preset (if any) a from/to pair represents *right now*. A "7d" link
-// bookmarked yesterday and opened today no longer covers the last 7 days, so
-// it correctly reads as `custom` — the literal dates still load exactly as
-// bookmarked, but the preset highlight only lights up when it is still true.
-function matchPreset(from, to) {
-    const today = todayUTC();
-    if (to !== today) return 'custom';
-    if (from === WHOLE_PERIOD_FROM) return 'all';
-    const found = RANGE_PRESETS.find((p) => addDaysUTC(today, -p.days) === from);
-    return found ? found.id : 'custom';
-}
-
-function parseRangeFromLocation() {
-    const params = new URLSearchParams(window.location.search);
-    const from = params.get('from');
-    const to = params.get('to');
-    if (!isValidDateStr(from) || !isValidDateStr(to)) return null;
-    return { from, to };
-}
-
-// Date-only URL/state -> full ISO instants for the actual API call.
-function toApiRange({ from, to }) {
-    const toMs = Math.min(Date.parse(`${to}T23:59:59.999Z`), Date.now());
-    return { from: `${from}T00:00:00.000Z`, to: new Date(toMs).toISOString() };
 }
 
 // A window with no checks in it has a null uptime — unknown, which reads muted
@@ -219,7 +78,7 @@ function uptimeColor(pct) {
 }
 
 function fmtUptime(pct) {
-    return pct == null ? '—' : `${pct}%`;
+    return pct == null ? '—' : `${formatMaxDecimals(pct)}%`;
 }
 
 // Metrion entries are new to this page and share no history with the "—"
@@ -228,7 +87,7 @@ function fmtUptime(pct) {
 // misread as a stale value rather than an absent one. Mongo-sourced null
 // uptime keeps the existing dash — unchanged, per scope.
 function UptimeValue({ pct, source }) {
-    if (pct != null) return `${pct}%`;
+    if (pct != null) return `${formatMaxDecimals(pct)}%`;
     if (source === 'metrion') {
         return <FormattedMessage id="status.uptime.noData" defaultMessage="no data" />;
     }
@@ -240,48 +99,6 @@ function UptimeValue({ pct, source }) {
 function displayStatus(monitor) {
     if (monitor.status === 'operational' && monitor.runningStatus === 'ScaledToZero') return 'idle';
     return monitor.status;
-}
-
-// Live dot: pulses when up, solid when idle (at rest) or down.
-function StatusDot({ status, size = 'sm' }) {
-    const dim = size === 'lg' ? 'h-3 w-3' : 'h-2 w-2';
-
-    if (status === 'down') {
-        return (
-            <span
-                className={`inline-flex shrink-0 ${dim} rounded-full`}
-                style={{ background: 'var(--down)' }}
-            />
-        );
-    }
-    if (status === 'idle') {
-        // A hollow ring, not a filled dot: healthy but at rest. Reads as the
-        // outline of "operational" rather than a dimmer copy of it — a scaled
-        // to-zero app is up, just not doing anything.
-        return (
-            <span
-                className={`inline-flex shrink-0 ${dim} rounded-full border`}
-                style={{
-                    borderColor: 'var(--live)',
-                    background: 'color-mix(in srgb, var(--live) 15%, transparent)',
-                }}
-            />
-        );
-    }
-
-    const color = BADGE[status]?.color ?? 'var(--muted)';
-    return (
-        <span className={`relative inline-flex shrink-0 ${dim}`}>
-            <span
-                className="absolute inline-flex h-full w-full rounded-full opacity-70 motion-safe:animate-ping"
-                style={{ background: color }}
-            />
-            <span
-                className={`relative inline-flex ${dim} rounded-full`}
-                style={{ background: color }}
-            />
-        </span>
-    );
 }
 
 // One day's bar with a hover/focus popover: date, severity, and downtime that
@@ -462,7 +279,17 @@ function IncidentList({ incidents, totalIncidents }) {
                         id="status.incidents.loadedOfTotal"
                         defaultMessage="showing {loaded} of {total}"
                         values={{ loaded: incidents.length, total: knownTotal }}
-                    />
+                    />{' '}
+                    ·{' '}
+                    <a
+                        href="/incidents"
+                        className="underline-offset-2 hover:text-[var(--text)] hover:underline"
+                    >
+                        <FormattedMessage
+                            id="status.incidents.viewAll"
+                            defaultMessage="view the full incident history"
+                        />
+                    </a>
                 </p>
             ) : (
                 canToggle && (
@@ -851,10 +678,6 @@ function MonitorSkeleton() {
     );
 }
 
-const inputCls =
-    'mt-2 w-full rounded-md border border-[var(--line)] bg-[var(--bg)] px-4 py-2.5 text-sm text-[var(--text)] placeholder-[var(--muted)] transition focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]';
-const labelCls = 'block text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]';
-
 function MonitorForm({ editing, existingGroups, onSubmit, onCancel }) {
     const [name, setName] = useState(editing?.name ?? '');
     const [url, setUrl] = useState(editing?.url ?? '');
@@ -1055,133 +878,6 @@ function GroupSection({ group, admin, onEdit, onDelete, rangeActive = false, sub
     );
 }
 
-// The row of preset pills + the "Custom…" toggle that reveals two native
-// date inputs. Presentational only — StatusPage owns the range state, URL
-// sync, and validation; this just renders it and reports clicks/edits back up.
-function RangeSelector({
-    activePreset,
-    onPreset,
-    customOpen,
-    onToggleCustom,
-    draftFrom,
-    draftTo,
-    onDraftFromChange,
-    onDraftToChange,
-    onFromBlur,
-    onToBlur,
-    onApplyCustom,
-    fromError,
-    toError,
-}) {
-    const pillCls = (active) =>
-        `cursor-pointer rounded-md border px-3 py-1.5 font-mono text-2xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
-            active
-                ? 'border-[var(--accent)] bg-[color-mix(in_srgb,var(--accent)_14%,transparent)] text-[var(--text)]'
-                : 'border-[var(--line)] text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--text)]'
-        }`;
-
-    return (
-        <div className="mb-6">
-            <div
-                role="group"
-                aria-label="Status date range"
-                className="flex flex-wrap items-center gap-2"
-            >
-                <button
-                    type="button"
-                    aria-pressed={activePreset === 'default'}
-                    onClick={() => onPreset('default')}
-                    className={pillCls(activePreset === 'default')}
-                >
-                    <FormattedMessage id="status.range.live" defaultMessage="Current" />
-                </button>
-
-                {RANGE_PRESETS.map((preset) => (
-                    <button
-                        key={preset.id}
-                        type="button"
-                        aria-pressed={activePreset === preset.id}
-                        onClick={() => onPreset(preset.id)}
-                        className={pillCls(activePreset === preset.id)}
-                    >
-                        <FormattedMessage id={preset.labelId} defaultMessage={preset.label} />
-                    </button>
-                ))}
-
-                <button
-                    type="button"
-                    aria-pressed={activePreset === 'all'}
-                    onClick={() => onPreset('all')}
-                    className={pillCls(activePreset === 'all')}
-                >
-                    <FormattedMessage id="status.range.all" defaultMessage="Whole period" />
-                </button>
-
-                <button
-                    type="button"
-                    aria-pressed={customOpen || activePreset === 'custom'}
-                    aria-expanded={customOpen}
-                    onClick={onToggleCustom}
-                    className={`${pillCls(customOpen || activePreset === 'custom')} inline-flex items-center gap-1.5`}
-                >
-                    <CalendarIcon className="h-3.5 w-3.5" />
-                    <FormattedMessage id="status.range.custom" defaultMessage="Custom…" />
-                </button>
-            </div>
-
-            {customOpen && (
-                <form
-                    onSubmit={onApplyCustom}
-                    className="mt-3 flex flex-wrap items-end gap-3 rounded-lg border border-dashed border-[var(--line)] bg-[var(--surface)] p-4"
-                >
-                    <label className="flex-1 basis-40">
-                        <span className={labelCls}>
-                            <FormattedMessage id="status.range.from" defaultMessage="From" />
-                        </span>
-                        <input
-                            type="date"
-                            value={draftFrom}
-                            min={MIN_RANGE_DATE}
-                            max={todayUTC()}
-                            required
-                            onChange={(e) => onDraftFromChange(e.target.value)}
-                            onBlur={onFromBlur}
-                            className={inputCls}
-                        />
-                        {fromError && (
-                            <p className="mt-1 text-xs text-[var(--down)]">{fromError}</p>
-                        )}
-                    </label>
-
-                    <label className="flex-1 basis-40">
-                        <span className={labelCls}>
-                            <FormattedMessage id="status.range.to" defaultMessage="To" />
-                        </span>
-                        <input
-                            type="date"
-                            value={draftTo}
-                            min={MIN_RANGE_DATE}
-                            max={todayUTC()}
-                            required
-                            onChange={(e) => onDraftToChange(e.target.value)}
-                            onBlur={onToBlur}
-                            className={inputCls}
-                        />
-                        {toError && <p className="mt-1 text-xs text-[var(--down)]">{toError}</p>}
-                    </label>
-
-                    <button
-                        type="submit"
-                        className="inline-flex cursor-pointer items-center rounded-md bg-[var(--text)] px-5 py-2.5 text-sm font-semibold text-[var(--bg)] transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                    >
-                        <FormattedMessage id="status.range.apply" defaultMessage="Apply" />
-                    </button>
-                </form>
-            )}
-        </div>
-    );
-}
-
 export default function StatusPage() {
     usePageMeta('Status', 'Live uptime status for Woofi Developments and its monitored services.');
     const intl = useIntl();
@@ -1193,123 +889,27 @@ export default function StatusPage() {
     const [editingMonitor, setEditingMonitor] = useState(null);
 
     // Task 16: the picker's selected range, `null` for the default "current"
-    // view. Seeded from the URL on first render so a shared/bookmarked link
-    // reproduces its range on load, before the first fetch even fires.
-    const [rangeParam, setRangeParam] = useState(() => parseRangeFromLocation());
-    const [rangeError, setRangeError] = useState('');
-    const [customOpen, setCustomOpen] = useState(false);
-    const [draftFrom, setDraftFrom] = useState(rangeParam?.from ?? '');
-    const [draftTo, setDraftTo] = useState(rangeParam?.to ?? '');
-    const [fromError, setFromError] = useState('');
-    const [toError, setToError] = useState('');
-
-    // Back/forward navigation must update the view — the only way this page
-    // (no router, see status-main.jsx) hears about a history navigation.
-    useEffect(() => {
-        function onPopState() {
-            const next = parseRangeFromLocation();
-            setRangeParam(next);
-            setDraftFrom(next?.from ?? '');
-            setDraftTo(next?.to ?? '');
-            setFromError('');
-            setToError('');
-        }
-        window.addEventListener('popstate', onPopState);
-        return () => window.removeEventListener('popstate', onPopState);
-    }, []);
-
-    // Pushes a new history entry (not replace: back/forward must step through
-    // ranges) and mirrors it into the date-only `?from=&to=` URL. `next: null`
-    // returns to the default view and strips both params entirely, so the
-    // very first load with no params is untouched.
-    const applyRange = useCallback((next) => {
-        setRangeError('');
-        setRangeParam(next);
-        const url = new URL(window.location.href);
-        if (next) {
-            url.searchParams.set('from', next.from);
-            url.searchParams.set('to', next.to);
-        } else {
-            url.searchParams.delete('from');
-            url.searchParams.delete('to');
-        }
-        window.history.pushState(null, '', url);
-    }, []);
-
-    function handlePreset(id) {
-        setCustomOpen(false);
-        if (id === 'default') return applyRange(null);
-        if (id === 'all') return applyRange({ from: WHOLE_PERIOD_FROM, to: todayUTC() });
-        const preset = RANGE_PRESETS.find((p) => p.id === id);
-        if (preset) applyRange(presetDateRange(preset.days));
-    }
-
-    function handleToggleCustom() {
-        setCustomOpen((open) => {
-            const next = !open;
-            // Opening fresh (no range picked yet): seed the two required
-            // inputs with a sensible window instead of leaving them empty.
-            if (next && !rangeParam) {
-                const seed = presetDateRange(7);
-                setDraftFrom(seed.from);
-                setDraftTo(seed.to);
-            }
-            return next;
-        });
-    }
-
-    // Shared by blur (per-field) and submit (both fields) validation, so the
-    // two paths can never disagree about what "valid" means.
-    function validateField(value) {
-        if (!value) {
-            return intl.formatMessage({
-                id: 'status.range.error.required',
-                defaultMessage: 'This date is required.',
-            });
-        }
-        if (value < MIN_RANGE_DATE) {
-            return intl.formatMessage({
-                id: 'status.range.error.tooEarly',
-                defaultMessage: 'Date must not be before 1 January 2000.',
-            });
-        }
-        if (value > todayUTC()) {
-            return intl.formatMessage({
-                id: 'status.range.error.future',
-                defaultMessage: 'Date must not be in the future.',
-            });
-        }
-        return '';
-    }
-
-    function validateOrder(from, to) {
-        if (from && to && to < from) {
-            return intl.formatMessage({
-                id: 'status.range.error.order',
-                defaultMessage: 'End date must be on or after the start date.',
-            });
-        }
-        return '';
-    }
-
-    function handleFromBlur() {
-        setFromError(validateField(draftFrom));
-    }
-
-    function handleToBlur() {
-        setToError(validateField(draftTo) || validateOrder(draftFrom, draftTo));
-    }
-
-    function handleApplyCustom(event) {
-        event.preventDefault();
-        const fErr = validateField(draftFrom);
-        const tErr = validateField(draftTo) || validateOrder(draftFrom, draftTo);
-        setFromError(fErr);
-        setToError(tErr);
-        if (fErr || tErr) return;
-        setCustomOpen(false);
-        applyRange({ from: draftFrom, to: draftTo });
-    }
+    // view. Everything about the picker itself (URL sync, back/forward,
+    // custom-date validation) lives in useRangeState, shared with
+    // IncidentsPage — see status-shared.js.
+    const {
+        rangeParam,
+        activePreset,
+        rangeError,
+        setRangeError,
+        customOpen,
+        draftFrom,
+        draftTo,
+        setDraftFrom,
+        setDraftTo,
+        fromError,
+        toError,
+        handlePreset,
+        handleToggleCustom,
+        handleFromBlur,
+        handleToBlur,
+        handleApplyCustom,
+    } = useRangeState();
 
     const load = useCallback(() => {
         const url = new URL('/api/status', window.location.origin);
@@ -1358,7 +958,7 @@ export default function StatusPage() {
                 // so this stays silent for a stale-but-there report.
                 setLoadError(true);
             });
-    }, [admin, rangeParam, intl]);
+    }, [admin, rangeParam, intl, setRangeError]);
 
     useEffect(() => {
         let active = true;
@@ -1451,7 +1051,6 @@ export default function StatusPage() {
     // supports it — `rangeUnsupported` means the server quietly served the
     // default report instead, and monitors carry no `.uptime.range`/`.latency`
     // /`.incidents` in that case, so period-specific UI stays off.
-    const activePreset = rangeParam ? matchPreset(rangeParam.from, rangeParam.to) : 'default';
     const rangeActive = Boolean(rangeParam) && !report?.rangeUnsupported;
     // Bucket width from the server's own `range` metadata (buckets are evenly
     // spaced across [from, to)) — under a day means the history bars are
@@ -1477,6 +1076,16 @@ export default function StatusPage() {
                     </h1>
 
                     <div className="flex-1" />
+
+                    <a
+                        href="/incidents"
+                        className="rounded-md px-2.5 py-1.5 text-xs font-semibold text-[var(--muted)] transition hover:bg-[var(--surface-2)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                    >
+                        <FormattedMessage
+                            id="status.incidents.navLink"
+                            defaultMessage="Incidents"
+                        />
+                    </a>
 
                     <button
                         type="button"
