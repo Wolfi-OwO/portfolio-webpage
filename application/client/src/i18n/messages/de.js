@@ -53,6 +53,14 @@ export default {
     'status.incidents.more': '+{count} weitere',
     'status.incidents.collapse': 'weniger anzeigen',
     'status.incidents.loadedOfTotal': 'zeigt {loaded} von {total}',
+    'status.incidents.viewAll': 'gesamte Vorfallshistorie ansehen',
+    'status.incidents.navLink': 'Vorfälle',
+    'status.incidents.pageTitle': 'Vorfälle',
+    'status.incidents.ongoingHeading': 'Andauernd',
+    'status.incidents.empty': 'Keine Vorfälle in diesem Zeitraum.',
+    'status.incidents.loadError': 'Vorfälle konnten nicht geladen werden',
+    'status.incidents.loading': 'Wird geladen…',
+    'status.incidents.backToStatus': 'Zurück zum Status',
     'status.stale.note':
         'Zeigt die zuletzt bekannten Daten — die Live-Quelle hat sich seit {since} nicht mehr gemeldet.',
 
