@@ -30,6 +30,19 @@ async function fillDatabase() {
     await logResults('Monitors', fillMonitorsData);
     await logResults('Services', fillServicesData);
     await logResults('Availability', fillAvailabilityData);
+    // career.json's entries all carry track: 'career' (see availability.js's schema
+    // comment for why career history and availability rows can't share one list on
+    // the client). Entry #1 (the current Infineon role) describes the same real
+    // job as availability.json's current "Praktikum" entry — that's intentional,
+    // not a duplicate: availability drives the hero badge/rail, career drives the
+    // history list, and neither should be deleted on the other's account.
+    //
+    // These entries are written in German, like availability.json's seed already
+    // is, even though DEFAULT_LOCALE is 'en' — the real Austrian job/school titles
+    // ("Softwareingenieur:in", "Reife- und Diplomprüfung") are only accurate in
+    // German, and this schema has no per-entry i18n mechanism today. That's an
+    // existing limitation this data inherits, not a new regression.
+    await logResults('Career', fillCareerData);
 
     logger.info('Finished filling database!');
 
@@ -108,6 +121,12 @@ async function fillAvailabilityData() {
     const allEntries = JSON.parse(
         await fsp.readFile(path.join(DATA_DIR, 'availability.json'), 'utf-8'),
     );
+
+    return processDocuments(allEntries, AvailabilityModel.create.bind(AvailabilityModel));
+}
+
+async function fillCareerData() {
+    const allEntries = JSON.parse(await fsp.readFile(path.join(DATA_DIR, 'career.json'), 'utf-8'));
 
     return processDocuments(allEntries, AvailabilityModel.create.bind(AvailabilityModel));
 }
