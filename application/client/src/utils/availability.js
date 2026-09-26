@@ -33,6 +33,14 @@ function currentEntry(entries, now = new Date()) {
 function badgeState(entries, now = new Date()) {
     const current = currentEntry(entries, now);
 
+    if (current?.kind === 'unavailable') {
+        return {
+            id: 'availability.badge.notAvailable',
+            defaultMessage: 'Not available',
+            tone: 'down',
+        };
+    }
+
     if (!current || current.kind === 'available') {
         return {
             id: 'availability.badge.openToWork',

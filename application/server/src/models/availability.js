@@ -36,11 +36,13 @@ const availabilitySchema = new mongoose.Schema(
             },
         },
         // Drives the colour of the segment: busy blocks read as unavailable,
-        // 'available' reads as open.
+        // 'available' reads as open. 'unavailable' is a distinct, explicit
+        // "not open right now" — different from being mid-internship or
+        // mid-service, which still leave room for smaller commissions.
         kind: {
             type: String,
             required: true,
-            enum: ['work', 'military', 'education', 'available'],
+            enum: ['work', 'military', 'education', 'available', 'unavailable'],
             default: 'work',
         },
         published: {

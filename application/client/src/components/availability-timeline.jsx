@@ -31,6 +31,12 @@ const KINDS = [
         defaultLabel: 'Available',
         color: 'var(--live)',
     },
+    {
+        id: 'unavailable',
+        labelId: 'availability.kind.unavailable',
+        defaultLabel: 'Unavailable',
+        color: 'var(--down)',
+    },
 ];
 
 const EMPTY_FORM = {
