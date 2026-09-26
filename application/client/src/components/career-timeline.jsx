@@ -105,15 +105,27 @@ function initials(organisation) {
 
 function Avatar({ organisation, logo }) {
     const src = safeLogo(logo);
+    const [failed, setFailed] = useState(false);
 
-    if (src) {
-        // A missing/broken same-origin file still isn't a legal risk, but it would
-        // be a blank box — there is no monogram fallback path once <img> commits to
-        // a src, so this only ever runs for a path that is known-good today.
+    // Avatar itself doesn't remount when `logo` changes (its parent re-renders
+    // it in place), so `failed` from a previous, different src would otherwise
+    // stick around forever. Adjusting state during render (React's documented
+    // pattern for this — see "Adjusting some state when a prop changes") beats
+    // a useEffect here, which would set state after an extra, unnecessary render.
+    const [prevLogo, setPrevLogo] = useState(logo);
+    if (logo !== prevLogo) {
+        setPrevLogo(logo);
+        setFailed(false);
+    }
+
+    if (src && !failed) {
+        // A missing/broken same-origin file falls back to the monogram below via
+        // onError.
         return (
             <img
                 src={src}
                 alt=""
+                onError={() => setFailed(true)}
                 className="h-10 w-10 shrink-0 rounded-full border border-[var(--line)] object-cover"
             />
         );
