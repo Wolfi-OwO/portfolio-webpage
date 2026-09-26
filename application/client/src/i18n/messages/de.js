@@ -51,6 +51,8 @@ export default {
     'status.incidents.heading': 'Vorfälle in diesem Zeitraum',
     'status.incidents.ongoing': 'andauernd',
     'status.incidents.more': '+{count} weitere',
+    'status.incidents.collapse': 'weniger anzeigen',
+    'status.incidents.loadedOfTotal': 'zeigt {loaded} von {total}',
     'status.stale.note':
         'Zeigt die zuletzt bekannten Daten — die Live-Quelle hat sich seit {since} nicht mehr gemeldet.',
 

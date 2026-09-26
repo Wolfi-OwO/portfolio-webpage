@@ -87,9 +87,14 @@ function round1(n) {
     return Math.round(n * 10) / 10;
 }
 
+// Accepts either a pre-parsed ms number (StaleNote's Date.parse(staleSince))
+// or an ISO string (both the Metrion path's lastSampleAt and the Mongo
+// path's JSON-serialised Date `lastCheckedAt` reach here as strings) — a bare
+// string minus a number is NaN, which is where "checked NaNd ago" came from.
 function fmtRelative(at) {
-    if (!at) return 'never';
-    const seconds = Math.round((Date.now() - at) / 1000);
+    const ms = typeof at === 'string' ? Date.parse(at) : at;
+    if (at == null || Number.isNaN(ms)) return 'never';
+    const seconds = Math.round((Date.now() - ms) / 1000);
     if (seconds < 60) return `${seconds}s ago`;
     const minutes = Math.round(seconds / 60);
     if (minutes < 60) return `${minutes}m ago`;
@@ -396,11 +401,28 @@ function median(values) {
 // true count regardless, so the "+N more" figure is always honest even when
 // this component's own INCIDENT_DISPLAY_CAP is smaller than what the server sent.
 function IncidentList({ incidents, totalIncidents }) {
+    const [expanded, setExpanded] = useState(false);
+
     if (!incidents?.length) return null;
 
-    const shown = incidents.slice(0, INCIDENT_DISPLAY_CAP);
+    const shown = expanded ? incidents : incidents.slice(0, INCIDENT_DISPLAY_CAP);
     const knownTotal = totalIncidents ?? incidents.length;
-    const hiddenCount = Math.max(knownTotal - shown.length, 0);
+    // Based on `incidents.length` (what's actually loaded), not `knownTotal`
+    // (Metrion's real count) — expanding can only ever reveal what's already
+    // loaded, so the collapsed "+N more" label must promise exactly that,
+    // never a count the click can't deliver.
+    const hiddenCount = Math.max(incidents.length - shown.length, 0);
+    // Metrion caps the incidents it hands back at 100 per application, so
+    // `totalIncidents` (the real count) can exceed `incidents.length` (what
+    // actually loaded) even once expanded — measured live: 263 over 30d for
+    // ml-visualizer, only 100 loaded. Expanding can't fetch the rest, so once
+    // there's nothing further this button could honestly promise, it's
+    // replaced by a plain ceiling line instead of staying a dead affordance.
+    const moreThanLoaded = expanded && knownTotal > incidents.length;
+    // Whether there's anything for the button to toggle at all — independent
+    // of `expanded`, so the control stays present as "show fewer" even once
+    // hiddenCount hits 0 (everything loaded is now shown).
+    const canToggle = incidents.length > INCIDENT_DISPLAY_CAP;
 
     return (
         <div className="mt-2 rounded-md border border-[var(--line)] px-3 py-2">
@@ -434,14 +456,36 @@ function IncidentList({ incidents, totalIncidents }) {
                     </li>
                 ))}
             </ul>
-            {hiddenCount > 0 && (
+            {moreThanLoaded ? (
                 <p className="mt-1.5 font-mono text-2xs text-[var(--muted)]">
                     <FormattedMessage
-                        id="status.incidents.more"
-                        defaultMessage="+{count} more"
-                        values={{ count: hiddenCount }}
+                        id="status.incidents.loadedOfTotal"
+                        defaultMessage="showing {loaded} of {total}"
+                        values={{ loaded: incidents.length, total: knownTotal }}
                     />
                 </p>
+            ) : (
+                canToggle && (
+                    <button
+                        type="button"
+                        aria-expanded={expanded}
+                        onClick={() => setExpanded((e) => !e)}
+                        className="mt-1.5 cursor-pointer font-mono text-2xs text-[var(--muted)] transition hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                    >
+                        {expanded ? (
+                            <FormattedMessage
+                                id="status.incidents.collapse"
+                                defaultMessage="show fewer"
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id="status.incidents.more"
+                                defaultMessage="+{count} more"
+                                values={{ count: hiddenCount }}
+                            />
+                        )}
+                    </button>
+                )
             )}
         </div>
     );
