@@ -129,8 +129,8 @@ const technologies = [
 
 export default function Homepage() {
     usePageMeta(
-        'Fullstack & AI-Powered Web Development',
-        'Woofi Developments builds modern, AI-powered web applications with React, Node.js, and cloud technologies - fullstack software development based in Carinthia, Austria.',
+        'Fullstack Web Development',
+        'Woofi Developments builds modern web applications with React, Node.js, and cloud technologies - fullstack software development based in Carinthia, Austria.',
     );
 
     const [booting, setBooting] = useState(shouldBoot);
