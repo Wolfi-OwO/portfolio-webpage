@@ -152,6 +152,13 @@ export default function PrivacyPolicyPage() {
                     />
                 </Section>
 
+                <Section id="privacy.career" defaultTitle="Career and education history">
+                    <FormattedMessage
+                        id="privacy.career.text"
+                        defaultMessage="The homepage's career timeline shows my own employment and education history — the organisations I worked or studied at and the relevant dates. This is personal data about me, the person running this site, that I choose to publish myself as a professional record; none of it is data about you or any other visitor. The organisation names shown there (such as Infineon Technologies, HTL Villach or BG/BRG Peraugymnasium) are not personal data under the GDPR, which protects natural persons, not companies or schools — and no individual person at any of them is named. My legal basis for publishing my own history this way is my legitimate interest, as someone offering software development services, in showing my qualifications and experience (Art. 6(1)(f) GDPR)."
+                    />
+                </Section>
+
                 <Section id="privacy.sharing" defaultTitle="Sharing with third parties">
                     <FormattedMessage
                         id="privacy.sharing.text"

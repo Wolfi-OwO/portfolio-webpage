@@ -194,6 +194,10 @@ export default {
     'privacy.admin.text':
         'Es gibt eine Login-Route, die nur ich benutze, um die Inhalte der Seite zu pflegen. Sie stellt ein signiertes Token für meinen eigenen Browser aus und speichert keinerlei Daten über Besucher. Passwörter werden nie im Klartext gespeichert, sondern nur als Hash.',
 
+    'privacy.career.title': 'Werdegang und Ausbildung',
+    'privacy.career.text':
+        'Die Karriere-Zeitleiste auf der Startseite zeigt meinen eigenen beruflichen und schulischen Werdegang — die Organisationen, bei denen ich gearbeitet oder studiert habe, und die entsprechenden Zeiträume. Das sind personenbezogene Daten über mich, den Betreiber dieser Seite, die ich selbst als beruflichen Nachweis veröffentliche; nichts davon betrifft dich oder andere Besucher:innen. Die dort genannten Organisationsnamen (etwa Infineon Technologies, HTL Villach oder das BG/BRG Peraugymnasium) sind keine personenbezogenen Daten im Sinne der DSGVO, die natürliche Personen schützt, nicht Unternehmen oder Schulen — und es wird auch keine einzelne Person dort namentlich genannt. Meine Rechtsgrundlage für die Veröffentlichung meines eigenen Werdegangs ist mein berechtigtes Interesse als jemand, der Softwareentwicklungs-Dienstleistungen anbietet, meine Qualifikationen und Erfahrung zu zeigen (Art. 6 Abs. 1 lit. f DSGVO).',
+
     'privacy.sharing.title': 'Weitergabe an Dritte',
     'privacy.sharing.text':
         'Ich gebe deine Daten an niemanden weiter. Die Einzigen, die sie überhaupt berühren, sind die oben genannten Auftragsverarbeiter, die sie brauchen, um die Seite online zu halten, sowie Behörden, denen ich gesetzlich Auskunft geben muss. Es gibt keinen Verkauf, keinen Tausch und keine Übermittlung zu Werbezwecken — mit den Daten, die ich habe, wäre das nicht einmal möglich.',
