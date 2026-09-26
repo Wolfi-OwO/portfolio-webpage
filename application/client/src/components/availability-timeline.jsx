@@ -171,7 +171,10 @@ export default function AvailabilityTimeline({
 
         let active = true;
 
-        fetch('/api/availability')
+        // Career entries share this collection (see the schema's `track` field)
+        // but this rail's `layout()` assumes non-overlapping segments, which
+        // career history isn't — so only availability rows are ever fetched here.
+        fetch('/api/availability?track=availability')
             .then((res) => (res.ok ? res.json() : []))
             .then((list) => {
                 if (active) setOwnEntries(list);
@@ -266,7 +269,11 @@ export default function AvailabilityTimeline({
         }
     }
 
-    const visible = admin ? entries : entries.filter((e) => e.published);
+    // Belt-and-suspenders with the `?track=availability` fetch above: entries
+    // handed down as props (the homepage passes the unfiltered list it shares
+    // with the hero badge) still need career rows kept off this rail.
+    const nonCareer = entries.filter((e) => e.track !== 'career');
+    const visible = admin ? nonCareer : nonCareer.filter((e) => e.published);
     const { segments, todayPercent } = layout(visible);
 
     // Nothing to say and nothing to edit: don't render an empty box.

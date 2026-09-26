@@ -47,6 +47,52 @@ const availabilitySchema = new mongoose.Schema(
             type: Boolean,
             default: true,
         },
+        // Why this exists: `layout()` on the client lays every entry it is given
+        // out as non-overlapping segments on one axis (widths summing to 100%),
+        // and `badgeState()`/`currentEntry()` pick the first entry that contains
+        // today. Career history genuinely overlaps — an internship sits inside a
+        // multi-year school enrollment — so feeding it into the same rows would
+        // break both the rail's width math and the "first match wins" badge
+        // logic. `track` keeps career entries answering a different question
+        // (history) on the same collection without corrupting either read.
+        // Missing `track` (every document written before this field existed)
+        // reads as 'availability', not just future writes: Mongoose applies
+        // schema defaults on hydration, not only on save, so `.find()` already
+        // returns 'availability' for old rows with no query change needed.
+        track: {
+            type: String,
+            enum: ['availability', 'career'],
+            default: 'availability',
+            index: true,
+        },
+        organisation: {
+            type: String,
+        },
+        location: {
+            type: String,
+        },
+        // A same-origin path only ("/logos/infineon.svg") — never an external
+        // URL, so a career entry can't be used to load a tracking pixel or hot-
+        // link someone else's asset.
+        logo: {
+            type: String,
+            validate: {
+                validator: (value) => !value || !/^https?:\/\//i.test(value),
+                message: 'logo must be a same-origin path, not an external URL.',
+            },
+        },
+        // Matches the {tech, color} tag convention from projects.json / tech-color.js
+        // verbatim, so career tags render with the same chip component.
+        tags: {
+            type: [
+                {
+                    tech: { type: String, required: true },
+                    color: { type: String, required: true },
+                    _id: false,
+                },
+            ],
+            default: undefined,
+        },
     },
     {
         optimisticConcurrency: true,

@@ -7,12 +7,20 @@
 /** The entry that contains `now`, or null when nothing is running. */
 function currentEntry(entries, now = new Date()) {
     return (
-        entries.find((entry) => {
-            const start = new Date(entry.startDate);
-            const end = entry.endDate ? new Date(entry.endDate) : null;
+        entries
+            // Career entries overlap on purpose (an internship inside a school
+            // enrollment) — `.find()` here takes the first match, so letting a
+            // career row in could pick the wrong one, or the right availability
+            // row by accident. Excluding `track === 'career'` rather than
+            // requiring `track === 'availability'` also covers every entry
+            // written before this field existed, which has no `track` at all.
+            .filter((entry) => entry.track !== 'career')
+            .find((entry) => {
+                const start = new Date(entry.startDate);
+                const end = entry.endDate ? new Date(entry.endDate) : null;
 
-            return now >= start && (!end || now <= end);
-        }) || null
+                return now >= start && (!end || now <= end);
+            }) || null
     );
 }
 
