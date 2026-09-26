@@ -23,6 +23,13 @@ async function getAllServices(req, res, next) {
             'updatedAt',
         );
 
+        // Same server-side draft guard as availability: this route has no auth
+        // at all for anonymous visitors, so `published` must be enforced here,
+        // not just trusted to the client. Only a verified admin sees drafts.
+        if (req.user?.role !== 'admin') {
+            filter.published = true;
+        }
+
         const services = await ServiceModel.find(filter)
             .sort(sort || { order: 1, priceFrom: 1 })
             .limit(limit)

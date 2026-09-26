@@ -73,13 +73,17 @@ const availabilitySchema = new mongoose.Schema(
         location: {
             type: String,
         },
-        // A same-origin path only ("/logos/infineon.svg") — never an external
-        // URL, so a career entry can't be used to load a tracking pixel or hot-
-        // link someone else's asset.
+        // Must start with exactly one "/" ("/logos/infineon.svg") — a protocol-
+        // relative path ("//evil.tld/x.svg") resolves to an external host just
+        // as much as "https://…" does, so both are rejected the same way. This
+        // mirrors the client's own `safeLogo()` guard in career-timeline.jsx
+        // exactly, so server and client never disagree about what's a valid
+        // logo path, and a career entry can't be used to load a tracking pixel
+        // or hot-link someone else's asset.
         logo: {
             type: String,
             validate: {
-                validator: (value) => !value || !/^https?:\/\//i.test(value),
+                validator: (value) => !value || (value.startsWith('/') && !value.startsWith('//')),
                 message: 'logo must be a same-origin path, not an external URL.',
             },
         },

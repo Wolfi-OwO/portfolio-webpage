@@ -11,12 +11,13 @@ import {
 } from '../handlers/availability-handlers.js';
 
 import { authMiddleware } from '../middlewares/authMiddleware.js';
+import { optionalAuth } from '../middlewares/optionalAuth.js';
 
 /* ***************** CONFIG and CONSTS ********************* */
 const availabilityRouter = express.Router();
 
 /* ***************** PUBLIC ROUTES ************************* */
-availabilityRouter.get('/', getAllAvailability);
+availabilityRouter.get('/', optionalAuth, getAllAvailability);
 availabilityRouter.get('/:id', getAvailabilityById);
 
 /* ***************** PROTECTED ROUTES ********************** */
