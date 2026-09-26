@@ -1,0 +1,84 @@
+[
+  {
+    "title": "Softwareingenieur:in",
+    "organisation": "Infineon Technologies",
+    "location": "Villach, Kärnten, Österreich",
+    "description": "Vollzeit-Anstellung im Anschluss an das Praktikum. Entwicklung des Experiments Management System Dashboards für die Halbleiterfertigung, vor Ort in Villach.",
+    "startDate": "2026-07-13",
+    "endDate": null,
+    "kind": "work",
+    "track": "career",
+    "published": true,
+    "tags": [
+      {
+        "tech": "Angular",
+        "color": "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300"
+      },
+      {
+        "tech": "ASP.NET",
+        "color": "bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300"
+      },
+      {
+        "tech": "PHP",
+        "color": "bg-indigo-100 text-indigo-800 dark:bg-indigo-500/20 dark:text-indigo-300"
+      },
+      {
+        "tech": "JavaScript",
+        "color": "bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-300"
+      }
+    ]
+  },
+  {
+    "title": "Softwareingenieur:in",
+    "organisation": "Infineon Technologies",
+    "location": "Villach, Kärnten, Österreich",
+    "description": "Ferialpraktikum: Softwareentwicklung im Halbleiterbereich.",
+    "startDate": "2025-07-01",
+    "endDate": "2025-08-31",
+    "kind": "work",
+    "track": "career",
+    "published": true
+  },
+  {
+    "title": "Softwareingenieur:in",
+    "organisation": "Infineon Technologies",
+    "location": "Villach, Kärnten, Österreich",
+    "description": "Ferialpraktikum: Softwareentwicklung im Halbleiterbereich.",
+    "startDate": "2024-07-01",
+    "endDate": "2024-07-31",
+    "kind": "work",
+    "track": "career",
+    "published": true
+  },
+  {
+    "title": "Technischer IT-Support",
+    "organisation": "Infineon Technologies",
+    "location": "Villach, Kärnten, Österreich",
+    "startDate": "2023-08-01",
+    "endDate": "2023-08-31",
+    "kind": "work",
+    "track": "career",
+    "published": true
+  },
+  {
+    "title": "Reife- und Diplomprüfung — Computer/Information Technology Administration and Management",
+    "organisation": "HTL Villach",
+    "location": "Villach, Kärnten, Österreich",
+    "description": "Abschluss mit Auszeichnung, Notendurchschnitt 1,57. Aktive Teilnahme am Buddy-System zur Betreuung neuer Schüler:innen.",
+    "startDate": "2021-09-01",
+    "endDate": "2026-06-30",
+    "kind": "education",
+    "track": "career",
+    "published": true
+  },
+  {
+    "title": "AHS-Unterstufe",
+    "organisation": "BG/BRG Peraugymnasium",
+    "location": "Spittal an der Drau, Kärnten, Österreich",
+    "startDate": "2015-09-01",
+    "endDate": "2019-07-31",
+    "kind": "education",
+    "track": "career",
+    "published": true
+  }
+]

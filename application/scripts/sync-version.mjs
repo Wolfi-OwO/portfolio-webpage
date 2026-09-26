@@ -56,17 +56,26 @@ function readVersion(pkg) {
     return JSON.parse(readFileSync(packageFile(pkg), 'utf8')).version;
 }
 
+const VERSION_FIELD = /("version"\s*:\s*")[^"]*(")/;
+
 function writeVersion(pkg, version) {
     const file = packageFile(pkg);
     const raw = readFileSync(file, 'utf8');
 
-    // A targeted replace, not a re-serialise: JSON.stringify would reorder nothing
-    // but would happily reformat the whole file and fight with Prettier.
-    const next = raw.replace(/("version"\s*:\s*")[^"]*(")/, `$1${version}$2`);
-
-    if (next === raw) {
+    // Check presence before substituting: re-stamping a package.json that
+    // already carries the target version is a legitimate no-op (same text in,
+    // same text out), and is exactly what happens whenever this runs against
+    // an already-bumped main — e.g. a workflow_dispatch re-run picked the
+    // default branch instead of the release tag. Inferring "field missing"
+    // from "text unchanged" treated that no-op as an error and killed the
+    // 2026-09-12 v6.3.9 re-run even though the field was right there.
+    if (!VERSION_FIELD.test(raw)) {
         throw new Error(`No "version" field found in ${file}`);
     }
+
+    // A targeted replace, not a re-serialise: JSON.stringify would reorder nothing
+    // but would happily reformat the whole file and fight with Prettier.
+    const next = raw.replace(VERSION_FIELD, `$1${version}$2`);
 
     writeFileSync(file, next);
 }

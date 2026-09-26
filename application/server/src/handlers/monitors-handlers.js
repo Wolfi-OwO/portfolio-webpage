@@ -30,7 +30,7 @@ async function getAllMonitors(req, res, next) {
  */
 async function createMonitor(req, res, next) {
     try {
-        const { name, url, group } = req.body;
+        const { name, url, group, metrionKey } = req.body;
 
         if (!name || !url) {
             return next(new BadRequest('Both "name" and "url" are required.'));
@@ -45,9 +45,21 @@ async function createMonitor(req, res, next) {
             return next(new BadRequest('"url" must be a valid http(s) URL.'));
         }
 
-        const monitor = await MonitorModel.create({ name, url, group: normalizeGroup(group) });
+        if (typeof metrionKey !== 'string' || !metrionKey.trim()) {
+            return next(new BadRequest('"metrionKey" is required.'));
+        }
+
+        const monitor = await MonitorModel.create({
+            name,
+            url,
+            group: normalizeGroup(group),
+            metrionKey,
+        });
         return res.status(201).json(monitor);
     } catch (err) {
+        if (err?.code === 11000) {
+            return next(new BadRequest('"metrionKey" is already used by another monitor.', err));
+        }
         if (err instanceof mongoose.Error.ValidationError) {
             return next(new BadRequest(err.message, err));
         }
@@ -62,7 +74,7 @@ async function createMonitor(req, res, next) {
  */
 async function updateMonitorById(req, res, next) {
     try {
-        const { name, url, group } = req.body;
+        const { name, url, group, metrionKey } = req.body;
         const existing = await MonitorModel.findById(req.params.id);
 
         if (!existing) {
@@ -79,6 +91,13 @@ async function updateMonitorById(req, res, next) {
             );
         }
 
+        // Required only while the stored document has none, so monitors that
+        // predate the field stay editable; an existing key is kept when omitted.
+        const newKey = typeof metrionKey === 'string' ? metrionKey.trim() : '';
+        if (!newKey && !existing.metrionKey) {
+            return next(new BadRequest('"metrionKey" is required for this monitor.'));
+        }
+
         if (url) {
             try {
                 const parsed = new URL(url);
@@ -92,7 +111,12 @@ async function updateMonitorById(req, res, next) {
 
         const updated = await MonitorModel.findByIdAndUpdate(
             req.params.id,
-            { name, url: url || undefined, group: normalizeGroup(group) },
+            {
+                name,
+                url: url || undefined,
+                group: normalizeGroup(group),
+                ...(newKey ? { metrionKey: newKey } : {}),
+            },
             { new: true, runValidators: true },
         );
 
@@ -102,6 +126,9 @@ async function updateMonitorById(req, res, next) {
 
         return res.json(updated);
     } catch (err) {
+        if (err?.code === 11000) {
+            return next(new BadRequest('"metrionKey" is already used by another monitor.', err));
+        }
         if (err instanceof mongoose.Error.ValidationError) {
             return next(new BadRequest(err.message, err));
         }

@@ -2,6 +2,7 @@ import { app } from '@azure/functions';
 import mongoose from 'mongoose';
 import { DefaultAzureCredential } from '@azure/identity';
 import { ContainerAppsAPIClient } from '@azure/arm-appcontainers';
+import { createMetrionSink } from '../lib/metrion-sink.js';
 
 // Mirrors application/server/src/models/monitor.js and monitor-check.js.
 // Duplicated rather than imported because this Function App deploys
@@ -11,6 +12,9 @@ const monitorSchema = new mongoose.Schema(
         name: { type: String, required: true, index: true },
         url: { type: String },
         group: { type: String, trim: true, default: null, index: true },
+        // Metrion resource key; without it in this schema Mongoose would strip
+        // the field on load and the sink would skip every monitor.
+        metrionKey: { type: String },
         containerApp: {
             resourceGroup: { type: String },
             name: { type: String },
@@ -101,13 +105,38 @@ async function pingUrl(url) {
             latencyMs: Date.now() - start,
         };
     } catch (err) {
-        return { ok: false, latencyMs: Date.now() - start, error: err.message };
+        // Node's fetch rejects with a bare "fetch failed" and hides the reason in
+        // err.cause. 15 rows in the 30 days to 2026-09-20 read exactly that, all
+        // on https://ml-visualizer.at (dual-stack A + AAAA), so IPv6-vs-IPv4
+        // could not be answered from stored data. Keep only the short code
+        // (ECONNRESET, ENETUNREACH, UND_ERR_CONNECT_TIMEOUT): this string is
+        // shown in the public lastError field, so never cause.stack or a URL.
+        const code = err.cause?.code;
+        return {
+            ok: false,
+            latencyMs: Date.now() - start,
+            error: code ? `${err.message} (${code})` : err.message,
+        };
     }
 }
 
-async function checkMonitor(monitor) {
-    const result = await pingUrl(monitor.url);
-    await MonitorCheckModel.create({ monitor: monitor._id, at: Date.now(), ...result });
+// One re-probe after a failed first attempt, and only that attempt's result is
+// recorded. Measured over the 30 days to 2026-09-20: 483 of 635 failed checks
+// had no adjacent failing check (blips), while the one real outage
+// (2026-09-08 13:12-13:36Z) spanned 25 consecutive checks on 5 monitors and is
+// unaffected by a single retry. Cost at the measured failure rate: <= 18 extra
+// requests a week. Worst case a cycle takes 10 s + 2 s + 10 s, inside its minute.
+const RETRY_DELAY_MS = 2000;
+
+async function checkMonitor(monitor, sink, context, retryDelayMs = RETRY_DELAY_MS) {
+    let result = await pingUrl(monitor.url);
+    if (!result.ok) {
+        await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+        result = await pingUrl(monitor.url);
+    }
+    const check = { monitor: monitor._id, at: Date.now(), ...result };
+    await MonitorCheckModel.create(check);
+    sink.add(monitor, check, context);
 }
 
 // ── Container Apps — checked purely from Azure's control plane ───────────────
@@ -133,7 +162,15 @@ const PR_REVISION_RE = /--pr-\d+-/;
 // (Stopped/Degraded/Failed/Processing/Unknown), or an Unhealthy health probe,
 // is down. ScaledToZero isn't in the SDK's KnownRevisionRunningState enum but
 // the live ARM API returns it, so we match the string literal.
-const UP_RUNNING_STATES = new Set(['Running', 'ScaledToZero']);
+//
+// Activating is a scale-to-zero app waking: the platform buffers requests
+// while it starts, so nobody sees an outage. Measured over the 30 days to
+// 2026-09-20: 394 of 394 ML Visualizer failures read "Revision
+// dsai-containerapp--0000004 is Activating (health: Healthy)", and only 6 of
+// them had an adjacent failing check, i.e. it always resolved inside 60 s.
+// Counting it as down made up 76% of all recorded downtime. A genuinely
+// broken revision still shows Unhealthy/Failed/Degraded, which stay down.
+const UP_RUNNING_STATES = new Set(['Running', 'ScaledToZero', 'Activating']);
 function revisionIsUp(revision) {
     return (
         revision.healthState !== 'Unhealthy' &&
@@ -154,28 +191,30 @@ async function latestProductionRevision(client, resourceGroup, name) {
     return candidates[0] ?? null;
 }
 
-async function checkContainerAppMonitor(monitor, client, context) {
+async function checkContainerAppMonitor(monitor, client, context, sink) {
     const start = Date.now();
     try {
         const { resourceGroup, name } = monitor.containerApp;
         const revision = await latestProductionRevision(client, resourceGroup, name);
 
         if (!revision) {
-            await MonitorCheckModel.create({
+            const check = {
                 monitor: monitor._id,
                 at: Date.now(),
                 ok: false,
                 latencyMs: Date.now() - start,
                 error: 'No active non-PR revision found',
                 runningStatus: 'Unknown',
-            });
+            };
+            await MonitorCheckModel.create(check);
+            sink.add(monitor, check, context);
             return;
         }
 
         const runningStatus = revision.runningState ?? 'Unknown';
         const isUp = revisionIsUp(revision);
 
-        await MonitorCheckModel.create({
+        const check = {
             monitor: monitor._id,
             at: Date.now(),
             ok: isUp,
@@ -184,7 +223,9 @@ async function checkContainerAppMonitor(monitor, client, context) {
                 ? undefined
                 : `Revision ${revision.name} is ${runningStatus} (health: ${revision.healthState ?? 'unknown'})`,
             runningStatus,
-        });
+        };
+        await MonitorCheckModel.create(check);
+        sink.add(monitor, check, context);
     } catch (err) {
         // The Azure control-plane check couldn't run — no credentials / Reader
         // role, an ARM error, or the app no longer exists. As a second option,
@@ -197,19 +238,20 @@ async function checkContainerAppMonitor(monitor, client, context) {
                 `monitor-checker: ARM check failed for "${monitor.name}" (${err.message}); ` +
                     `falling back to HTTP probe of ${monitor.url}`,
             );
-            const result = await pingUrl(monitor.url);
-            await MonitorCheckModel.create({ monitor: monitor._id, at: Date.now(), ...result });
+            await checkMonitor(monitor, sink, context);
             return;
         }
 
-        await MonitorCheckModel.create({
+        const check = {
             monitor: monitor._id,
             at: Date.now(),
             ok: false,
             latencyMs: Date.now() - start,
             error: err.message,
             runningStatus: 'Unknown',
-        });
+        };
+        await MonitorCheckModel.create(check);
+        sink.add(monitor, check, context);
     }
 }
 
@@ -249,18 +291,25 @@ function resolveCheckMode(monitor) {
 
 async function runCheckCycle(context) {
     const client = getArmClient();
+    // One sink per cycle: it buffers every check in memory and flushes as a
+    // single POST below, never per-monitor (mona's ADR 0007). MongoDB writes
+    // above always run first — a Metrion outage must never cost a
+    // MonitorCheck row, so the sink only ever buffers, it never blocks a write.
+    const sink = createMetrionSink();
 
     const monitors = await MonitorModel.find();
     let skipped = 0;
     const results = await Promise.allSettled(
         monitors.flatMap((monitor) => {
             const mode = resolveCheckMode(monitor);
-            if (mode === 'arm') return [checkContainerAppMonitor(monitor, client, context)];
-            if (mode === 'http') return [checkMonitor(monitor)];
+            if (mode === 'arm') return [checkContainerAppMonitor(monitor, client, context, sink)];
+            if (mode === 'http') return [checkMonitor(monitor, sink, context)];
             skipped += 1;
             return [];
         }),
     );
+
+    await sink.flush(context);
 
     const failed = results.filter((r) => r.status === 'rejected').length;
     context.log(
@@ -281,4 +330,13 @@ app.timer('checkMonitors', {
 });
 
 // Exposed for tests.
-export { ensureConnected, runCheckCycle, resolveCheckMode, MonitorModel, MonitorCheckModel };
+export {
+    ensureConnected,
+    runCheckCycle,
+    resolveCheckMode,
+    checkMonitor,
+    checkContainerAppMonitor,
+    revisionIsUp,
+    MonitorModel,
+    MonitorCheckModel,
+};

@@ -56,6 +56,22 @@ function convertFilterParams(filter) {
     for (const key in filter) {
         let filterValue = filter[key];
 
+        // Express's `qs` parser turns `?published[$ne]=true` into
+        // `{ published: { $ne: 'true' } }` — an attacker-controlled Mongo
+        // operator object landing straight in the query. Reject any non-array
+        // object value, and any key that itself starts with `$`, before either
+        // reaches the `$in`/regex branches below.
+        if (key.startsWith('$')) {
+            continue;
+        }
+        if (
+            filterValue !== null &&
+            typeof filterValue === 'object' &&
+            !Array.isArray(filterValue)
+        ) {
+            continue;
+        }
+
         // Skip empty string filters (including whitespace) to avoid accidental
         // matching against empty values (which would filter out all results).
         if (typeof filterValue === 'string' && filterValue.trim() === '') {

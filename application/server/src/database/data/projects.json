@@ -71,6 +71,38 @@
     ]
   },
   {
+    "title": "Metrion",
+    "description": "A multi-tenant infrastructure metrics platform — sign in with Google, Microsoft or GitHub, issue per-project API keys, and stream CPU, memory, disk and network metrics from any language into a self-hosted TimescaleDB, with a dependency graph that attributes an outage to its actual root cause instead of alerting every downstream service.",
+    "repositoryUrl": "https://github.com/Wolfi-OwO/mona.git",
+    "livedemo": "https://metrion-viewer.yellowmushroom-787641f4.westeurope.azurecontainerapps.io/",
+    "technologies": [
+      {
+        "tech": "React",
+        "color": "bg-sky-100 text-sky-800 dark:bg-sky-500/20 dark:text-sky-300"
+      },
+      {
+        "tech": "TypeScript",
+        "color": "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300"
+      },
+      {
+        "tech": "TailwindCSS",
+        "color": "bg-cyan-100 text-cyan-800 dark:bg-cyan-500/20 dark:text-cyan-300"
+      },
+      {
+        "tech": "Express",
+        "color": "bg-neutral-200 text-neutral-800 dark:bg-neutral-700/30 dark:text-neutral-200"
+      },
+      {
+        "tech": "PostgreSQL",
+        "color": "bg-slate-100 text-slate-800 dark:bg-slate-500/20 dark:text-slate-300"
+      },
+      {
+        "tech": "Docker",
+        "color": "bg-indigo-100 text-indigo-800 dark:bg-indigo-500/20 dark:text-indigo-300"
+      }
+    ]
+  },
+  {
     "title": "Image Upscaler",
     "description": "A free, AI-powered command-line tool that upscales images up to 16× using Real-ESRGAN, with GPU acceleration and a graceful Lanczos fallback when the AI stack isn't available.",
     "repositoryUrl": "https://github.com/Wolfi-OwO/cli-image-upscaler.git",

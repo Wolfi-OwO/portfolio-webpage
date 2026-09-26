@@ -48,6 +48,101 @@ version: '3.8'
 # Equal values mean zero swap — a runaway gets OOM-killed and restarted by
 # `restart: unless-stopped`, which is loud, local and recoverable.
 
+# ── The Express web server ───────────────────────────────────────────────────
+# Serves the SPA plus its /api. Not published on the host — Caddy reaches
+# whichever slot is active as `web-blue:8080` / `web-green:8080`. The long
+# list of env vars are the ones the server reads at boot; the defaults match
+# docker-compose.yaml so behaviour stays identical between local and VM
+# deploys. Secrets come from .env, interpolated here.
+#
+# Two identical services, `web-blue` and `web-green` below (this `x-web`
+# anchor holds the one shared spec — a top-level `x-` key, not nested under
+# `services:`, is Compose's documented way to define a YAML anchor without
+# it being mistaken for an actual service), not a single `web` service —
+# this is blue-green: deploy.sh on the VPS starts whichever slot is
+# currently idle alongside the live one, waits for its `/readyz` to answer
+# 200, only then flips Caddy's upstream in this repo's own Caddyfile from
+# the old slot to the new one (`caddy validate` + a live reload via the
+# admin API — see /opt/caddy-reload.sh on the VPS — never a container
+# restart), and only after that removes the old slot.
+# `/opt/portfolio/active_slot` on the VPS records which one Caddy currently
+# points at. Was `portfolio-web` in the ACR — that repository never existed
+# in the real registry. `az acr repository list --name globalcr01` on
+# 2026-09-04 shows exactly one portfolio repo, `portfolio-webpage`, and the
+# live `portfolio-app` Container App in Azure runs
+# globalcr01.azurecr.io/portfolio-webpage:v6.3.4 — this is the actual
+# production image, a single combined build (see the `jobs` note below for
+# why there is no second one).
+x-web: &web-base
+  image: ${ACR_SERVER:-portfolioacr.azurecr.io}/portfolio-webpage:${IMAGE_TAG:-latest}
+  build:
+    context: .
+    dockerfile: dockerfile
+  restart: unless-stopped
+  # MEASURED: Azure Monitor WorkingSetBytes for the portfolio-app container
+  # app, 2026-08-28 → 2026-09-04 (172 hourly samples): peak 160,403,456 B
+  # (153 MiB), mean 146 MiB. UsageNanoCores peaked at 16.7M — 0.017 vCPU.
+  # 512m is ~3.3x the observed peak, which covers a V8 heap that grows under
+  # a traffic spike this window never saw. The CPU share is far above need;
+  # it is a ceiling against a runaway loop, not a reservation. Applies per
+  # slot — the two slots only overlap for the seconds deploy.sh takes to
+  # confirm /readyz, so budget one slot's worth at rest plus a brief
+  # doubling during that window (see the VPS capacity notes in
+  # docs/MIGRATION_CONTABO.md).
+  mem_limit: 512m
+  memswap_limit: 512m
+  cpus: 0.5
+  # /api/live, not /api/ready: this Docker-level HEALTHCHECK only ever gates
+  # `restart:`/`docker ps` status, so it stays on liveness — the readiness
+  # probe fails while Mongoose is reconnecting, and an Atlas blip should not
+  # get a serving container restarted. `/readyz` (DB-connected,
+  # traffic-worthy) is deploy.sh's own concern, polled directly via
+  # `docker exec … node -e 'fetch(...)'` against whichever slot it just
+  # started — a Docker HEALTHCHECK has no way to gate which slot Caddy
+  # points at, which is the whole reason this file has two slots instead of
+  # one. wget is busybox's, present in the node:alpine base; no curl there.
+  healthcheck:
+    test: ['CMD-SHELL', 'wget -q -O /dev/null http://127.0.0.1:8080/api/live || exit 1']
+    interval: 30s
+    timeout: 5s
+    retries: 3
+    start_period: 40s
+  environment:
+    - MONGODB_CONNECTION_STRING=mongodb+srv://woofi:${MONGODB_PASSWORD}@portfolio.lorxr25.mongodb.net/portfolio
+    - JWT_SECRET=${JWT_SECRET}
+    - JWT_EXPIRES_IN=1h
+    - ADMIN_USER=${ADMIN_USER}
+    - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH}
+    - SECRET_EXPIRES_IN=${SECRET_EXPIRES_IN:-30m}
+    # Azure Blob the server proxies for the gift-receipt download. Same
+    # variables as every other deploy — the storage is still Azure, because
+    # the VM has no object store and the blob already sits there.
+    - STORAGE_ACCOUNT=${STORAGE_ACCOUNT}
+    - STORAGE_KEY=${STORAGE_KEY}
+    - GIFT_CONTAINER=${GIFT_CONTAINER:-secret-gifts}
+    - GIFT_BLOB=${GIFT_BLOB:-voucher-receipt.pdf}
+    - STATUS_CHECK_INTERVAL_SECONDS=${STATUS_CHECK_INTERVAL_SECONDS:-60}
+    # Public Metrion uptime source for the status page (mona task 11 of the
+    # public-status-page plan). Unset = feature off, Mongo-only, same as
+    # local dev — see application/server/src/utils/metrion-source.js.
+    - METRION_STATUS_URL=${METRION_STATUS_URL:-}
+    # Selects which backing store getStatusReport() reads from -
+    # 'mongo' (default) or 'metrion'. Flipped to metrion 2026-09-26
+    # after the Metrion adapter's staleness guard, idle/latency overlay
+    # and range support all shipped and were verified end to end;
+    # Mongo's write path and the VPS checker keep running as a
+    # fallback until a separate follow-up task retires them.
+    - STATUS_SOURCE=${STATUS_SOURCE:-mongo}
+    # Forge credentials for the activity heatmap. All optional: without them
+    # /api/activity still answers, just with an empty GitHub half.
+    - GITHUB_USER=${GITHUB_USER:-Wolfi-OwO}
+    - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+    - GITLAB_HOST=${GITLAB_HOST:-https://gitlab.com}
+    - GITLAB_USER=${GITLAB_USER:-WoofiOwO}
+    - GITLAB_TOKEN=${GITLAB_TOKEN:-}
+  networks:
+    - portfolio-net
+
 services:
   # ── Edge / TLS ──────────────────────────────────────────────────────────────
   # Caddy is the whole inbound surface of the VM. It obtains and renews the
@@ -83,8 +178,15 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data # certs, private keys, OCSP staples — must survive restarts
       - caddy_config:/config # the Caddy config API's state
+      # Read-only on purpose: the internal 127.0.0.1:9444 ask endpoint (see
+      # Caddyfile) only ever needs to check whether a file exists here, and
+      # must never be able to write into /opt/previews/registry itself —
+      # only create.sh/destroy.sh on the host do that. See
+      # docs/PREVIEWS.md in this repo for the full preview architecture.
+      - /opt/previews/registry:/etc/caddy/previews-registry:ro
     depends_on:
-      - web
+      - web-blue
+      - web-green
     networks:
       - portfolio-net
       # Reaches preussen-web (a separate compose project, docker-compose.prod.yml
@@ -96,72 +198,13 @@ services:
       - edge-net
 
   # ── The Express web server ──────────────────────────────────────────────────
-  # Serves the SPA plus its /api. Not published on the host — Caddy reaches it
-  # as `web:8080`. The long list of env vars are the ones the server reads at
-  # boot; the defaults match docker-compose.yaml so behaviour stays identical
-  # between local and VM deploys. Secrets come from .env, interpolated here.
-  web:
-    # Was `portfolio-web` — that repository never existed in the real
-    # registry. `az acr repository list --name globalcr01` on 2026-09-04
-    # shows exactly one portfolio repo, `portfolio-webpage`, and the live
-    # `portfolio-app` Container App in Azure runs
-    # globalcr01.azurecr.io/portfolio-webpage:v6.3.4 — this is the actual
-    # production image, a single combined build (see the `jobs` note below
-    # for why there is no second one). First deploy attempt on the VPS
-    # failed here: `docker compose pull` couldn't find `portfolio-web`, fell
-    # through to the `build:` block below, and failed on a missing context
-    # (only the compose file was copied to the VPS, not the source tree) —
-    # confirmed in `journalctl -xeu portfolio.service`.
-    image: ${ACR_SERVER:-portfolioacr.azurecr.io}/portfolio-webpage:${IMAGE_TAG:-latest}
-    build:
-      context: .
-      dockerfile: dockerfile
-    restart: unless-stopped
-    # MEASURED: Azure Monitor WorkingSetBytes for the portfolio-app container
-    # app, 2026-08-28 → 2026-09-04 (172 hourly samples): peak 160,403,456 B
-    # (153 MiB), mean 146 MiB. UsageNanoCores peaked at 16.7M — 0.017 vCPU.
-    # 512m is ~3.3x the observed peak, which covers a V8 heap that grows under
-    # a traffic spike this window never saw. The CPU share is far above need;
-    # it is a ceiling against a runaway loop, not a reservation.
-    mem_limit: 512m
-    memswap_limit: 512m
-    cpus: 0.5
-    # /api/live, not /api/ready: the readiness probe fails while Mongoose is
-    # reconnecting, so an Atlas blip would mark the container unhealthy on a
-    # server that is answering fine. Liveness resolves unconditionally
-    # (server/src/utils/health-checks.js), so this fails only when the Node
-    # process itself is wedged — the one case a restart actually fixes.
-    # wget is busybox's, present in the node:alpine base; no curl there.
-    healthcheck:
-      test: ['CMD-SHELL', 'wget -q -O /dev/null http://127.0.0.1:8080/api/live || exit 1']
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 40s
-    environment:
-      - MONGODB_CONNECTION_STRING=mongodb+srv://woofi:${MONGODB_PASSWORD}@portfolio.lorxr25.mongodb.net/portfolio
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_EXPIRES_IN=1h
-      - ADMIN_USER=${ADMIN_USER}
-      - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH}
-      - SECRET_EXPIRES_IN=${SECRET_EXPIRES_IN:-30m}
-      # Azure Blob the server proxies for the gift-receipt download. Same
-      # variables as every other deploy — the storage is still Azure, because
-      # the VM has no object store and the blob already sits there.
-      - STORAGE_ACCOUNT=${STORAGE_ACCOUNT}
-      - STORAGE_KEY=${STORAGE_KEY}
-      - GIFT_CONTAINER=${GIFT_CONTAINER:-secret-gifts}
-      - GIFT_BLOB=${GIFT_BLOB:-voucher-receipt.pdf}
-      - STATUS_CHECK_INTERVAL_SECONDS=${STATUS_CHECK_INTERVAL_SECONDS:-60}
-      # Forge credentials for the activity heatmap. All optional: without
-      # them /api/activity still answers, just with an empty GitHub half.
-      - GITHUB_USER=${GITHUB_USER:-Wolfi-OwO}
-      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
-      - GITLAB_HOST=${GITLAB_HOST:-https://gitlab.com}
-      - GITLAB_USER=${GITLAB_USER:-WoofiOwO}
-      - GITLAB_TOKEN=${GITLAB_TOKEN:-}
-    networks:
-      - portfolio-net
+  # `web-blue` / `web-green` share the `x-web` spec defined above (a
+  # top-level anchor, outside `services:`, so Compose doesn't mistake it for
+  # a real service) — see that comment for the full blue-green mechanism.
+  web-blue:
+    <<: *web-base
+  web-green:
+    <<: *web-base
 
   # ── Azure Storage emulator for the Functions runtime ────────────────────────
   # The Azure Functions host REQUIRES an AzureWebJobsStorage backend for Timer
@@ -176,6 +219,10 @@ services:
   # the timer bookkeeping survives container restarts/recreates.
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite:latest
+    # Its only consumer, `jobs`, is already gated behind `profiles: ['jobs']`
+    # (see the comment on that service below) — without this, `docker compose
+    # up -d` started azurite unconditionally for a consumer that never runs.
+    profiles: ['jobs']
     restart: unless-stopped
     command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --location /data
     # BUDGET ALLOCATION, not a measurement — the emulator has no Azure-side
@@ -254,6 +301,11 @@ services:
       - GITLAB_USER=${GITLAB_USER:-WoofiOwO}
       - GITLAB_TOKEN=${GITLAB_TOKEN:-}
       - CONTRIBUTIONS_CRON=${CONTRIBUTIONS_CRON:-0 * * * * *}
+      # Metrion dual-write for uptime checks (mona's docs/adr/0007). Both
+      # optional: unset either and metrion-sink.js stays a no-op, same as
+      # local dev. See .env.example for what each one is.
+      - METRION_INGEST_URL=${METRION_INGEST_URL:-}
+      - METRION_API_KEY=${METRION_API_KEY:-}
     networks:
       - portfolio-net
 

@@ -49,7 +49,37 @@ if (missingEnvVars.length > 0) {
     process.exit(1);
 }
 
+// This literal is the throwaway secret from tests/helpers/env-setup.js:9 and
+// signs a checked-in admin token valid until 2036 (tests/tokens.js). There is
+// no legitimate production use, so any deployed instance setting it is
+// treated as instantly compromised and refused at boot. Scoped to
+// NODE_ENV === 'production' (same convention as error-handlers.js) rather
+// than unconditional: env-setup.js defaults JWT_SECRET to exactly this
+// literal for the mocha suite, and every *.test.js imports this file
+// directly (e.g. tests/api-404.test.js), so an unconditional check killed
+// every test run before a single one executed — measured by actually
+// running `mocha tests/api-404.test.js`, not assumed.
+if (
+    process.env.NODE_ENV === 'production' &&
+    process.env.JWT_SECRET === 'test-jwt-secret-do-not-use-in-production'
+) {
+    logger.error('Backend - JWT_SECRET is set to the test-only value; refusing to start.');
+    process.exit(1);
+}
+
 const app = express();
+
+// Exactly one proxy hop sits in front of this app: Caddy (portfolio-caddy-1 ->
+// web over the docker network edge-net; no host port maps to :8080). Its
+// reverse_proxy has no trusted_proxies and no header_up override (checked in
+// /opt/portfolio/Caddyfile), so it discards any client-supplied X-Forwarded-For
+// and sets the real peer address. With 1, req.ip is that visitor address, so
+// the express-rate-limit instances (status, login, secret) bucket per visitor
+// instead of putting everyone in the Caddy container's bucket. The address
+// lives only in the limiters' in-memory store: no disk, and Caddy's log filter
+// deletes remote_ip. A numeric hop count is the strict form express-rate-limit
+// accepts without its permissive-trust-proxy warning.
+app.set('trust proxy', 1);
 
 // Canonical host: the apex is registered as a custom domain on the container app
 // and serves the same content as `www`, so without this every URL is reachable
@@ -96,7 +126,23 @@ app.use(
 // use build folder of vite as static directory
 // `index: false` — the SPA fallback below picks index.html vs status.html by
 // hostname, so static must not shortcut `/` to index.html on its own.
-app.use(express.static(CLIENT_DIST, { index: false }));
+const ASSETS_DIST = path.join(CLIENT_DIST, 'assets') + path.sep;
+app.use(
+    express.static(CLIENT_DIST, {
+        index: false,
+        setHeaders: (res, filePath) => {
+            // Vite content-hashes every filename under assets/ (e.g.
+            // src-iZnCNtKj.js), so a changed file is always a NEW url — the
+            // old filename can never point at different content. Safe to
+            // cache for a year as immutable. Everything else (index.html,
+            // status.html, favicon.svg, ...) must keep revalidating, or a
+            // visitor keeps referencing dead hashes after a deploy.
+            if (filePath.startsWith(ASSETS_DIST)) {
+                res.set('Cache-Control', 'public, max-age=31536000, immutable');
+            }
+        },
+    }),
+);
 
 // setup routes
 app.use('/auth/', authRouter);

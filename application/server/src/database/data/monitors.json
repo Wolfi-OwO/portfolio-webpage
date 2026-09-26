@@ -7,7 +7,8 @@
       "resourceGroup": "netviz-rg",
       "name": "netviz",
       "scaleToZero": true
-    }
+    },
+    "metrionKey": "netviz"
   },
   {
     "name": "Machine Learning Visualizer",
@@ -17,12 +18,14 @@
       "resourceGroup": "dsai-5bhif-app",
       "name": "dsai-containerapp",
       "scaleToZero": true
-    }
+    },
+    "metrionKey": "ml-visualizer"
   },
   {
     "name": "Machine Learning Visualizer (Preview)",
     "url": "https://ml-visualizer.at",
-    "group": "ML Visualizer"
+    "group": "ML Visualizer",
+    "metrionKey": "ml-visualizer-preview"
   },
   {
     "name": "Nutrilens",
@@ -32,6 +35,25 @@
       "resourceGroup": "nutrilens-rg",
       "name": "nutrilens",
       "scaleToZero": true
-    }
+    },
+    "metrionKey": "nutrilens"
+  },
+  {
+    "name": "Portfolio",
+    "url": "https://www.woofi-developments.at/",
+    "group": "Portfolio",
+    "metrionKey": "portfolio"
+  },
+  {
+    "name": "Status Page",
+    "url": "https://status.woofi-developments.at/",
+    "group": "Portfolio",
+    "metrionKey": "status-page"
+  },
+  {
+    "name": "Preussen Web",
+    "url": "https://preussen.woofi-developments.at/login",
+    "group": "Preussen",
+    "metrionKey": "preussen"
   }
 ]
