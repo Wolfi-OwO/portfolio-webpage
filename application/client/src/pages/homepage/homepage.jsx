@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { FormattedMessage } from 'react-intl';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import { SocialRow } from '../../components/identity.jsx';
 import LoadingScreen from '../../components/loading-screen.jsx';
-import AvailabilityTimeline from '../../components/availability-timeline.jsx';
 import CareerTimeline from '../../components/career-timeline.jsx';
+import AvailabilityBadge from '../../components/availability-badge.jsx';
 import ActivityHeatmap from '../../components/activity-heatmap.jsx';
 import { shouldBoot } from '../../utils/boot.js';
 import { badgeState } from '../../utils/availability.js';
@@ -219,11 +218,8 @@ export default function Homepage() {
                     </div>
                 </section>
 
-                {/* ── When I am free ─────────────────────────────────────────────── */}
-                <AvailabilityTimeline entries={availability} setEntries={setAvailability} />
-
                 {/* ── Where I have been ───────────────────────────────────────────── */}
-                <CareerTimeline />
+                <CareerTimeline entries={availability} setEntries={setAvailability} />
 
                 {/* ── What I have actually been doing (GitHub + GitLab) ───────────── */}
                 <ActivityHeatmap />
@@ -263,24 +259,3 @@ export default function Homepage() {
     );
 }
 
-/** Reads whatever the availability calendar currently says — never a hard-coded claim. */
-function AvailabilityBadge({ badge }) {
-    const live = badge.tone === 'live';
-
-    return (
-        <span
-            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-2xs font-semibold uppercase tracking-[0.16em] ${
-                live
-                    ? 'border-[var(--live)] bg-[color-mix(in_srgb,var(--live)_10%,transparent)] text-[var(--live)]'
-                    : 'border-[var(--accent)] bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] text-[var(--accent)]'
-            }`}
-        >
-            <span
-                className={`animate-live h-1.5 w-1.5 rounded-full ${
-                    live ? 'bg-[var(--live)]' : 'bg-[var(--accent)]'
-                }`}
-            />
-            <FormattedMessage id={badge.id} defaultMessage={badge.defaultMessage} />
-        </span>
-    );
-}
