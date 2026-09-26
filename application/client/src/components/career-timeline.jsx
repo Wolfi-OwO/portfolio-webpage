@@ -506,7 +506,7 @@ function CareerEntry({ entry, admin, onEdit, onDelete }) {
                 aria-hidden="true"
                 className={`absolute top-7 hidden -translate-y-1/2 rounded-full sm:block ${facingSpine} ${nodeOffset} ${
                     isCurrent
-                        ? 'h-3 w-3 animate-live border-2 border-[var(--live)] bg-[var(--live)]'
+                        ? 'animate-live h-3 w-3 border-2 border-[var(--live)] bg-[var(--live)]'
                         : 'h-2.5 w-2.5 border-2 border-[var(--line)] bg-[var(--surface)]'
                 }`}
             />
