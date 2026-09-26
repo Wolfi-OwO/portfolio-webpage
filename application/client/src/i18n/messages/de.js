@@ -86,6 +86,13 @@ export default {
     'availability.kind.education': 'Ausbildung',
     'availability.kind.available': 'Verfügbar',
 
+    'career.heading': 'Werdegang & Ausbildung',
+    'career.error': 'Werdegang konnte gerade nicht geladen werden.',
+    'career.loading': 'lädt…',
+    'career.empty': 'Noch nichts veröffentlicht.',
+    'career.kind.work': 'Arbeit',
+    'career.kind.education': 'Ausbildung',
+
     'activity.heading': 'Woran ich gerade baue',
     'activity.total': '{count} Beiträge seit {since}',
     'activity.loading': 'lädt…',

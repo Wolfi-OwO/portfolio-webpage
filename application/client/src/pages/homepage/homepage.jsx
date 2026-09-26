@@ -5,6 +5,7 @@ import { usePageMeta } from '../../hooks/usePageMeta.js';
 import { SocialRow } from '../../components/identity.jsx';
 import LoadingScreen from '../../components/loading-screen.jsx';
 import AvailabilityTimeline from '../../components/availability-timeline.jsx';
+import CareerTimeline from '../../components/career-timeline.jsx';
 import ActivityHeatmap from '../../components/activity-heatmap.jsx';
 import { shouldBoot } from '../../utils/boot.js';
 import { badgeState } from '../../utils/availability.js';
@@ -220,6 +221,9 @@ export default function Homepage() {
 
                 {/* ── When I am free ─────────────────────────────────────────────── */}
                 <AvailabilityTimeline entries={availability} setEntries={setAvailability} />
+
+                {/* ── Where I have been ───────────────────────────────────────────── */}
+                <CareerTimeline />
 
                 {/* ── What I have actually been doing (GitHub + GitLab) ───────────── */}
                 <ActivityHeatmap />
