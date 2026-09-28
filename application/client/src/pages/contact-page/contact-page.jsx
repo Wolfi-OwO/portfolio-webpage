@@ -27,14 +27,17 @@ const notes = {
 const facts = [
     {
         label: 'contact.replyTime',
+        defaultMessage: 'Reply time',
         value: '1-2 days',
     },
     {
         label: 'contact.location',
+        defaultMessage: 'Location',
         value: 'Carinthia, Austria',
     },
     {
         label: 'contact.availability',
+        defaultMessage: 'Availability',
         value: 'Open to work',
     },
 ];
@@ -138,10 +141,10 @@ export default function ContactPage() {
             <AvailabilityTimeline showIntro={false} showServicesLink={false} />
 
             <dl className="mt-8 grid gap-px overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--line)] sm:grid-cols-3">
-                {facts.map(({ label, value }) => (
+                {facts.map(({ label, defaultMessage, value }) => (
                     <div key={label} className="bg-[var(--surface)] p-5">
                         <dt className="text-xs uppercase tracking-wide text-[var(--muted)]">
-                            <FormattedMessage id={label} />
+                            <FormattedMessage id={label} defaultMessage={defaultMessage} />
                         </dt>
 
                         <dd className="mt-1.5 text-sm font-medium text-[var(--text)]">{value}</dd>
