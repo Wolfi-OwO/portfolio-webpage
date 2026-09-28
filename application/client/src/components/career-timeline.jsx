@@ -128,8 +128,8 @@ export default function CareerTimeline({
             .then((res) =>
                 res.ok ? res.json() : Promise.reject(new Error(`status ${res.status}`)),
             )
-            .then((list) => {
-                if (active) setOwnEntries(list);
+            .then((body) => {
+                if (active) setOwnEntries(body.items);
             })
             .catch(() => {
                 if (active) setFailed(true);
@@ -144,9 +144,9 @@ export default function CareerTimeline({
         let active = true;
 
         fetch('/api/technologies')
-            .then((res) => (res.ok ? res.json() : []))
-            .then((list) => {
-                if (active) setTechnologies(list);
+            .then((res) => (res.ok ? res.json() : { items: [] }))
+            .then((body) => {
+                if (active) setTechnologies(body.items);
             })
             .catch(() => {
                 // The tag multi-select just renders empty — the rest of the form,

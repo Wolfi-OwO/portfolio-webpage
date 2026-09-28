@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { AvailabilityModel } from '../models/availability.js';
 import { validateQueryParams } from '../utils/validateQueryParams.js';
 import { BadRequest, InternalServerError, NotFound } from '../middlewares/error-handlers.js';
+import { listPayload, withLinks, availability as availabilityLinks } from '../utils/hateoas.js';
 
 /* ***************** DECLARE handlers *********************** */
 
@@ -36,7 +37,7 @@ async function getAllAvailability(req, res, next) {
             .limit(limit)
             .skip(offset);
 
-        return res.json(entries);
+        return res.json(listPayload(req, availabilityLinks, entries));
     } catch (err) {
         if (err instanceof mongoose.Error.ValidationError) {
             return next(new BadRequest(err.message, err));
@@ -54,11 +55,14 @@ async function getAvailabilityById(req, res, next) {
     try {
         const entry = await AvailabilityModel.findById(req.params.id);
 
-        if (!entry) {
+        // Same not-found response whether the id doesn't exist or is a draft
+        // an anonymous/non-admin caller shouldn't see — a distinct message here
+        // would let a caller tell the two cases apart, which is its own leak.
+        if (!entry || (!entry.published && req.user?.role !== 'admin')) {
             return next(new NotFound(`Availability entry ${req.params.id} not found.`));
         }
 
-        return res.json(entry);
+        return res.json(withLinks(entry, availabilityLinks.item(entry._id)));
     } catch (err) {
         if (err instanceof mongoose.Error.CastError) {
             return next(new BadRequest('Invalid availability id.', err));
@@ -76,7 +80,8 @@ async function createNewAvailability(req, res, next) {
     try {
         const entry = await AvailabilityModel.create(req.body);
 
-        return res.status(201).json(entry);
+        res.set('Location', `/api/availability/${entry._id}`);
+        return res.status(201).json(withLinks(entry, availabilityLinks.item(entry._id)));
     } catch (err) {
         if (err instanceof mongoose.Error.ValidationError) {
             return next(new BadRequest(err.message, err));
@@ -101,7 +106,7 @@ async function updateAvailabilityById(req, res, next) {
             return next(new NotFound(`Availability entry ${req.params.id} not found.`));
         }
 
-        return res.json(updated);
+        return res.json(withLinks(updated, availabilityLinks.item(updated._id)));
     } catch (err) {
         if (err instanceof mongoose.Error.ValidationError) {
             return next(new BadRequest(err.message, err));

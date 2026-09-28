@@ -143,9 +143,9 @@ export default function Homepage() {
         let active = true;
 
         fetch('/api/availability')
-            .then((res) => (res.ok ? res.json() : []))
-            .then((list) => {
-                if (active) setAvailability(list);
+            .then((res) => (res.ok ? res.json() : { items: [] }))
+            .then((body) => {
+                if (active) setAvailability(body.items);
             })
             .catch(() => {
                 // The badge falls back to "open to work" on an empty list; a portfolio

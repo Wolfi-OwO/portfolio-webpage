@@ -18,7 +18,7 @@ const availabilityRouter = express.Router();
 
 /* ***************** PUBLIC ROUTES ************************* */
 availabilityRouter.get('/', optionalAuth, getAllAvailability);
-availabilityRouter.get('/:id', getAvailabilityById);
+availabilityRouter.get('/:id', optionalAuth, getAvailabilityById);
 
 /* ***************** PROTECTED ROUTES ********************** */
 availabilityRouter.post('/', authMiddleware, createNewAvailability);

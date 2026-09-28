@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { TechnologyModel } from '../models/technology.js';
 import { BadRequest, InternalServerError, NotFound } from '../middlewares/error-handlers.js';
 import { validateQueryParams } from '../utils/validateQueryParams.js';
+import { listPayload, withLinks, technologies as technologyLinks } from '../utils/hateoas.js';
 
 /**
  * @param {import('express').Request} req
@@ -22,7 +23,7 @@ async function getAllTechnologies(req, res, next) {
             .limit(limit)
             .skip(offset);
 
-        return res.json(technologies);
+        return res.json(listPayload(req, technologyLinks, technologies));
     } catch (err) {
         if (err instanceof mongoose.Error.ValidationError) {
             return next(new BadRequest(err.message, err));
@@ -44,7 +45,7 @@ async function getTechnologyById(req, res, next) {
             return next(new NotFound(`Technology ${req.params.id} not found.`));
         }
 
-        return res.json(technology);
+        return res.json(withLinks(technology, technologyLinks.item(technology._id)));
     } catch (err) {
         if (err instanceof mongoose.Error.CastError) {
             return next(new BadRequest('Invalid technology id.', err));
@@ -72,7 +73,8 @@ async function createTechnology(req, res, next) {
         }
 
         const created = await TechnologyModel.create({ tech: tech.trim(), color });
-        return res.status(201).json(created);
+        res.set('Location', `/api/technologies/${created._id}`);
+        return res.status(201).json(withLinks(created, technologyLinks.item(created._id)));
     } catch (err) {
         if (err instanceof mongoose.Error.ValidationError) {
             return next(new BadRequest(err.message, err));
@@ -97,7 +99,7 @@ async function updateTechnologyById(req, res, next) {
             return next(new NotFound(`Technology ${req.params.id} not found.`));
         }
 
-        return res.json(updated);
+        return res.json(withLinks(updated, technologyLinks.item(updated._id)));
     } catch (err) {
         if (err instanceof mongoose.Error.ValidationError) {
             return next(new BadRequest(err.message, err));

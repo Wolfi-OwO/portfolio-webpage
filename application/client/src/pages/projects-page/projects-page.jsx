@@ -27,15 +27,15 @@ export default function ProjectsPage() {
         async function loadProjects() {
             const response = await fetch('/api/projects?embed=(technologies)');
             if (!response.ok) return;
-            const projects = await response.json();
-            dispatch({ type: 'SET_PROJECTS', payload: projects });
+            const body = await response.json();
+            dispatch({ type: 'SET_PROJECTS', payload: body.items });
         }
 
         async function loadTechnologies() {
             const response = await fetch('/api/technologies');
             if (!response.ok) return;
-            const technologies = await response.json();
-            dispatch({ type: 'SET_TECHNOLOGIES', payload: technologies });
+            const body = await response.json();
+            dispatch({ type: 'SET_TECHNOLOGIES', payload: body.items });
         }
 
         loadProjects();

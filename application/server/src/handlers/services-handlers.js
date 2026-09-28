@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { ServiceModel } from '../models/service.js';
 import { validateQueryParams } from '../utils/validateQueryParams.js';
 import { BadRequest, InternalServerError, NotFound } from '../middlewares/error-handlers.js';
+import { listPayload, withLinks, services as serviceLinks } from '../utils/hateoas.js';
 
 /* ***************** DECLARE handlers *********************** */
 
@@ -35,7 +36,7 @@ async function getAllServices(req, res, next) {
             .limit(limit)
             .skip(offset);
 
-        return res.json(services);
+        return res.json(listPayload(req, serviceLinks, services));
     } catch (err) {
         if (err instanceof mongoose.Error.ValidationError) {
             return next(new BadRequest(err.message, err));
@@ -53,11 +54,14 @@ async function getServiceById(req, res, next) {
     try {
         const service = await ServiceModel.findById(req.params.id);
 
-        if (!service) {
+        // Same not-found response whether the id doesn't exist or is a draft
+        // an anonymous/non-admin caller shouldn't see — a distinct message here
+        // would let a caller tell the two cases apart, which is its own leak.
+        if (!service || (!service.published && req.user?.role !== 'admin')) {
             return next(new NotFound(`Service ${req.params.id} not found.`));
         }
 
-        return res.json(service);
+        return res.json(withLinks(service, serviceLinks.item(service._id)));
     } catch (err) {
         if (err instanceof mongoose.Error.CastError) {
             return next(new BadRequest('Invalid service id.', err));
@@ -75,7 +79,8 @@ async function createNewService(req, res, next) {
     try {
         const service = await ServiceModel.create(req.body);
 
-        return res.status(201).json(service);
+        res.set('Location', `/api/services/${service._id}`);
+        return res.status(201).json(withLinks(service, serviceLinks.item(service._id)));
     } catch (err) {
         if (err instanceof mongoose.Error.ValidationError) {
             return next(new BadRequest(err.message, err));
@@ -100,7 +105,7 @@ async function updateServiceById(req, res, next) {
             return next(new NotFound(`Service ${req.params.id} not found.`));
         }
 
-        return res.json(updated);
+        return res.json(withLinks(updated, serviceLinks.item(updated._id)));
     } catch (err) {
         if (err instanceof mongoose.Error.ValidationError) {
             return next(new BadRequest(err.message, err));

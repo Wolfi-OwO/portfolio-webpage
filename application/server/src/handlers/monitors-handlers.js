@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { MonitorModel } from '../models/monitor.js';
 import { BadRequest, InternalServerError, NotFound } from '../middlewares/error-handlers.js';
+import { listPayload, withLinks, monitors as monitorLinks } from '../utils/hateoas.js';
 
 // Blank/whitespace-only group means "no group" — store null, not an empty string.
 function normalizeGroup(group) {
@@ -17,7 +18,7 @@ function normalizeGroup(group) {
 async function getAllMonitors(req, res, next) {
     try {
         const monitors = await MonitorModel.find().sort({ createdAt: 1 });
-        return res.json(monitors);
+        return res.json(listPayload(req, monitorLinks, monitors));
     } catch (err) {
         next(new InternalServerError(err));
     }
@@ -55,7 +56,10 @@ async function createMonitor(req, res, next) {
             group: normalizeGroup(group),
             metrionKey,
         });
-        return res.status(201).json(monitor);
+        // Named for consistency even though there's no GET /:id to resolve it —
+        // monitors are only ever read via the list.
+        res.set('Location', `/api/monitors/${monitor._id}`);
+        return res.status(201).json(withLinks(monitor, monitorLinks.item(monitor._id)));
     } catch (err) {
         if (err?.code === 11000) {
             return next(new BadRequest('"metrionKey" is already used by another monitor.', err));
@@ -124,7 +128,7 @@ async function updateMonitorById(req, res, next) {
             return next(new NotFound(`Monitor ${req.params.id} not found.`));
         }
 
-        return res.json(updated);
+        return res.json(withLinks(updated, monitorLinks.item(updated._id)));
     } catch (err) {
         if (err?.code === 11000) {
             return next(new BadRequest('"metrionKey" is already used by another monitor.', err));

@@ -1,6 +1,7 @@
 /* ***************** IMPORT packages *********************** */
 import { BadRequest, InternalServerError } from '../middlewares/error-handlers.js';
 import { ContributionDayModel, ForgeRepoModel, SyncStateModel } from '../models/contribution.js';
+import { objectLinks } from '../utils/hateoas.js';
 
 /* ***************** CONFIG and CONSTS ********************* */
 /* The handles are only needed to build profile links — no request ever calls a
@@ -179,6 +180,7 @@ async function getActivity(req, res, next) {
             // half-filled graph while the backfill is still walking the history.
             backfilling,
             syncedAt: state?.lastRunAt || null,
+            _links: objectLinks('/activity'),
         });
     } catch (err) {
         if (err instanceof BadRequest) {

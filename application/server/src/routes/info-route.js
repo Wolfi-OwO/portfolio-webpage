@@ -3,6 +3,7 @@ import express from 'express';
 
 /* ***************** IMPORT LIBS *************************** */
 import { logger } from '../utils/logger.js';
+import { objectLinks } from '../utils/hateoas.js';
 
 /* ***************** CONFIG and CONSTS ********************* */
 /* Build metadata is injected as env vars by the Dockerfile (mirrored from the
@@ -20,7 +21,7 @@ const infoRouter = express.Router();
 // Exposes the deployed build's owner, repository and version for the footer.
 infoRouter.get('/', (_req, res) => {
     logger.debug('Info - Serving build metadata');
-    res.json(buildInfo);
+    res.json({ ...buildInfo, _links: objectLinks('/info') });
 });
 
 export { infoRouter };

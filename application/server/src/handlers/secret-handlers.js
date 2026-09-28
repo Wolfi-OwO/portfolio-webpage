@@ -49,11 +49,11 @@ function getBlobService() {
  * receipt carries a home address and a card's last four digits, so a URL that
  * works without the password would undo the lock on the page it sits behind.
  *
- * @param {import('express').Request} _req
+ * @param {import('express').Request} req
  * @param {import('express').Response} res
  * @param {import('express').NextFunction} next
  */
-async function downloadVoucherReceipt(_req, res, next) {
+async function downloadVoucherReceipt(req, res, next) {
     const service = getBlobService();
 
     if (!service) {
@@ -66,6 +66,22 @@ async function downloadVoucherReceipt(_req, res, next) {
 
         if (!(await blob.exists())) {
             return next(new NotFound('The receipt is not there.'));
+        }
+
+        // Express routes a HEAD request straight to this GET handler. Before this
+        // fix, HEAD ran the same blob.download() below and piped the whole ~600KB
+        // body into the response just to have Express discard it for a bodyless
+        // reply — a full download billed and streamed for every HEAD. getProperties()
+        // reads only the blob's metadata, so a HEAD never touches the body.
+        if (req.method === 'HEAD') {
+            const props = await blob.getProperties();
+            res.setHeader('Content-Type', props.contentType || 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename="gutschein-beleg.pdf"');
+            res.setHeader('Cache-Control', 'private, no-store');
+            if (props.contentLength) {
+                res.setHeader('Content-Length', props.contentLength);
+            }
+            return res.end();
         }
 
         const download = await blob.download();

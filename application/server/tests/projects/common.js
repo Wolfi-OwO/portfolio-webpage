@@ -82,7 +82,7 @@ async function getAllProjects() {
         .expect('Content-Type', /json/)
         .expect(200);
 
-    return res.body;
+    return res.body.items;
 }
 
 async function getProjectById(projectId) {
@@ -101,7 +101,7 @@ async function createProject(project) {
         .set('Content-Type', 'application/json')
         .send(project)
         .expect('Content-Type', /json/)
-        .expect(200);
+        .expect(201);
 
     return res.body;
 }

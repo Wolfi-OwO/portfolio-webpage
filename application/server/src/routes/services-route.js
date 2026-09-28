@@ -18,7 +18,7 @@ const servicesRouter = express.Router();
 
 /* ***************** PUBLIC ROUTES ************************* */
 servicesRouter.get('/', optionalAuth, getAllServices);
-servicesRouter.get('/:id', getServiceById);
+servicesRouter.get('/:id', optionalAuth, getServiceById);
 
 /* ***************** PROTECTED ROUTES ********************** */
 servicesRouter.post('/', authMiddleware, createNewService);

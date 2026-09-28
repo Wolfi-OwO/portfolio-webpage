@@ -76,9 +76,9 @@ export default function ServicesPage() {
         let active = true;
 
         fetch('/api/services')
-            .then((res) => (res.ok ? res.json() : []))
-            .then((list) => {
-                if (active) setServices(list);
+            .then((res) => (res.ok ? res.json() : { items: [] }))
+            .then((body) => {
+                if (active) setServices(body.items);
             })
             .catch(() => {
                 if (active) setError('Could not load services.');

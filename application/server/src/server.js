@@ -28,6 +28,7 @@ import { monitorsRouter } from './routes/monitors-route.js';
 import { statusRouter } from './routes/status-route.js';
 import { secretRouter } from './routes/secret-route.js';
 import { errorHandler, NotFound } from './middlewares/error-handlers.js';
+import { apiRootLinks } from './utils/hateoas.js';
 
 /* ***************** CONFIG and CONSTS ********************* */
 /* Take configuration from environment variables or use hardcoded default value */
@@ -155,6 +156,16 @@ app.use('/api/technologies/', technologiesRouter);
 app.use('/api/monitors/', monitorsRouter);
 app.use('/api/status/', statusRouter);
 app.use('/api/secret/', secretRouter);
+
+// The hypermedia discovery root: a client following links never has to know
+// any other /api/* path up front, only this one.
+app.get('/api', (_req, res) => {
+    res.json({
+        name: 'Portfolio Webpage API',
+        version: process.env.APP_VERSION || 'dev',
+        _links: apiRootLinks(),
+    });
+});
 
 // Every /api/ router above only handles the sub-paths it defines; a request
 // under /api/ that none of them match used to fall through all the way to

@@ -2,6 +2,7 @@
 import httpServer from '../../src/server.js';
 import assert from 'assert';
 import request from 'supertest';
+import mongoose from 'mongoose';
 import {
     exampleProject,
     anotherExampleProject,
@@ -21,7 +22,7 @@ describe('GET /api/projects', function () {
             .expect('Content-Type', /json/)
             .expect(200);
 
-        assert.equal(res.body.length, 0, 'The body length must be zero.');
+        assert.equal(res.body.items.length, 0, 'The body length must be zero.');
     });
 
     it('should get all three projects', async function () {
@@ -34,7 +35,7 @@ describe('GET /api/projects', function () {
             .expect('Content-Type', /json/)
             .expect(200);
 
-        assert.equal(res.body.length, 3, 'The body length must be three.');
+        assert.equal(res.body.items.length, 3, 'The body length must be three.');
     });
 
     it('should get the first two projects', async function () {
@@ -47,10 +48,10 @@ describe('GET /api/projects', function () {
             .expect('Content-Type', /json/)
             .expect(200);
 
-        const firstProject = res.body[0];
-        const secondProject = res.body[1];
+        const firstProject = res.body.items[0];
+        const secondProject = res.body.items[1];
 
-        assert.equal(res.body.length, 2, 'The body length must be three.');
+        assert.equal(res.body.items.length, 2, 'The body length must be three.');
         assert.equal(
             firstProject.title,
             alpinfexProject.title,
@@ -83,10 +84,10 @@ describe('GET /api/projects', function () {
             .expect('Content-Type', /json/)
             .expect(200);
 
-        const firstProject = res.body[0];
-        const secondProject = res.body[1];
+        const firstProject = res.body.items[0];
+        const secondProject = res.body.items[1];
 
-        assert.equal(res.body.length, 2, 'The body length must be three.');
+        assert.equal(res.body.items.length, 2, 'The body length must be three.');
         assert.equal(
             firstProject.title,
             machineLearningVisualizerProject.title,
@@ -107,5 +108,42 @@ describe('GET /api/projects', function () {
             alpinfexProject.description,
             'The description of the first project must match the given one.',
         );
+    });
+});
+
+describe('GET /api/projects/:id', function () {
+    beforeEach(async () => {
+        await httpServer.dropCurrentDatabase(process.env.MONGODB_CONNECTION_STRING);
+    });
+
+    it('returns the project by id', async function () {
+        const created = await createProject(exampleProject);
+
+        const res = await request(httpServer)
+            .get(`/api/projects/${created._id}`)
+            .expect('Content-Type', /json/)
+            .expect(200);
+
+        assert.equal(res.body.title, exampleProject.title);
+    });
+
+    it('answers 404 for a valid but unused ObjectId', async function () {
+        const unusedId = new mongoose.Types.ObjectId();
+
+        const res = await request(httpServer)
+            .get(`/api/projects/${unusedId}`)
+            .expect('Content-Type', /json/)
+            .expect(404);
+
+        assert.equal(res.body.status, 404);
+    });
+
+    it('answers 400 for a malformed id', async function () {
+        const res = await request(httpServer)
+            .get(`/api/projects/not-a-valid-id`)
+            .expect('Content-Type', /json/)
+            .expect(400);
+
+        assert.equal(res.body.status, 400);
     });
 });

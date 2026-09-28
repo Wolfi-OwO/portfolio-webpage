@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { BadRequest, Unauthorized } from '../middlewares/error-handlers.js';
+import { authLoginLinks, authUnlockLinks } from '../utils/hateoas.js';
 
 const ADMIN_USER = process.env.ADMIN_USER;
 const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH;
@@ -44,7 +45,7 @@ async function login(req, res, next) {
             expiresIn: JWT_EXPIRES_IN,
         });
 
-        return res.json({ token, expiresIn: JWT_EXPIRES_IN });
+        return res.json({ token, expiresIn: JWT_EXPIRES_IN, _links: authLoginLinks() });
     } catch (err) {
         return next(err);
     }
@@ -85,7 +86,7 @@ async function unlock(req, res, next) {
             expiresIn: SECRET_EXPIRES_IN,
         });
 
-        return res.json({ token, expiresIn: SECRET_EXPIRES_IN });
+        return res.json({ token, expiresIn: SECRET_EXPIRES_IN, _links: authUnlockLinks() });
     } catch (err) {
         return next(err);
     }

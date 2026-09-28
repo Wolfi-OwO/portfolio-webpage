@@ -4,6 +4,7 @@ import { ProjectModel } from '../models/project.js';
 import { DEFAULT_SORTING_PARAMS, validateQueryParams } from '../utils/validateQueryParams.js';
 import { BadRequest, InternalServerError, NotFound } from '../middlewares/error-handlers.js';
 import { TechnologyModel } from '../models/technology.js';
+import { listPayload, withLinks, projects as projectLinks } from '../utils/hateoas.js';
 
 /* ***************** DECLARE handlers *********************** */
 
@@ -30,7 +31,7 @@ async function getAllProjects(req, res, next) {
             .skip(offset)
             .populate(embed);
 
-        return res.json(projects);
+        return res.json(listPayload(req, projectLinks, projects));
     } catch (err) {
         if (err instanceof mongoose.Error.ValidationError) {
             next(new BadRequest(err.message, err));
@@ -52,15 +53,21 @@ async function getProjectById(req, res, next) {
         const projectId = req.params.id;
         const { embed } = validateQueryParams(req.query, 'embed');
 
-        const projects = await ProjectModel.findById(projectId).populate(embed);
+        const project = await ProjectModel.findById(projectId).populate(embed);
 
-        return res.json(projects);
+        if (!project) {
+            return next(new NotFound(`Project ${projectId} not found.`));
+        }
+
+        return res.json(withLinks(project, projectLinks.item(project._id)));
     } catch (err) {
         if (err instanceof mongoose.Error.ValidationError) {
-            next(new BadRequest(err.message, err));
-        } else {
-            next(new InternalServerError(err));
+            return next(new BadRequest(err.message, err));
         }
+        if (err instanceof mongoose.Error.CastError) {
+            return next(new BadRequest('Invalid project id.', err));
+        }
+        return next(new InternalServerError(err));
     }
 }
 
@@ -129,7 +136,8 @@ async function createNewProject(req, res, next) {
 
         const result = await ProjectModel.findById(project._id).populate('technologies');
 
-        return res.json(result);
+        res.set('Location', `/api/projects/${result._id}`);
+        return res.status(201).json(withLinks(result, projectLinks.item(result._id)));
     } catch (err) {
         if (err instanceof mongoose.Error.ValidationError) {
             return next(new BadRequest(err.message, err));
@@ -174,7 +182,7 @@ async function updateProjectById(req, res, next) {
             return next(new NotFound(`Project ${projectId} not found.`));
         }
 
-        return res.json(updated);
+        return res.json(withLinks(updated, projectLinks.item(updated._id)));
     } catch (err) {
         if (err instanceof mongoose.Error.ValidationError) {
             return next(new BadRequest(err.message, err));

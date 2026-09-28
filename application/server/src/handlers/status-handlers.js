@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { getStatusReport } from '../utils/status-checker.js';
 import { BadRequest, InternalServerError } from '../middlewares/error-handlers.js';
+import { objectLinks } from '../utils/hateoas.js';
 
 // One report costs ~2 findOne + 3 aggregations + a 90-day bucket aggregation +
 // a latency query per monitor, plus a Metrion fetch, and the endpoint is public.
@@ -133,6 +134,10 @@ async function getServiceStatus(req, res, next) {
         // The body differs by Authorization, so shared caches must key on it.
         res.set('Vary', 'Authorization');
         const report = await cachedReport(isAdminRequest(req), range);
+        // `report` is the shared, cached object (see cachedReport above) — spread
+        // rather than mutate it, so `_links` never leaks into what's served to
+        // the next caller from the same cache slot.
+        const body = { ...report, _links: objectLinks('/status') };
         // 10 == CACHE_MS above, so the browser never shows anything staler
         // than this server's own cache floor already permits; 50 fills the
         // rest of the Metrion 60s window, so a reload or back-navigation
@@ -141,7 +146,7 @@ async function getServiceStatus(req, res, next) {
         // raw error text when isAdminRequest() is true — a shared cache must
         // not serve one visitor's cached admin response to another.
         res.set('Cache-Control', 'private, max-age=10, stale-while-revalidate=50');
-        return res.json(report);
+        return res.json(body);
     } catch (err) {
         next(new InternalServerError(err));
     }

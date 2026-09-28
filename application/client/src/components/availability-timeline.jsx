@@ -181,9 +181,9 @@ export default function AvailabilityTimeline({
         // but this rail's `layout()` assumes non-overlapping segments, which
         // career history isn't — so only availability rows are ever fetched here.
         fetch('/api/availability?track=availability')
-            .then((res) => (res.ok ? res.json() : []))
-            .then((list) => {
-                if (active) setOwnEntries(list);
+            .then((res) => (res.ok ? res.json() : { items: [] }))
+            .then((body) => {
+                if (active) setOwnEntries(body.items);
             })
             .catch(() => {
                 // Silent: the contact page is still perfectly usable without the
