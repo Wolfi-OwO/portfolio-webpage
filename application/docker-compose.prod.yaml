@@ -24,11 +24,11 @@ version: '3.8'
 #     not rely on `container_name:` here — leave auto-naming alone.
 #
 # ── Why the images come from a private ACR ───────────────────────────────────
-# The app is proprietary — there is no public image. Registry credentials are
-# ACR_USERNAME / ACR_PASSWORD in .env and are used only on the host, by
-# `docker login`, never passed into a container. The pull happens at
-# `docker compose pull` time. ACR_* deliberately appear nowhere in the
-# services' `environment:` blocks for that reason.
+# The app is proprietary — there is no public image. The host pulls using the
+# `deploy` user's cached `docker login` (the ACR-PULL scope-map token, logged
+# in once outside of this repo, not read from .env), never passed into a
+# container. The pull happens at `docker compose pull` time. Host .env only
+# needs ACR_SERVER; no ACR credential lives in this repo or in .env.
 
 # ── Where the resource limits come from ─────────────────────────────────────
 # The VM is 4 vCPU / 8 GB shared with preussen (docker-compose.prod.yml in the
