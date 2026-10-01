@@ -170,7 +170,7 @@ jobs:
       # and `docker compose pull` on the VM fails with "no matching manifest
       # for linux/arm64" (see docs/DEPLOYMENT_ORACLE_0EUR.md §9.1).
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -224,7 +224,7 @@ jobs:
           password: ${{ secrets.ACR_PUSH_PASSWORD }}
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
