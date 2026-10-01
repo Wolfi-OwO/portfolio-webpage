@@ -27,15 +27,15 @@
   },
   "dependencies": {
     "@azure/arm-appcontainers": "^3.0.0",
-    "@azure/functions": "^4.7.2",
-    "@azure/identity": "^4.13.2",
-    "mongoose": "^9.9.5"
+    "@azure/functions": "^4.16.5",
+    "@azure/identity": "^4.13.3",
+    "mongoose": "^9.10.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "eslint": "^10.10.0",
+    "eslint": "^10.11.0",
     "globals": "^17.12.0",
     "pg": "^8.23.0",
-    "prettier": "^3.9.6"
+    "prettier": "^3.9.9"
   }
 }
