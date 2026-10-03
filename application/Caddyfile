@@ -359,6 +359,15 @@ woofi-developments.at, www.woofi-developments.at, status.woofi-developments.at {
 preussen.woofi-developments.at {
     encode zstd gzip
 
+    # Caps request bodies at 1 MB. The pattern-suggestions analyzer
+    # (rules/analyze) is CPU-heavy and was a DoS vector: without a cap a staff
+    # session could make the server buffer and parse an arbitrarily large JSON
+    # body. The app's own 700,000-byte content-length check is the inner
+    # bound; this is the outer one, enforced before the request reaches Node.
+    request_body {
+        max_size 1MB
+    }
+
     # A separate header block on purpose, not a copy of the portfolio one
     # above: that CSP is `script-src 'self'` with no 'unsafe-inline', which
     # would break preussen-web. It is a Next.js App Router app, which streams
