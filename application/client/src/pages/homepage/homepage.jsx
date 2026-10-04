@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
-import { SocialRow } from '../../components/identity.jsx';
 import LoadingScreen from '../../components/loading-screen.jsx';
-import CareerTimeline from '../../components/career-timeline.jsx';
+import { useApiList } from '../../hooks/useApiList.js';
+import { Link } from 'react-router-dom';
+import '../../proto.css';
 import AvailabilityBadge from '../../components/availability-badge.jsx';
 import ActivityHeatmap from '../../components/activity-heatmap.jsx';
 import { shouldBoot } from '../../utils/boot.js';
@@ -37,7 +38,7 @@ const SiAzure = (props) => (
     </svg>
 );
 
-const technologies = [
+const technologies_list = [
     {
         name: 'JavaScript',
         icon: SiJavascript,
@@ -134,6 +135,76 @@ const technologies = [
     },
 ];
 
+const SHOTS = { NetViz: '/shots/netviz.png', 'Machine Learning Visualizer': '/shots/ml.png' };
+const fmtYear = (d) => (d ? new Date(d).getFullYear() : 'now');
+const Lines = ({ lines }) => (
+    <h1>
+        {lines.map((l, i) => (
+            <span className="ln" key={i}>
+                <span style={{ '--d': `${i * 110}ms` }}>{l}</span>
+            </span>
+        ))}
+    </h1>
+);
+
+function ProjectCard({ p, tech }) {
+    const host = p.livedemo ? p.livedemo.replace(/^https?:\/\//, '').replace(/\/$/, '') : null;
+    return (
+        <article className="card proj">
+            <div className={`shot ${SHOTS[p.title] ? '' : 'ph2'}`}>
+                <div className="chrome">
+                    <i />
+                    <i />
+                    <i />
+                    <span>{host || 'repository only'}</span>
+                </div>
+                {SHOTS[p.title] ? (
+                    <img src={SHOTS[p.title]} alt={`Screenshot of ${p.title}`} loading="lazy" />
+                ) : (
+                    <div className="ph2-body">
+                        <b>
+                            {p.title
+                                .split(' ')
+                                .map((w) => w[0])
+                                .join('')
+                                .slice(0, 3)}
+                        </b>
+                    </div>
+                )}
+            </div>
+            <h3>{p.title}</h3>
+            <p>{p.description}</p>
+            <div className="tags">
+                {(p.technologies || []).map(
+                    (id) =>
+                        tech[id] && (
+                            <span className="tag" key={id}>
+                                {tech[id]}
+                            </span>
+                        ),
+                )}
+            </div>
+            <div className="links">
+                {p.livedemo && (
+                    <a className="btn sm" href={p.livedemo} target="_blank" rel="noreferrer">
+                        Live demo <span>↗</span>
+                    </a>
+                )}
+                {p.repositoryUrl && (
+                    <a
+                        className="btn sm ghost"
+                        href={p.repositoryUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        Repository <span>↗</span>
+                    </a>
+                )}
+            </div>
+        </article>
+    );
+}
+
 export default function Homepage() {
     usePageMeta(
         'Fullstack Web Development',
@@ -141,126 +212,157 @@ export default function Homepage() {
     );
 
     const [booting, setBooting] = useState(shouldBoot);
-
-    // Availability is fetched once here and shared: the hero badge and the timeline
-    // are two views of the same list, so they cannot contradict each other.
-    const [availability, setAvailability] = useState([]);
-
-    useEffect(() => {
-        let active = true;
-
-        fetch('/api/availability')
-            .then((res) => (res.ok ? res.json() : { items: [] }))
-            .then((body) => {
-                if (active) setAvailability(body.items);
-            })
-            .catch(() => {
-                // The badge falls back to "open to work" on an empty list; a portfolio
-                // that hides its own name because one endpoint is down is worse.
-            });
-
-        return () => {
-            active = false;
-        };
-    }, []);
-
+    // Availability is fetched once and shared: the hero badge and the career preview are two views of the same list.
+    const [availability] = useApiList('/api/availability');
+    const [projects] = useApiList('/api/projects');
+    const [technologies] = useApiList('/api/technologies');
+    const tech = Object.fromEntries(technologies.map((t) => [t._id, t.tech]));
     const badge = badgeState(availability.filter((entry) => entry.published));
+    const career = availability
+        .filter((e) => e.track === 'career' && e.published)
+        .sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+    const featured = [2, 0, 3].map((i) => projects[i]).filter(Boolean);
 
     return (
         <>
             {booting && <LoadingScreen onDone={() => setBooting(false)} />}
-
-            <div className={`mx-auto max-w-5xl ${booting ? '' : 'animate-fade-up'}`}>
-                {/* ── Hero: who I am, what I do, how to reach me ──────────────────── */}
-                <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 sm:p-9">
-                    <div className="flex items-start gap-5 sm:gap-6">
-                        <img
-                            src="/profile-image.jpg"
-                            alt={`${IDENTITY.name}, portrait`}
-                            fetchPriority="high"
-                            className="h-40 w-[6.25rem] shrink-0 rounded-xl border border-[var(--line)] object-cover sm:h-[7.5rem] sm:w-[6.25rem]"
-                        />
-
-                        <div className="min-w-0 pt-0.5">
-                            <AvailabilityBadge badge={badge} />
-
-                            <h1 className="mt-2 text-5xl font-extrabold text-[var(--text)]">
-                                {IDENTITY.name}
-                            </h1>
-
-                            <p className="mt-1 font-mono text-sm text-[var(--muted)]">
-                                <span className="text-[var(--accent)]">~</span> {IDENTITY.handle}
-                            </p>
-
-                            <p className="mt-2 text-base font-medium text-[var(--accent)]">
-                                <FormattedMessage
-                                    id="homepage.role"
-                                    defaultMessage="Fullstack developer / Carinthia, Austria"
-                                />
-                            </p>
+            <div className="pw">
+                <div className="page" style={{ padding: 0, maxWidth: 1040 }}>
+                    <section className="hero">
+                        <div className="hero-top mono muted">
+                            <span>Portfolio · Carinthia, AT</span>
+                            <span className="hb">
+                                <AvailabilityBadge badge={badge} />
+                            </span>
                         </div>
-                    </div>
-
-                    <p className="mt-7 max-w-2xl leading-7 text-[var(--muted)]">
-                        <FormattedMessage
-                            id="homepage.bio"
-                            defaultMessage="I'm a software developer from Carinthia. I graduated from HTL Villach in 2026 with a Reife- und Diplomprüfung in computer science, and I've done software engineering internships at Infineon Technologies. I work on web applications, on apps in general — Android and desktop among them — and on projects in data science and AI. More about my background on <link>LinkedIn</link>."
-                            values={{
-                                link: (chunks) => (
-                                    <a
-                                        href={IDENTITY.linkedInUrl}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="text-[var(--accent)] underline underline-offset-4"
-                                    >
-                                        {chunks}
-                                    </a>
-                                ),
-                            }}
+                        <Lines
+                            lines={[
+                                <>
+                                    Hi, I'm <em>{IDENTITY.name}</em>.
+                                </>,
+                                'I make software that',
+                                'does what it says.',
+                            ]}
                         />
-                    </p>
-
-                    <div className="mt-7 flex flex-wrap items-center gap-3 border-t border-[var(--line)] pt-4">
-                        <SocialRow />
-                    </div>
-                </section>
-
-                {/* ── Where I have been ───────────────────────────────────────────── */}
-                <CareerTimeline entries={availability} setEntries={setAvailability} />
-
-                {/* ── What I have actually been doing (GitHub + GitLab) ───────────── */}
-                <ActivityHeatmap />
-
-                {/* ── What I work with ───────────────────────────────────────────── */}
-                <section className="mt-8 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 sm:p-9">
-                    {/* The section label is set in mono, like a shell comment — the same
-              structural voice the boot screen and the build chip already use. */}
-                    <h2 className="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">
-                        <span className="text-[var(--accent)]">//</span>{' '}
-                        <FormattedMessage
-                            id="homepage.technologies"
-                            defaultMessage="Technologies I use:"
-                        />
-                    </h2>
-
-                    <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                        {technologies.map(({ name, icon: Icon, color }) => (
-                            <div
-                                key={name}
-                                className="group flex items-center gap-3 rounded-xl border border-[var(--line)] bg-[var(--bg)] px-4 py-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--accent)]"
-                            >
-                                <Icon
-                                    className="h-6 w-6 shrink-0 transition-transform duration-200 group-hover:scale-110"
-                                    style={{ color }}
-                                />
-
-                                <span className="truncate text-sm font-semibold text-[var(--text)]">
-                                    {name}
-                                </span>
+                        <div className="hero-row">
+                            <img
+                                className="portrait"
+                                src="/profile-image.jpg"
+                                alt={`${IDENTITY.name}, portrait`}
+                                fetchPriority="high"
+                            />
+                            <div>
+                                <p className="lead big">
+                                    <FormattedMessage
+                                        id="homepage.role"
+                                        defaultMessage="Fullstack developer / Carinthia, Austria"
+                                    />
+                                    .
+                                </p>
+                                <p className="lead">
+                                    <FormattedMessage
+                                        id="homepage.bio"
+                                        defaultMessage="I'm a software developer from Carinthia. I graduated from HTL Villach in 2026 with a Reife- und Diplomprüfung in computer science, and I've done software engineering internships at Infineon Technologies. I work on web applications, on apps in general — Android and desktop among them — and on projects in data science and AI. More about my background on <link>LinkedIn</link>."
+                                        values={{
+                                            link: (chunks) => (
+                                                <a
+                                                    href={IDENTITY.linkedInUrl}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="acc"
+                                                >
+                                                    {chunks}
+                                                </a>
+                                            ),
+                                        }}
+                                    />
+                                </p>
+                                <div className="btns">
+                                    <Link className="btn" to="/contact">
+                                        Start a conversation
+                                    </Link>
+                                    <Link className="btn ghost" to="/projects">
+                                        Read the work →
+                                    </Link>
+                                </div>
                             </div>
-                        ))}
-                    </div>
-                </section>
+                        </div>
+                    </section>
+
+                    <section>
+                        <h2 className="sec-label">
+                            <span className="sec-n">01</span>Selected work
+                        </h2>
+                        <div className="grid3">
+                            {featured.map((p) => (
+                                <ProjectCard key={p._id} p={p} tech={tech} />
+                            ))}
+                        </div>
+                        <Link className="btn ghost more" to="/projects">
+                            All {projects.length} projects →
+                        </Link>
+                    </section>
+
+                    <section>
+                        <h2 className="sec-label">
+                            <span className="sec-n">02</span>Where I've been
+                        </h2>
+                        <div className="mini-career">
+                            {career.slice(0, 3).map((e) => (
+                                <div
+                                    className={`crow k-${e.kind === 'education' ? 'education' : 'work'}`}
+                                    key={e._id}
+                                >
+                                    <span className="mono muted when">
+                                        {fmtYear(e.startDate)} — {fmtYear(e.endDate)}
+                                    </span>
+                                    <div>
+                                        <b>{e.title}</b>
+                                        <span className="org">
+                                            {e.organisation}
+                                            {e.location ? ` · ${e.location.split(',')[0]}` : ''}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <Link className="btn ghost more" to="/career">
+                            Full career & education →
+                        </Link>
+                    </section>
+
+                    <section>
+                        <h2 className="sec-label">
+                            <span className="sec-n">03</span>Activity
+                        </h2>
+                        <ActivityHeatmap />
+                    </section>
+
+                    <section>
+                        <h2 className="sec-label">
+                            <span className="sec-n">04</span>Technologies I use
+                        </h2>
+                        <div className="techs">
+                            {technologies_list.map(({ name, icon: Icon, color }) => (
+                                <div className="tech" key={name}>
+                                    <Icon className="tico" style={{ color }} />
+                                    {name}
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    <section className="cta-band">
+                        <h2>Not sure what you need?</h2>
+                        <p>
+                            Describe what should happen and I'll tell you what it takes to build it,
+                            even if it isn't worth it.
+                        </p>
+                        <Link className="btn" to="/contact">
+                            Start a conversation
+                        </Link>
+                    </section>
+                </div>
             </div>
         </>
     );
