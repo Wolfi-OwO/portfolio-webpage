@@ -14,12 +14,7 @@
           status-main.jsx's system-only theme (no toggle on this standalone
           bundle, so no localStorage read here).
         -->
-        <script>
-            document.documentElement.classList.toggle(
-                'dark',
-                window.matchMedia('(prefers-color-scheme: dark)').matches,
-            );
-        </script>
+        <script src="/status-theme-init.js"></script>
         <title>Status - Woofi Developments</title>
         <meta
             name="description"
