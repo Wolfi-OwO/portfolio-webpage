@@ -14,7 +14,7 @@ import {
 import { isAdmin, logout } from '../../utils/auth.js';
 import { useLocale, SUPPORTED_LOCALES } from '../../i18n/LocaleContext.jsx';
 import { useSecretCombo } from '../../hooks/useSecretCombo.js';
-import AppearancePanel from '../../components/appearance-panel.jsx';
+import useSavedLook from '../../hooks/useSavedLook.js';
 
 const themeOptions = [
     { id: 'light', labelId: 'theme.light', defaultLabel: 'Light', Icon: SunIcon },
@@ -66,6 +66,7 @@ export default function DefaultLayout() {
     const [theme, setTheme] = useState(() => {
         return localStorage.getItem('theme') || 'system';
     });
+    useSavedLook();
     const [openDropdown, setOpenDropdown] = useState(null); // 'theme' | 'language' | null
     const [buildInfo, setBuildInfo] = useState(null);
     const [loggedIn, setLoggedIn] = useState(() => isAdmin());
@@ -400,7 +401,6 @@ export default function DefaultLayout() {
             >
                 <Outlet />
             </main>
-            <AppearancePanel theme={theme} setTheme={setTheme} />
 
             {/* One footer, breakpoint-scoped. Below lg: two columns of 44px link rows
                 (status first), then a copyright row with the build pill from sm.
