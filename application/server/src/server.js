@@ -27,6 +27,7 @@ import { infoRouter } from './routes/info-route.js';
 import { monitorsRouter } from './routes/monitors-route.js';
 import { statusRouter } from './routes/status-route.js';
 import { secretRouter } from './routes/secret-route.js';
+import { contactRouter } from './routes/contact-route.js';
 import { errorHandler, NotFound } from './middlewares/error-handlers.js';
 import { apiRootLinks } from './utils/hateoas.js';
 
@@ -156,6 +157,7 @@ app.use('/api/technologies/', technologiesRouter);
 app.use('/api/monitors/', monitorsRouter);
 app.use('/api/status/', statusRouter);
 app.use('/api/secret/', secretRouter);
+app.use('/api/contact/', contactRouter);
 
 // The hypermedia discovery root: a client following links never has to know
 // any other /api/* path up front, only this one.
@@ -188,6 +190,7 @@ app.use('/api', (req, _res, next) => {
 const KNOWN_CLIENT_ROUTES = new Set([
     '/',
     '/projects',
+    '/career',
     '/services',
     '/contact',
     '/privacy-policy',

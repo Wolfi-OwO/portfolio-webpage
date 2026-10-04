@@ -77,6 +77,7 @@ function apiRootLinks() {
         activity: { href: href('/activity') },
         status: { href: href('/status') },
         monitors: { href: href('/monitors') },
+        contact: { href: href('/contact'), method: 'POST' },
         login: { href: '/auth/login', method: 'POST' },
         unlock: { href: '/auth/unlock', method: 'POST' },
     };
@@ -113,6 +114,21 @@ const services = crudLinks('/services');
 const availability = crudLinks('/availability');
 // No `GET /monitors/:id` route exists — nothing to point `self` at.
 const monitors = crudLinks('/monitors', { itemHasSelf: false });
+// Contact messages: anyone may POST, only the admin lists and deletes; no update, no GET by id.
+const contact = {
+    list(req) {
+        return {
+            self: { href: req.originalUrl },
+            create: { href: href('/contact'), method: 'POST' },
+        };
+    },
+    item(id) {
+        return {
+            delete: { href: `${href('/contact')}/${id}`, method: 'DELETE' },
+            collection: { href: href('/contact') },
+        };
+    },
+};
 
 export {
     API_BASE,
@@ -127,4 +143,5 @@ export {
     services,
     availability,
     monitors,
+    contact,
 };
