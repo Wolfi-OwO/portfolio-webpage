@@ -2,7 +2,7 @@ import { FormattedDate, FormattedMessage } from 'react-intl';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import ImprintText from '../../components/imprint-text.jsx';
 
-const LAST_UPDATED = new Date('2026-09-21');
+const LAST_UPDATED = new Date('2026-10-03');
 
 const EMAIL = 'KoflerPhillip@outlook.com';
 const LINKEDIN = 'https://www.linkedin.com/in/kofler-phillip-8666ab338/';
@@ -60,7 +60,7 @@ export default function PrivacyPolicyPage() {
                     <FormattedMessage
                         id="privacy.controller.text"
                         defaultMessage={
-                            'I am the controller for the data processed on this website:\n\nPhillip Kofler\nSoftware Engineer | Fullstack Developer\nVillach, Carinthia, Austria'
+                            'I am the controller for the data processed on this website:\n\nPhillip Kofler\nSoftware Developer | Fullstack Developer\nVillach, Carinthia, Austria'
                         }
                     />
                     <br />
@@ -79,7 +79,7 @@ export default function PrivacyPolicyPage() {
                 <Section id="privacy.principle" defaultTitle="The short version">
                     <FormattedMessage
                         id="privacy.principle.text"
-                        defaultMessage="I collect no personal data about you beyond what a web server unavoidably sees when it answers your request. I set no cookies. I use no analytics, no tag manager, no advertising network, no social plugins that phone home. I do not build profiles, I do not sell anything to anyone, and I have no interest in who you are — I would rather you just looked at the projects."
+                        defaultMessage="I collect no personal data about you beyond what a web server unavoidably sees when it answers your request and what you yourself send me through the contact form. I set no cookies. I use no analytics, no tag manager, no advertising network, no social plugins that phone home. I do not build profiles, I do not sell anything to anyone, and I have no interest in who you are — I would rather you just looked at the projects."
                     />
                 </Section>
 
@@ -87,7 +87,7 @@ export default function PrivacyPolicyPage() {
                     <FormattedMessage
                         id="privacy.logs.text"
                         defaultMessage={
-                            'When you open a page, your request reaches my web server (Caddy). It writes one log line per request containing the time, the requested host name, the HTTP method and protocol, the response status, the size and duration of the response, and technical TLS connection details. Before a line is written, your IP address, the requested path and query string, and all request and response headers (including referrer and user agent) are removed. I therefore do not store your IP address in the server log.\n\nI need this log to run the site: to deliver pages and to find errors. The legal basis is my legitimate interest in operating a secure, functioning website (Art. 6(1)(f) GDPR). Log lines are not merged with anything else, are never used to identify you, and are kept in a size-limited rotating log for a short time before being overwritten.\n\nTo slow down abuse such as brute-force attempts against the admin login, the application counts requests per connection address in working memory only. These counters are not written to disk or to the database and disappear when the application restarts.'
+                            'When you open a page, your request reaches my web server (Caddy). It writes one log line per request containing the time, the requested host name, the HTTP method and protocol, the response status, the size and duration of the response, and technical TLS connection details. Before a line is written, your IP address, the requested path and query string, and all request and response headers (including referrer and user agent) are removed. I therefore do not store your IP address in the server log.\n\nI need this log to run the site: to deliver pages and to find errors. The legal basis is my legitimate interest in operating a secure, functioning website (Art. 6(1)(f) GDPR). Log lines are not merged with anything else, are never used to identify you, and are kept in a size-limited rotating log for a short time before being overwritten.\n\nTo slow down abuse such as brute-force attempts against the admin login and automated submissions through the contact form, the application counts requests per connection address in working memory only. These counters are not written to disk or to the database and disappear when the application restarts.'
                         }
                     />
                 </Section>
@@ -96,7 +96,7 @@ export default function PrivacyPolicyPage() {
                     <FormattedMessage
                         id="privacy.hosting.text"
                         defaultMessage={
-                            "The site runs as a container on a virtual server (VPS) from Contabo, where the Caddy web server terminates the encrypted connection. This is the only host that sees your connection when you visit. The site content (projects, technologies, status samples) lives in a MongoDB Atlas database, and my scheduled status checks run as a Microsoft Azure Function. Atlas and Azure only exchange data with my own server and checker, not with your browser. Contabo, MongoDB and Microsoft process data strictly on my instructions as processors under Art. 28 GDPR.\n\nI chose them for reliability, not for data collection, and I store no visitor records in the database — the only rows in it are the ones I put there about my own work, plus the results of my own status checks.\n\nThe status page also draws on Metrion, a second application of mine. The figures come from Metrion's ingest service and its self-hosted PostgreSQL/TimescaleDB database, both on the same Contabo VPS, which keeps uptime measurements (monitor name, up/down, response time) with no fixed deletion date; Metrion's dashboard runs on Microsoft Azure Container Apps but takes no part in the status request. Metrion is my own service rather than a third party, and the only traffic it receives from this site is the server-to-server status request described below, so it processes no visitor data either."
+                            "The site runs as a container on a virtual server (VPS) from Contabo, where the Caddy web server terminates the encrypted connection. This is the only host that sees your connection when you visit. The site content (projects, technologies, status samples) lives in a MongoDB Atlas database, and my scheduled status checks run as a Microsoft Azure Function. Atlas and Azure only exchange data with my own server and checker, not with your browser. Contabo, MongoDB and Microsoft process data strictly on my instructions as processors under Art. 28 GDPR.\n\nI chose them for reliability, not for data collection. The database holds, apart from my own content and status checks, only the messages sent through the contact form (see \"Contacting me\"). MongoDB is a US company; to the extent data is accessed from outside the EU, the transfer rests on the standard contractual clauses in MongoDB's data processing agreement (Art. 46(2)(c) GDPR).\n\nThe status page also draws on Metrion, a second application of mine. The figures come from Metrion's ingest service and its self-hosted PostgreSQL/TimescaleDB database, both on the same Contabo VPS, which keeps uptime measurements (monitor name, up/down, response time) with no fixed deletion date; Metrion's dashboard runs on Microsoft Azure Container Apps but takes no part in the status request. Metrion is my own service rather than a third party, and the only traffic it receives from this site is the server-to-server status request described below, so it processes no visitor data either."
                         }
                     />
                 </Section>
@@ -120,7 +120,9 @@ export default function PrivacyPolicyPage() {
                 <Section id="privacy.contact" defaultTitle="Contacting me">
                     <FormattedMessage
                         id="privacy.contact.text"
-                        defaultMessage="There is no contact form on this site — deliberately, because a form would mean collecting your data through my server. Instead I link my email address and my LinkedIn profile. If you write to me, I process what you send (your address, your name if you give it, and the content of your message) for the sole purpose of answering you, on the basis of Art. 6(1)(b) or (f) GDPR. I keep such correspondence only as long as the matter needs it, and I delete it once it is settled."
+                        defaultMessage={
+                            'If you use the contact form, you send me your name, your email address, a subject and your message. I use them only to read and answer your enquiry. My legal basis is Art. 6(1)(b) GDPR if you ask about a possible project or order, and otherwise my legitimate interest in answering questions about my work (Art. 6(1)(f) GDPR). Without these details I cannot answer you, so the form cannot be sent without them.\n\nYour message is stored in my MongoDB database (see "Hosting and infrastructure") and is visible only to me after I log in. I do not pass it on, and no email, chat or other notification service is involved. I delete it once your matter is settled, and automatically after 90 days at the latest. If your enquiry leads to an engagement, I keep the correspondence that commercial and tax law requires me to keep (Art. 6(1)(c) GDPR), generally for seven years.\n\nI do not store your IP address or your browser details with your message. To slow down automated abuse, the server counts submissions per connection address in working memory only, for a short time window; this is not written to disk, to the database or to a log, and it disappears when the application restarts (legitimate interest in security, Art. 6(1)(f) GDPR). The form sets no cookies and loads nothing from third parties.\n\nPlease do not send health data or other particularly sensitive information. If you do anyway, I use it only to answer you and delete it promptly. You can ask me at any time for a copy of your message or for its deletion, see "Your rights"; please write from the email address you used so that I can find it. You can also just write to me by email:'
+                        }
                     />
                     <br />
                     <br />
@@ -155,7 +157,7 @@ export default function PrivacyPolicyPage() {
                 <Section id="privacy.career" defaultTitle="Career and education history">
                     <FormattedMessage
                         id="privacy.career.text"
-                        defaultMessage="The homepage's career timeline shows my own employment and education history — the organisations I worked or studied at and the relevant dates. This is personal data about me, the person running this site, that I choose to publish myself as a professional record; none of it is data about you or any other visitor. The organisation names shown there (such as Infineon Technologies, HTL Villach or BG/BRG Peraugymnasium) are not personal data under the GDPR, which protects natural persons, not companies or schools — and no individual person at any of them is named. My legal basis for publishing my own history this way is my legitimate interest, as someone offering software development services, in showing my qualifications and experience (Art. 6(1)(f) GDPR)."
+                        defaultMessage="The career page's timeline shows my own employment and education history — the organisations I worked or studied at and the relevant dates. This is personal data about me, the person running this site, that I choose to publish myself as a professional record; none of it is data about you or any other visitor. The organisation names shown there (such as Infineon Technologies, HTL Villach or BG/BRG Peraugymnasium) are not personal data under the GDPR, which protects natural persons, not companies or schools — and no individual person at any of them is named. My legal basis for publishing my own history this way is my legitimate interest, as someone offering software development services, in showing my qualifications and experience (Art. 6(1)(f) GDPR)."
                     />
                 </Section>
 
