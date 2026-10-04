@@ -1,0 +1,176 @@
+/* Technology strip: one line that never stops. Two identical sets side by side, the track slides by exactly one set. */
+.pw .marquee {
+    overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.pw .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee-ltr 38s linear infinite;
+}
+.pw .marquee:hover .marquee-track {
+    animation-play-state: paused;
+}
+.pw .marquee-set {
+    display: flex;
+    gap: 10px;
+    padding: 2px 5px;
+    margin: 0;
+    list-style: none;
+}
+.pw .marquee .tech {
+    flex: none;
+    white-space: nowrap;
+}
+@keyframes marquee-ltr {
+    from {
+        transform: translateX(-50%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .pw .marquee-track {
+        animation: none;
+    }
+    .pw .marquee {
+        overflow-x: auto;
+    }
+}
+.pw .tech .tico {
+    width: 20px;
+    height: 20px;
+    flex: none;
+}
+
+/* Phones: everything one step smaller, nothing wider than the screen. */
+@media (max-width: 640px) {
+    html .pw {
+        font-size: 14px;
+    }
+    html .pw .page {
+        gap: 44px;
+        max-width: 100%;
+    }
+    html .pw .hero h1 {
+        font-size: clamp(1.9rem, 9vw, 2.6rem);
+        line-height: 1.08;
+    }
+    html .pw .hero-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 0.66rem;
+    }
+    html .pw .hero-row {
+        grid-template-columns: 1fr;
+        gap: 18px;
+        justify-items: start;
+    }
+    html .pw .portrait {
+        width: 128px;
+        height: 128px;
+        max-width: 128px;
+    }
+    html .pw .lead {
+        font-size: 0.95rem;
+        line-height: 1.55;
+    }
+    html .pw .lead.big {
+        font-size: 1.05rem;
+    }
+    html .pw .btn {
+        padding: 10px 16px;
+        font-size: 0.74rem;
+    }
+    html .pw .btns {
+        gap: 8px;
+    }
+    html .pw .page-h h1 {
+        font-size: clamp(1.7rem, 8vw, 2.3rem);
+    }
+    html .pw .sec-label {
+        font-size: 1.15rem;
+    }
+    html .pw .card {
+        padding: 16px;
+    }
+    html .pw .grid2,
+    html .pw .grid3,
+    html .pw .svc-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    html .pw .card,
+    html .pw .page > section {
+        min-width: 0;
+    }
+    html .pw .chrome span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    html .pw .cta-band {
+        padding: 22px 18px;
+        border-radius: 22px;
+    }
+    html .pw .cta-band h2 {
+        font-size: 1.25rem;
+    }
+    html .pw .cta-band p {
+        font-size: 0.88rem;
+    }
+    html .pw .crow {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+    html .pw .svc-foot {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    html .pw .steps {
+        flex-direction: column;
+    }
+    html .pw .step-arr {
+        transform: rotate(90deg);
+    }
+    html .pw .tech {
+        padding: 8px 12px;
+        font-size: 0.82rem;
+    }
+    html .pw .phero {
+        grid-template-columns: 1fr;
+    }
+    html .pw .avatar {
+        max-width: 150px;
+    }
+    html .pw .sona {
+        grid-template-columns: 1fr;
+    }
+    html .pw .masonry {
+        grid-template-columns: 1fr 1fr;
+    }
+    html .pw .masonry .tile,
+    html .pw .masonry .tile:nth-last-child(2):nth-child(3n + 1),
+    html .pw .masonry .tile:last-child:nth-child(3n + 2),
+    html .pw .masonry .tile:last-child:nth-child(3n + 1) {
+        grid-column: auto;
+    }
+    html .pw .tracks li {
+        grid-template-columns: 22px 40px 1fr;
+    }
+    html .pw .tracks .al,
+    html .pw .tracks .bar {
+        display: none;
+    }
+}
+@media (max-width: 360px) {
+    html .pw .masonry {
+        grid-template-columns: 1fr;
+    }
+    html .pw .hero h1 {
+        font-size: 1.75rem;
+    }
+}
