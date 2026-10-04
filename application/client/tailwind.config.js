@@ -18,10 +18,14 @@ export default {
                needs a responsive text variant any more — and why nothing jumps.
                Line heights are unitless so they follow the size. */
             fontSize: {
-                '2xs': ['clamp(0.625rem, 0.594rem + 0.14vw, 0.71875rem)', { lineHeight: '1.5' }],
+                /* Floors raised after measuring the scale: 2xs was 10px on every phone
+                   (53 uses) and base was 15px at 320-375. The contract wants nothing
+                   under 12px and body 16-18px, so 2xs now equals xs, sm starts at
+                   14px and base runs 16px (375) to 18px (1440). */
+                '2xs': ['clamp(0.75rem, 0.73rem + 0.09vw, 0.8125rem)', { lineHeight: '1.5' }],
                 xs: ['clamp(0.75rem, 0.73rem + 0.09vw, 0.8125rem)', { lineHeight: '1.5' }],
-                sm: ['clamp(0.8125rem, 0.77rem + 0.19vw, 0.9375rem)', { lineHeight: '1.55' }],
-                base: ['clamp(0.9375rem, 0.895rem + 0.19vw, 1.0625rem)', { lineHeight: '1.6' }],
+                sm: ['clamp(0.875rem, 0.85rem + 0.1vw, 0.9375rem)', { lineHeight: '1.55' }],
+                base: ['clamp(1rem, 0.95rem + 0.2vw, 1.125rem)', { lineHeight: '1.6' }],
                 lg: ['clamp(1.0625rem, 1rem + 0.28vw, 1.25rem)', { lineHeight: '1.55' }],
                 xl: ['clamp(1.125rem, 1rem + 0.56vw, 1.5rem)', { lineHeight: '1.4' }],
                 '2xl': ['clamp(1.25rem, 1.04rem + 0.93vw, 1.875rem)', { lineHeight: '1.3' }],
@@ -30,6 +34,9 @@ export default {
                 '5xl': ['clamp(2rem, 1.5rem + 2.22vw, 3.5rem)', { lineHeight: '1.1' }],
                 '6xl': ['clamp(2.25rem, 1.58rem + 2.96vw, 4.25rem)', { lineHeight: '1.05' }],
                 '7xl': ['clamp(2.5rem, 1.67rem + 3.7vw, 5rem)', { lineHeight: '1.05' }],
+                /* Home h1 only: 36px at 320, 60px at 1440 (hero range 48-64 on desktop,
+                   32-40 on phones in the references measured). */
+                display: ['clamp(2.25rem, 1.7rem + 2.6vw, 3.75rem)', { lineHeight: '1.05' }],
             },
         },
     },
