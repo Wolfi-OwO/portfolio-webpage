@@ -21,9 +21,9 @@ Live at [woofi-developments.at](https://woofi-developments.at) — status at [st
 ![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?logo=mongodb&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-single_image-2496ED?logo=docker&logoColor=white)
 
-![A walkthrough of the site: profile card and activity heatmap, projects, services, contact, and the status page](docs/demo.gif)
+![A walkthrough of the site: profile card and activity heatmap, projects, services, contact, and the status page](documentation/screenshots/demo.gif)
 
-<sub>The clip above is 50 fps — the ceiling GIF can actually hold. The same walkthrough recorded at a true 60 fps: <a href="docs/demo.mp4">MP4</a> · <a href="docs/demo.webm">WebM</a></sub>
+<sub>The clip above is 50 fps — the ceiling GIF can actually hold. The same walkthrough recorded at a true 60 fps: <a href="documentation/screenshots/demo.mp4">MP4</a> · <a href="documentation/screenshots/demo.webm">WebM</a></sub>
 
 </div>
 
@@ -31,21 +31,21 @@ Live at [woofi-developments.at](https://woofi-developments.at) — status at [st
 
 ### Home
 
-![Homepage — profile card with a live status line, and what I build](docs/screenshots/homepage.png)
+![Homepage — profile card with a live status line, and what I build](documentation/screenshots/homepage.png)
 
 - A profile card that doubles as a service card: it reads the same `/api/status` the status page uses, so the hero reports this site's own live uptime instead of hand-written stats.
 - Social links for GitHub, LinkedIn, Discord and email — Discord copies the handle, since a Discord username isn't a URL.
 
 ### Career
 
-![Career timeline — work and education blocks drawn from real start/end dates](docs/screenshots/career.png)
+![Career timeline — work and education blocks drawn from real start/end dates](documentation/screenshots/career.png)
 
 - A timeline of work and education blocks on the homepage, drawn from `startDate`/`endDate` on each entry rather than a hand-maintained "current" flag — which block reads as ongoing is decided by today's date.
 - Backed by the same `/api/availability` collection that drives the availability badge next to it, filtered to the career track (`?track=career`); admin-only inline add/edit/delete.
 
 ### Projects
 
-![Projects — showcase backed by a small CRUD API](docs/screenshots/projects.png)
+![Projects — showcase backed by a small CRUD API](documentation/screenshots/projects.png)
 
 - Bilingual (EN/DE) UI with light/dark/system theme switching.
 - Project showcase backed by a CRUD API — title, description, repo/live-demo links, color-coded technology tags.
@@ -53,14 +53,14 @@ Live at [woofi-developments.at](https://woofi-developments.at) — status at [st
 
 ### Services
 
-![Services — what I offer, by category, with pricing](docs/screenshots/services.png)
+![Services — what I offer, by category, with pricing](documentation/screenshots/services.png)
 
 - What I offer, grouped into web/mobile/desktop/other, each with its deliverables, starting price and hourly rate.
 - Backed by its own CRUD API (`/api/services`); admin-only inline add/edit/delete, same pattern as Projects.
 
 ### Live Status Page
 
-![Status page — live uptime tracking for monitored services](docs/screenshots/status.png)
+![Status page — live uptime tracking for monitored services](documentation/screenshots/status.png)
 
 - Checks run 24/7 in a separate Azure Function (Timer trigger, once a minute) that writes each result to MongoDB; this web app only _reads_ that history. MongoDB keeps a rolling 90-day window — the 24h/7d/30d figures below live entirely inside it — but up/down and response time are also copied into Metrion, a second, self-hosted system of mine with no fixed deletion date, so the availability history survives past 90 days there.
 - Per monitor, the checker either sends a plain HTTP ping (this site's own domains, now on the VPS) or reads the app's state straight from the Azure control plane — never over HTTP — for whatever still runs as an Azure Container App, because a request would wake a scale-to-zero app.
@@ -70,13 +70,13 @@ Live at [woofi-developments.at](https://woofi-developments.at) — status at [st
 
 ### Incidents
 
-![Incidents — a day-grouped history of past outages per monitor](docs/screenshots/incidents.png)
+![Incidents — a day-grouped history of past outages per monitor](documentation/screenshots/incidents.png)
 
 - A dedicated `/incidents` page on the status bundle, listing every recorded incident across all monitors, newest first and grouped by day — drawing on the same combined MongoDB + Metrion history as the status page, so an incident older than MongoDB's 90-day window still shows up.
 
 ### Contact
 
-![Contact page — email, GitHub, LinkedIn and Discord](docs/screenshots/contact.png)
+![Contact page — email, GitHub, LinkedIn and Discord](documentation/screenshots/contact.png)
 
 - One card per channel: email, GitHub, LinkedIn and Discord, plus response time and availability at a glance.
 
@@ -204,16 +204,17 @@ Everything that runs lives under `application/`, which is an npm workspace. It h
 
 ## API reference
 
-The HTTP API is RESTful (HATEOAS `_links` on every JSON response, correct verbs and status codes, `HEAD`/`OPTIONS` on every route) with JWT-based `Bearer` authorization for writes and admin routes. Most reads are public — `/api/projects`, `/api/technologies`, `/api/services`, `/api/availability`, `/api/activity`, `/api/status` and `/api/secret/voucher` (with the right token) — while `/api/monitors` and every create/update/delete route require an admin token. Full endpoint-by-endpoint documentation, with real example requests and responses, lives in [docs/api.md](docs/api.md).
+The HTTP API is RESTful (HATEOAS `_links` on every JSON response, correct verbs and status codes, `HEAD`/`OPTIONS` on every route) with JWT-based `Bearer` authorization for writes and admin routes. Most reads are public — `/api/projects`, `/api/technologies`, `/api/services`, `/api/availability`, `/api/activity`, `/api/status` and `/api/secret/voucher` (with the right token) — while `/api/monitors` and every create/update/delete route require an admin token. Full endpoint-by-endpoint documentation, with real example requests and responses, lives in [documentation/backend/api.md](documentation/backend/api.md).
 
 ## Documentation
 
-- [docs/api.md](docs/api.md) — full HTTP API reference (every endpoint, request/response shape, and example)
+- [documentation/backend/api.md](documentation/backend/api.md) — full HTTP API reference (every endpoint, request/response shape, and example)
 - [CONTRIBUTING.md](CONTRIBUTING.md) — development workflow and PR conventions
 - [SECURITY.md](SECURITY.md) — security model and how to report a vulnerability
-- [docs/PREVIEWS.md](docs/PREVIEWS.md) — how PR preview deployments work
-- [docs/DEPLOYMENT_ORACLE_0EUR.md](docs/DEPLOYMENT_ORACLE_0EUR.md) — the earlier Oracle Cloud free-tier deployment this repo also supports
+- [documentation/deployment/previews.md](documentation/deployment/previews.md) — how PR preview deployments work
 
 ## License
 
 Released under the **MIT License** — see [LICENSE](./LICENSE).
+
+The commissioned artwork in `application/client/public/wolfi-*` is **not** covered by the MIT License. It is copyright of its artist and is used here with permission; copying, modifying or redistributing it needs the artist's own consent. See the notice at the end of [LICENSE](./LICENSE).
