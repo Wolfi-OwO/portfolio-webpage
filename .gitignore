@@ -33,4 +33,4 @@ dist-ssr
 
 application/client/dist
 application/server/coverage
-application/jobs/dist
+application/jobs/dist.playwright-mcp/
