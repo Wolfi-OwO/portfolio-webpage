@@ -19,3 +19,14 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+Exclusion from the licence above
+
+The MIT License above covers the source code of this repository only. It does
+not cover the commissioned artwork in `application/client/public/wolfi-*` and `application/client/public/assets/sona/` (and the copies in `mockups/_shared/assets/sona/` and `ui-prototypes/`). That
+artwork is copyright of its artist, is used with permission, and is excluded from
+the MIT grant: no right to copy, modify or redistribute it is given by this
+licence. Contact the artist (or ask the repository owner for the credit) before
+reusing it.
