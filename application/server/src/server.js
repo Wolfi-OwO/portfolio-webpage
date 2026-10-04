@@ -197,6 +197,7 @@ const KNOWN_CLIENT_ROUTES = new Set([
     '/impressum',
     '/admin/login',
     '/secret',
+    '/personal',
 ]);
 
 // SPA fallback (support direct navigation to client routes like /projects).
