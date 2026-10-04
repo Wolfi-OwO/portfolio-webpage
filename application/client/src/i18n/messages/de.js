@@ -1,10 +1,13 @@
 // German message catalog. English lives as the `defaultMessage` on each
 // <FormattedMessage> / formatMessage() call, so it never needs duplicating here.
 export default {
+    'nav.main': 'Hauptnavigation',
     'nav.projects': 'Projekte',
     'nav.admin': 'Admin',
     'nav.logout': 'Abmelden',
+    'nav.career': 'Werdegang',
     'nav.services': 'Leistungen',
+    'nav.personal': 'Persönlich',
     'nav.secret': 'Ein neues Geheimnis?!',
 
     'theme.label': 'Design',
@@ -64,6 +67,7 @@ export default {
     'status.stale.note':
         'Zeigt die zuletzt bekannten Daten — die Live-Quelle hat sich seit {since} nicht mehr gemeldet.',
 
+    'footer.nav': 'Rechtliches und Kontakt',
     'footer.status': 'Status',
     'footer.privacyPolicy': 'Datenschutz',
     'footer.imprint': 'Impressum',
@@ -99,6 +103,9 @@ export default {
     'availability.kind.unavailable': 'Nicht verfügbar',
 
     'career.heading': 'Werdegang & Ausbildung',
+    'career.meta.title': 'Werdegang',
+    'career.meta.description':
+        'Berufserfahrung und Ausbildung von Wolfi, freiberuflicher Full-Stack-Entwickler aus Villach, Österreich.',
     'career.error': 'Werdegang konnte gerade nicht geladen werden.',
     'career.loading': 'lädt…',
     'career.empty': 'Noch nichts veröffentlicht.',
@@ -167,22 +174,22 @@ export default {
 
     'privacy.controller.title': 'Wer verantwortlich ist',
     'privacy.controller.text':
-        'Ich bin der Verantwortliche für die Datenverarbeitung auf dieser Website:\n\nPhillip Kofler\nSoftwareingenieur | Fullstack Developer\nVillach, Kärnten, Österreich',
+        'Ich bin der Verantwortliche für die Datenverarbeitung auf dieser Website:\n\nPhillip Kofler\nSoftwareentwickler | Fullstack Developer\nVillach, Kärnten, Österreich',
     'privacy.controller.contact': 'Du erreichst mich unter ',
     'privacy.controller.contactEnd':
         ' — zu allem, was in diesem Dokument steht, und natürlich auch, wenn du deine Rechte geltend machen möchtest.',
 
     'privacy.principle.title': 'Die kurze Fassung',
     'privacy.principle.text':
-        'Ich erhebe keine personenbezogenen Daten über dich, die über das hinausgehen, was ein Webserver zwangsläufig sieht, wenn er deine Anfrage beantwortet. Ich setze keine Cookies. Ich verwende keine Analyse-Tools, keinen Tag Manager, kein Werbenetzwerk und keine Social-Plugins, die nach Hause funken. Ich baue keine Profile, ich verkaufe nichts an niemanden, und es interessiert mich ehrlich gesagt nicht, wer du bist — mir wäre lieber, du siehst dir einfach die Projekte an.',
+        'Ich erhebe keine personenbezogenen Daten über dich, die über das hinausgehen, was ein Webserver zwangsläufig sieht, wenn er deine Anfrage beantwortet, und das, was du mir selbst über das Kontaktformular schickst. Ich setze keine Cookies. Ich verwende keine Analyse-Tools, keinen Tag Manager, kein Werbenetzwerk und keine Social-Plugins, die nach Hause funken. Ich baue keine Profile, ich verkaufe nichts an niemanden, und es interessiert mich ehrlich gesagt nicht, wer du bist — mir wäre lieber, du siehst dir einfach die Projekte an.',
 
     'privacy.logs.title': 'Server-Logfiles',
     'privacy.logs.text':
-        'Wenn du eine Seite öffnest, erreicht deine Anfrage meinen Webserver (Caddy). Er schreibt pro Anfrage eine Logzeile mit Zeitpunkt, angefragtem Hostnamen, HTTP-Methode und -Protokoll, Antwortstatus, Größe und Dauer der Antwort sowie technischen TLS-Verbindungsdetails. Bevor eine Zeile geschrieben wird, werden deine IP-Adresse, der aufgerufene Pfad samt Query-String und alle Request- und Response-Header (auch Referrer und User-Agent) entfernt. Deine IP-Adresse speichere ich im Server-Log daher nicht.\n\nDas Log brauche ich, damit die Seite funktioniert: um Seiten auszuliefern und Fehler zu finden. Rechtsgrundlage ist mein berechtigtes Interesse am sicheren und störungsfreien Betrieb dieser Website (Art. 6 Abs. 1 lit. f DSGVO). Die Logzeilen werden mit nichts anderem zusammengeführt, nie zur Identifikation deiner Person verwendet und nur kurz in einem größenbegrenzten, rotierenden Log aufbewahrt, bevor sie überschrieben werden.\n\nUm Missbrauch wie Brute-Force-Versuche gegen den Admin-Login zu bremsen, zählt die Anwendung Anfragen pro Verbindungsadresse ausschließlich im Arbeitsspeicher. Diese Zähler werden weder auf Festplatte noch in der Datenbank gespeichert und verschwinden bei einem Neustart der Anwendung.',
+        'Wenn du eine Seite öffnest, erreicht deine Anfrage meinen Webserver (Caddy). Er schreibt pro Anfrage eine Logzeile mit Zeitpunkt, angefragtem Hostnamen, HTTP-Methode und -Protokoll, Antwortstatus, Größe und Dauer der Antwort sowie technischen TLS-Verbindungsdetails. Bevor eine Zeile geschrieben wird, werden deine IP-Adresse, der aufgerufene Pfad samt Query-String und alle Request- und Response-Header (auch Referrer und User-Agent) entfernt. Deine IP-Adresse speichere ich im Server-Log daher nicht.\n\nDas Log brauche ich, damit die Seite funktioniert: um Seiten auszuliefern und Fehler zu finden. Rechtsgrundlage ist mein berechtigtes Interesse am sicheren und störungsfreien Betrieb dieser Website (Art. 6 Abs. 1 lit. f DSGVO). Die Logzeilen werden mit nichts anderem zusammengeführt, nie zur Identifikation deiner Person verwendet und nur kurz in einem größenbegrenzten, rotierenden Log aufbewahrt, bevor sie überschrieben werden.\n\nUm Missbrauch wie Brute-Force-Versuche gegen den Admin-Login und automatisierte Absendungen über das Kontaktformular zu bremsen, zählt die Anwendung Anfragen pro Verbindungsadresse ausschließlich im Arbeitsspeicher. Diese Zähler werden weder auf Festplatte noch in der Datenbank gespeichert und verschwinden bei einem Neustart der Anwendung.',
 
     'privacy.hosting.title': 'Hosting und Infrastruktur',
     'privacy.hosting.text':
-        'Die Seite läuft als Container auf einem virtuellen Server (VPS) von Contabo, auf dem der Webserver Caddy die verschlüsselte Verbindung entgegennimmt. Das ist der einzige Host, der beim Besuch deine Verbindung sieht. Die Inhalte (Projekte, Technologien, Status-Messwerte) liegen in einer MongoDB-Atlas-Datenbank, und meine planmäßigen Statusprüfungen laufen als Microsoft-Azure-Function. Atlas und Azure tauschen Daten nur mit meinem eigenen Server bzw. Prüfdienst aus, nicht mit deinem Browser. Contabo, MongoDB und Microsoft verarbeiten Daten ausschließlich nach meinen Weisungen als Auftragsverarbeiter gemäß Art. 28 DSGVO.\n\nIch habe sie wegen ihrer Zuverlässigkeit gewählt, nicht wegen irgendwelcher Daten. In der Datenbank liegen keine Besucherdaten — dort steht nur, was ich selbst über meine Arbeit hineingeschrieben habe, sowie die Ergebnisse meiner eigenen Statusprüfungen.\n\nDie Statusseite greift außerdem auf Metrion zurück, eine zweite Anwendung von mir. Die Werte kommen vom Ingest-Dienst und der selbst gehosteten PostgreSQL/TimescaleDB-Datenbank von Metrion, beide auf demselben Contabo-VPS; dort werden Verfügbarkeitsmessungen (Monitorname, erreichbar/nicht erreichbar, Antwortzeit) ohne feste Löschfrist aufbewahrt. Das Metrion-Dashboard läuft auf Microsoft Azure Container Apps, ist an der Statusabfrage aber nicht beteiligt. Metrion ist mein eigener Dienst und kein Dritter — der einzige Datenverkehr, den es von dieser Seite bekommt, ist die weiter unten beschriebene Server-zu-Server-Statusabfrage, also verarbeitet auch Metrion keine Besucherdaten.',
+        'Die Seite läuft als Container auf einem virtuellen Server (VPS) von Contabo, auf dem der Webserver Caddy die verschlüsselte Verbindung entgegennimmt. Das ist der einzige Host, der beim Besuch deine Verbindung sieht. Die Inhalte (Projekte, Technologien, Status-Messwerte) liegen in einer MongoDB-Atlas-Datenbank, und meine planmäßigen Statusprüfungen laufen als Microsoft-Azure-Function. Atlas und Azure tauschen Daten nur mit meinem eigenen Server bzw. Prüfdienst aus, nicht mit deinem Browser. Contabo, MongoDB und Microsoft verarbeiten Daten ausschließlich nach meinen Weisungen als Auftragsverarbeiter gemäß Art. 28 DSGVO.\n\nIch habe sie wegen ihrer Zuverlässigkeit gewählt, nicht wegen irgendwelcher Daten. In der Datenbank liegen neben meinen eigenen Inhalten und Statusprüfungen nur die Nachrichten, die über das Kontaktformular eingehen (siehe „Kontakt mit mir“). MongoDB ist ein US-Unternehmen; soweit von außerhalb der EU auf Daten zugegriffen wird, stützt sich die Übermittlung auf die Standardvertragsklauseln in der Auftragsverarbeitungsvereinbarung von MongoDB (Art. 46 Abs. 2 lit. c DSGVO).\n\nDie Statusseite greift außerdem auf Metrion zurück, eine zweite Anwendung von mir. Die Werte kommen vom Ingest-Dienst und der selbst gehosteten PostgreSQL/TimescaleDB-Datenbank von Metrion, beide auf demselben Contabo-VPS; dort werden Verfügbarkeitsmessungen (Monitorname, erreichbar/nicht erreichbar, Antwortzeit) ohne feste Löschfrist aufbewahrt. Das Metrion-Dashboard läuft auf Microsoft Azure Container Apps, ist an der Statusabfrage aber nicht beteiligt. Metrion ist mein eigener Dienst und kein Dritter — der einzige Datenverkehr, den es von dieser Seite bekommt, ist die weiter unten beschriebene Server-zu-Server-Statusabfrage, also verarbeitet auch Metrion keine Besucherdaten.',
 
     'privacy.fonts.title': 'Schriftarten',
     'privacy.fonts.text':
@@ -194,7 +201,7 @@ export default {
 
     'privacy.contact.title': 'Kontakt mit mir',
     'privacy.contact.text':
-        'Es gibt auf dieser Seite bewusst kein Kontaktformular — ein Formular würde bedeuten, dass ich deine Daten über meinen Server einsammle. Stattdessen verlinke ich meine E-Mail-Adresse und mein LinkedIn-Profil. Wenn du mir schreibst, verarbeite ich das, was du mir schickst (deine Adresse, deinen Namen, wenn du ihn nennst, und den Inhalt deiner Nachricht), ausschließlich, um dir zu antworten — auf Grundlage von Art. 6 Abs. 1 lit. b bzw. lit. f DSGVO. Ich behalte solche Korrespondenz nur so lange, wie es die Sache erfordert, und lösche sie, sobald sie erledigt ist.',
+        'Wenn du das Kontaktformular benutzt, schickst du mir deinen Namen, deine E-Mail-Adresse, einen Betreff und deine Nachricht. Ich verwende sie ausschließlich, um deine Anfrage zu lesen und zu beantworten. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO, wenn du nach einem möglichen Projekt oder Auftrag fragst, und sonst mein berechtigtes Interesse, Fragen zu meiner Arbeit zu beantworten (Art. 6 Abs. 1 lit. f DSGVO). Ohne diese Angaben kann ich dir nicht antworten, deshalb lässt sich das Formular ohne sie nicht absenden.\n\nDeine Nachricht wird in meiner MongoDB-Datenbank gespeichert (siehe „Hosting und Infrastruktur“) und ist nur für mich nach dem Login sichtbar. Ich gebe sie nicht weiter, und es ist kein E-Mail-, Chat- oder sonstiger Benachrichtigungsdienst beteiligt. Ich lösche sie, sobald deine Sache erledigt ist, und automatisch spätestens nach 90 Tagen. Führt deine Anfrage zu einem Auftrag, bewahre ich den Schriftverkehr auf, den ich nach Handels- und Steuerrecht aufbewahren muss (Art. 6 Abs. 1 lit. c DSGVO), in der Regel sieben Jahre.\n\nDeine IP-Adresse und deine Browserangaben speichere ich nicht mit deiner Nachricht. Um automatisierten Missbrauch zu bremsen, zählt der Server Absendungen pro Verbindungsadresse ausschließlich im Arbeitsspeicher und nur für ein kurzes Zeitfenster; das wird weder auf Festplatte noch in der Datenbank noch in einem Log gespeichert und verschwindet beim Neustart der Anwendung (berechtigtes Interesse an Sicherheit, Art. 6 Abs. 1 lit. f DSGVO). Das Formular setzt keine Cookies und lädt nichts von Dritten.\n\nBitte schick keine Gesundheitsdaten oder andere besonders sensible Angaben. Falls du es doch tust, verwende ich sie nur, um dir zu antworten, und lösche sie zeitnah. Du kannst jederzeit eine Kopie deiner Nachricht oder ihre Löschung verlangen, siehe „Deine Rechte“; schreib bitte von der E-Mail-Adresse, die du im Formular angegeben hast, damit ich sie finde. Du kannst mir auch einfach per E-Mail schreiben:',
 
     'privacy.status.title': 'Die Statusseite',
     'privacy.status.text':
@@ -206,7 +213,7 @@ export default {
 
     'privacy.career.title': 'Werdegang und Ausbildung',
     'privacy.career.text':
-        'Die Karriere-Zeitleiste auf der Startseite zeigt meinen eigenen beruflichen und schulischen Werdegang — die Organisationen, bei denen ich gearbeitet oder studiert habe, und die entsprechenden Zeiträume. Das sind personenbezogene Daten über mich, den Betreiber dieser Seite, die ich selbst als beruflichen Nachweis veröffentliche; nichts davon betrifft dich oder andere Besucher:innen. Die dort genannten Organisationsnamen (etwa Infineon Technologies, HTL Villach oder das BG/BRG Peraugymnasium) sind keine personenbezogenen Daten im Sinne der DSGVO, die natürliche Personen schützt, nicht Unternehmen oder Schulen — und es wird auch keine einzelne Person dort namentlich genannt. Meine Rechtsgrundlage für die Veröffentlichung meines eigenen Werdegangs ist mein berechtigtes Interesse als jemand, der Softwareentwicklungs-Dienstleistungen anbietet, meine Qualifikationen und Erfahrung zu zeigen (Art. 6 Abs. 1 lit. f DSGVO).',
+        'Die Karriere-Zeitleiste auf der Werdegang-Seite zeigt meinen eigenen beruflichen und schulischen Werdegang — die Organisationen, bei denen ich gearbeitet oder studiert habe, und die entsprechenden Zeiträume. Das sind personenbezogene Daten über mich, den Betreiber dieser Seite, die ich selbst als beruflichen Nachweis veröffentliche; nichts davon betrifft dich oder andere Besucher:innen. Die dort genannten Organisationsnamen (etwa Infineon Technologies, HTL Villach oder das BG/BRG Peraugymnasium) sind keine personenbezogenen Daten im Sinne der DSGVO, die natürliche Personen schützt, nicht Unternehmen oder Schulen — und es wird auch keine einzelne Person dort namentlich genannt. Meine Rechtsgrundlage für die Veröffentlichung meines eigenen Werdegangs ist mein berechtigtes Interesse als jemand, der Softwareentwicklungs-Dienstleistungen anbietet, meine Qualifikationen und Erfahrung zu zeigen (Art. 6 Abs. 1 lit. f DSGVO).',
 
     'privacy.sharing.title': 'Weitergabe an Dritte',
     'privacy.sharing.text':
@@ -229,7 +236,7 @@ export default {
 
     'privacy.imprint.title': 'Impressum',
     'privacy.imprint.text':
-        'Angaben gemäß §5 ECG und §25 MedienG:\n\nPhillip Kofler\nSoftwareingenieur | Fullstack Developer\nVillach, Kärnten, Österreich\n\nTätigkeitsbereich: Softwareentwicklung, Webentwicklung und digitale Lösungen — moderne Webanwendungen, REST-APIs, Dashboards und cloudbasierte Systeme.\n\nVerantwortlich für den Inhalt dieser Seite: Phillip Kofler. Die Inhalte erstelle ich sorgfältig, eine Gewähr für Richtigkeit, Vollständigkeit oder Aktualität übernehme ich jedoch nicht. Auf die Inhalte verlinkter externer Seiten habe ich keinen Einfluss und übernehme dafür keine Haftung. Alle Inhalte dieser Seite unterliegen dem Urheberrecht; eine Nutzung außerhalb der gesetzlichen Grenzen bedarf vorab meiner Zustimmung.',
+        'Angaben gemäß §5 ECG und §25 MedienG:\n\nPhillip Kofler\nSoftwareentwickler | Fullstack Developer\nVillach, Kärnten, Österreich\n\nTätigkeitsbereich: Softwareentwicklung, Webentwicklung und digitale Lösungen — moderne Webanwendungen, REST-APIs, Dashboards und cloudbasierte Systeme.\n\nVerantwortlich für den Inhalt dieser Seite: Phillip Kofler. Die Inhalte erstelle ich sorgfältig, eine Gewähr für Richtigkeit, Vollständigkeit oder Aktualität übernehme ich jedoch nicht. Auf die Inhalte verlinkter externer Seiten habe ich keinen Einfluss und übernehme dafür keine Haftung. Alle Inhalte dieser Seite unterliegen dem Urheberrecht; eine Nutzung außerhalb der gesetzlichen Grenzen bedarf vorab meiner Zustimmung.',
 
     'secret.meta.title': 'Für Helmi (aka. die Liebe meines Lebens)',
     'secret.meta.description': 'Etwas Kleines, das niemand zufällig finden sollte.',

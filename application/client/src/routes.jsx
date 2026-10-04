@@ -2,12 +2,14 @@ import { createBrowserRouter } from 'react-router-dom';
 import DefaultLayout from './layouts/default-layout/default-layout.jsx';
 import Homepage from './pages/homepage/homepage.jsx';
 import ProjectsPage from './pages/projects-page/projects-page.jsx';
+import CareerPage from './pages/career-page/career-page.jsx';
 import ContactPage from './pages/contact-page/contact-page.jsx';
 import ServicesPage from './pages/services-page/services-page.jsx';
 import PrivacyPolicyPage from './pages/privacy-policy-page/privacy-policy-page.jsx';
 import ImprintPage from './pages/imprint-page/imprint-page.jsx';
 import AdminLoginPage from './pages/admin-login-page/admin-login-page.jsx';
 import SecretPage from './pages/secret-page/secret-page.jsx';
+import PersonalPage from './pages/personal-page/personal-page.jsx';
 import ErrorPage from './pages/error-page/error-page.jsx';
 
 const router = createBrowserRouter([
@@ -25,8 +27,16 @@ const router = createBrowserRouter([
                 element: <ProjectsPage />,
             },
             {
+                path: '/career',
+                element: <CareerPage />,
+            },
+            {
                 path: '/services',
                 element: <ServicesPage />,
+            },
+            {
+                path: '/personal',
+                element: <PersonalPage />,
             },
             {
                 path: '/contact',
