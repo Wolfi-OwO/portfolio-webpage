@@ -274,13 +274,19 @@ export default function Homepage() {
                         <h2 className="sec-label">
                             <span className="sec-n">04</span>Technologies I use
                         </h2>
-                        <div className="techs">
-                            {technologies_list.map(({ name, icon: Icon, color }) => (
-                                <div className="tech" key={name}>
-                                    <Icon className="tico" style={{ color }} />
-                                    {name}
-                                </div>
-                            ))}
+                        <div className="marquee" aria-label="Technologies I use">
+                            <div className="marquee-track">
+                                {[0, 1].map((copy) => (
+                                    <ul key={copy} className="marquee-set" aria-hidden={copy === 1}>
+                                        {technologies_list.map(({ name, icon: Icon, color }) => (
+                                            <li className="tech" key={name}>
+                                                <Icon className="tico" style={{ color }} />
+                                                {name}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ))}
+                            </div>
                         </div>
                     </section>
 
