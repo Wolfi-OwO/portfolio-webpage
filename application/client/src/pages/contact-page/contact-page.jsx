@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { FormattedMessage } from 'react-intl';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
-import { IDENTITY, SOCIALS } from '../../utils/identity.js';
+import { SOCIALS } from '../../utils/identity.js';
 import AvailabilityTimeline from '../../components/availability-timeline.jsx';
 
 const notes = {

@@ -21,8 +21,11 @@ const ALLOWED_FIELDS = new Set([
 ]);
 
 // Control characters other than TAB, LF and CR. Free-text messages may contain line breaks.
+// Matching control characters is the whole point of these two patterns.
+// eslint-disable-next-line no-control-regex
 const CONTROL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/;
 // name, email and subject can end up in a mail header one day: no CR/LF there either.
+// eslint-disable-next-line no-control-regex
 const HEADER_UNSAFE = /[\u0000-\u0008\u000A-\u001F\u007F]/;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
