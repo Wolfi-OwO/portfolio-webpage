@@ -28,7 +28,14 @@ import {
     SiGit,
 } from 'react-icons/si';
 
-import { FaDatabase, FaMicrosoft } from 'react-icons/fa';
+import { FaDatabase } from 'react-icons/fa';
+
+// react-icons ships no Azure mark (the brand set dropped it), so the logo is drawn here.
+const SiAzure = (props) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+        <path d="M13.05 2 6.6 7.9 1 21.7h5.1zm.9 1.6L11 11.3l5.7 7.1-10.6 1.6H23z" />
+    </svg>
+);
 
 const technologies = [
     {
@@ -97,7 +104,7 @@ const technologies = [
     },
     {
         name: 'Azure',
-        icon: FaMicrosoft,
+        icon: SiAzure,
         color: '#0078D4',
     },
     {
