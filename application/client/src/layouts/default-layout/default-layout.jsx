@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 import {
     ArrowRightOnRectangleIcon,
+    Bars3Icon,
     CodeBracketIcon,
     ComputerDesktopIcon,
     HeartIcon,
@@ -10,11 +11,13 @@ import {
     LockClosedIcon,
     MoonIcon,
     SunIcon,
+    XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { isAdmin, logout } from '../../utils/auth.js';
 import { useLocale, SUPPORTED_LOCALES } from '../../i18n/LocaleContext.jsx';
 import { useSecretCombo } from '../../hooks/useSecretCombo.js';
 import useSavedLook from '../../hooks/useSavedLook.js';
+import '../../responsive.css';
 
 const themeOptions = [
     { id: 'light', labelId: 'theme.light', defaultLabel: 'Light', Icon: SunIcon },
@@ -50,7 +53,7 @@ const MENU =
 // 57px bar) and a colour-only hover. Opacity hovers are out: muted text is 5.95:1
 // settled and falls under 4.5:1 at opacity .8.
 const FOOTER_LINK =
-    'inline-flex min-h-11 w-full items-center gap-2 whitespace-nowrap rounded-lg transition-colors duration-200 hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] lg:w-auto';
+    'inline-flex min-h-10 items-center gap-2 whitespace-nowrap rounded-lg text-xs sm:text-sm lg:text-xs transition-colors duration-200 hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] lg:min-h-0';
 
 // Shown when /api/info can't be reached — mirrors the server's own defaults.
 const FALLBACK_BUILD_INFO = {
@@ -67,6 +70,8 @@ export default function DefaultLayout() {
         return localStorage.getItem('theme') || 'system';
     });
     useSavedLook();
+    // The phone menu remembers the path it was opened on, so navigating anywhere closes it without an effect.
+    const [menuPath, setMenuPath] = useState(null);
     const [openDropdown, setOpenDropdown] = useState(null); // 'theme' | 'language' | null
     const [buildInfo, setBuildInfo] = useState(null);
     const [loggedIn, setLoggedIn] = useState(() => isAdmin());
@@ -75,6 +80,14 @@ export default function DefaultLayout() {
     const languageDropdownRef = useRef(null);
     const scrollRef = useRef(null);
     const location = useLocation();
+    const menuOpen = menuPath === location.pathname;
+    const setMenuOpen = (open) => setMenuPath(open ? location.pathname : null);
+
+    useEffect(() => {
+        const onKey = (e) => e.key === 'Escape' && setMenuPath(null);
+        document.addEventListener('keydown', onKey);
+        return () => document.removeEventListener('keydown', onKey);
+    }, []);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -231,7 +244,7 @@ export default function DefaultLayout() {
                         the 8px side padding of each link is hit area, not visible
                         inset. flex-wrap lets the secret entry drop to a third line
                         instead of pushing the row wider than 288px at 320. */}
-                    <div className="order-last col-span-2 -mx-2 flex flex-wrap items-center md:order-none md:col-span-1 md:mx-0 md:px-2">
+                    <div className="hidden flex-wrap items-center md:flex md:px-2">
                         <NavLink to="/projects" className={navLinkClasses}>
                             <FormattedMessage id="nav.projects" defaultMessage="Projects" />
                         </NavLink>
@@ -271,7 +284,7 @@ export default function DefaultLayout() {
                         outside-click and Escape handler closes it. There is no
                         'menu' value because the three links are always visible
                         (see above): 3 destinations do not need a hamburger. */}
-                    <div className="-mr-2 flex items-center gap-1">
+                    <div className="-mr-2 hidden items-center gap-1 md:flex">
                         <div className="relative" ref={languageDropdownRef}>
                             <button
                                 type="button"
@@ -389,8 +402,147 @@ export default function DefaultLayout() {
                             </NavLink>
                         )}
                     </div>
+                    <button
+                        type="button"
+                        aria-label={intl.formatMessage({ id: 'nav.menu', defaultMessage: 'Menu' })}
+                        aria-expanded={menuOpen}
+                        aria-controls="mobile-menu"
+                        onClick={() => setMenuOpen(true)}
+                        className={`${CONTROL} -mr-2 md:hidden`}
+                    >
+                        <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+                    </button>
                 </nav>
             </header>
+
+            {/* Phone menu: slides in from the right. Below md the header only keeps the wordmark and this button. */}
+            <div
+                className={`fixed inset-0 z-50 md:hidden ${menuOpen ? '' : 'pointer-events-none'}`}
+                aria-hidden={!menuOpen}
+            >
+                <div
+                    onClick={() => setMenuOpen(false)}
+                    className={`absolute inset-0 bg-black/55 transition-opacity duration-300 ${menuOpen ? 'opacity-100' : 'opacity-0'}`}
+                />
+                <aside
+                    id="mobile-menu"
+                    className={`absolute right-0 top-0 flex h-dvh w-[min(20rem,86vw)] flex-col gap-6 overflow-y-auto border-l border-[var(--line)] bg-[var(--bg)] p-5 pt-[max(1.25rem,env(safe-area-inset-top))] transition-transform duration-300 ease-out ${menuOpen ? 'translate-x-0' : 'translate-x-full'}`}
+                >
+                    <div className="flex items-center justify-between">
+                        <span className="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">
+                            Menu
+                        </span>
+                        <button
+                            type="button"
+                            aria-label={intl.formatMessage({
+                                id: 'nav.menuClose',
+                                defaultMessage: 'Close menu',
+                            })}
+                            onClick={() => setMenuOpen(false)}
+                            className={CONTROL}
+                        >
+                            <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                        </button>
+                    </div>
+                    <nav
+                        className="flex flex-col"
+                        aria-label={intl.formatMessage({
+                            id: 'nav.main',
+                            defaultMessage: 'Main navigation',
+                        })}
+                    >
+                        {[
+                            ['/projects', 'nav.projects', 'Projects'],
+                            ['/career', 'nav.career', 'Career'],
+                            ['/services', 'nav.services', 'Services'],
+                            ['/personal', 'nav.personal', 'Personal'],
+                            ['/contact', 'footer.contact', 'Contact'],
+                        ].map(([to, id, label]) => (
+                            <NavLink
+                                key={to}
+                                to={to}
+                                className={({ isActive }) =>
+                                    `flex min-h-12 items-center border-b border-[var(--line)] text-lg font-bold ${isActive ? 'text-[var(--accent)]' : 'text-[var(--text)]'}`
+                                }
+                            >
+                                <FormattedMessage id={id} defaultMessage={label} />
+                            </NavLink>
+                        ))}
+                        {secretFound && (
+                            <NavLink
+                                to="/secret"
+                                className="flex min-h-12 items-center gap-2 border-b border-[var(--line)] text-lg font-bold text-[var(--text)]"
+                            >
+                                <HeartIcon className="h-5 w-5 text-[#e5675b]" aria-hidden="true" />
+                                <FormattedMessage
+                                    id="nav.secret"
+                                    defaultMessage="Another new Secret?!"
+                                />
+                            </NavLink>
+                        )}
+                    </nav>
+                    <div className="flex flex-col gap-4">
+                        <div>
+                            <p className="mb-2 font-mono text-2xs uppercase tracking-[0.18em] text-[var(--muted)]">
+                                <FormattedMessage id="language.label" defaultMessage="Language" />
+                            </p>
+                            <div className="flex gap-2">
+                                {SUPPORTED_LOCALES.map((code) => (
+                                    <button
+                                        key={code}
+                                        type="button"
+                                        onClick={() => setLocale(code)}
+                                        aria-pressed={locale === code}
+                                        className={`min-h-11 flex-1 rounded-lg border text-sm font-semibold ${locale === code ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-[var(--line)] text-[var(--muted)]'}`}
+                                    >
+                                        {languageOptions[code]?.short ?? code.toUpperCase()}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <p className="mb-2 font-mono text-2xs uppercase tracking-[0.18em] text-[var(--muted)]">
+                                <FormattedMessage id="theme.label" defaultMessage="Theme" />
+                            </p>
+                            <div className="flex gap-2">
+                                {themeOptions.map(({ id, labelId, defaultLabel, Icon }) => (
+                                    <button
+                                        key={id}
+                                        type="button"
+                                        onClick={() => setTheme(id)}
+                                        aria-pressed={theme === id}
+                                        aria-label={intl.formatMessage({
+                                            id: labelId,
+                                            defaultMessage: defaultLabel,
+                                        })}
+                                        className={`flex min-h-11 flex-1 items-center justify-center rounded-lg border ${theme === id ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-[var(--line)] text-[var(--muted)]'}`}
+                                    >
+                                        <Icon className="h-5 w-5" aria-hidden="true" />
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        {loggedIn ? (
+                            <button
+                                type="button"
+                                onClick={handleLogout}
+                                className="flex min-h-11 items-center gap-2 rounded-lg border border-[var(--line)] px-3 text-sm font-semibold text-[var(--muted)]"
+                            >
+                                <ArrowRightOnRectangleIcon className="h-5 w-5" aria-hidden="true" />
+                                <FormattedMessage id="nav.logout" defaultMessage="Logout" />
+                            </button>
+                        ) : (
+                            <NavLink
+                                to="/admin/login"
+                                className="flex min-h-11 items-center gap-2 rounded-lg border border-[var(--line)] px-3 text-sm font-semibold text-[var(--muted)]"
+                            >
+                                <LockClosedIcon className="h-5 w-5" aria-hidden="true" />
+                                <FormattedMessage id="nav.admin" defaultMessage="Admin" />
+                            </NavLink>
+                        )}
+                    </div>
+                </aside>
+            </div>
 
             {/* Below lg this is a plain flex child and the window scrolls; from lg up
                 it is the only scroll container (lg). Top padding is now ordinary page
@@ -413,7 +565,7 @@ export default function DefaultLayout() {
                 <div className="mx-auto grid max-w-6xl grid-cols-2 items-center gap-x-4 pt-2 text-sm lg:h-14 lg:grid-cols-[1fr_auto_1fr] lg:gap-x-4 lg:pt-0 lg:text-xs">
                     {/* Same size as the pill (house rule). nowrap because the old
                         copyright stacked "(c)" over "2026" at <=402px. */}
-                    <p className="order-last col-span-2 flex flex-wrap items-center gap-x-2 justify-self-start py-3 text-xs text-[var(--muted)] sm:col-span-1 lg:order-none lg:col-span-1 lg:py-0">
+                    <p className="order-last col-span-2 flex flex-wrap items-center justify-center gap-x-2 justify-self-center py-2 text-center text-2xs text-[var(--muted)] sm:col-span-1 sm:justify-self-start sm:text-left sm:text-xs lg:order-none lg:col-span-1 lg:py-0">
                         <span className="whitespace-nowrap">
                             <span className="font-mono">© 2026</span> Woofi-Developments
                         </span>
@@ -434,7 +586,7 @@ export default function DefaultLayout() {
                             id: 'footer.nav',
                             defaultMessage: 'Legal and contact',
                         })}
-                        className="order-first col-span-2 grid grid-cols-2 gap-x-4 justify-self-stretch font-medium text-[var(--muted)] lg:order-none lg:col-span-1 lg:flex lg:items-center lg:gap-4 lg:justify-self-end"
+                        className="order-first col-span-2 flex flex-wrap items-center justify-center gap-x-5 justify-self-stretch font-medium text-[var(--muted)] lg:order-none lg:col-span-1 lg:flex lg:items-center lg:gap-4 lg:justify-self-end"
                     >
                         <li>
                             {/* Status lives on its own `status.` subdomain, not an in-app route.
