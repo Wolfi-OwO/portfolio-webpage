@@ -53,7 +53,7 @@ const MENU =
 // 57px bar) and a colour-only hover. Opacity hovers are out: muted text is 5.95:1
 // settled and falls under 4.5:1 at opacity .8.
 const FOOTER_LINK =
-    'inline-flex min-h-10 items-center gap-2 whitespace-nowrap rounded-lg text-xs sm:text-sm lg:text-xs transition-colors duration-200 hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] lg:min-h-0';
+    'inline-flex min-h-8 items-center gap-2 whitespace-nowrap rounded-lg text-xs sm:text-sm lg:text-xs transition-colors duration-200 hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] lg:min-h-0';
 
 // Shown when /api/info can't be reached — mirrors the server's own defaults.
 const FALLBACK_BUILD_INFO = {
@@ -225,7 +225,7 @@ export default function DefaultLayout() {
                         id: 'nav.main',
                         defaultMessage: 'Main navigation',
                     })}
-                    className="mx-auto grid max-w-6xl grid-cols-[1fr_auto] items-center gap-x-2 px-4 sm:px-6 md:grid-cols-[auto_1fr_auto] md:gap-x-4 lg:px-8"
+                    className="grid w-full grid-cols-[1fr_auto] items-center gap-x-2 px-4 sm:px-6 md:grid-cols-[auto_1fr_auto] md:gap-x-4 lg:px-8"
                 >
                     <div className="flex min-h-14 min-w-0 items-center">
                         <NavLink
@@ -565,10 +565,10 @@ export default function DefaultLayout() {
                 the auto middle cell. In flow, never fixed; bottom padding clears the
                 iOS home indicator. */}
             <footer className="relative z-20 shrink-0 border-t border-[var(--line)] bg-[var(--bg)] px-4 pb-[env(safe-area-inset-bottom)] sm:px-6 lg:px-8">
-                <div className="mx-auto grid max-w-6xl grid-cols-2 items-center gap-x-4 pt-2 text-sm lg:h-14 lg:grid-cols-[1fr_auto_1fr] lg:gap-x-4 lg:pt-0 lg:text-xs">
+                <div className="grid w-full grid-cols-2 items-center gap-x-4 text-sm lg:h-10 lg:grid-cols-[1fr_auto_1fr] lg:gap-x-4 lg:text-xs">
                     {/* Same size as the pill (house rule). nowrap because the old
                         copyright stacked "(c)" over "2026" at <=402px. */}
-                    <p className="order-last col-span-2 flex flex-wrap items-center justify-center gap-x-2 justify-self-center py-2 text-center text-2xs text-[var(--muted)] sm:col-span-1 sm:justify-self-start sm:text-left sm:text-xs lg:order-none lg:col-span-1 lg:py-0">
+                    <p className="order-last col-span-2 flex flex-wrap items-center justify-center gap-x-2 justify-self-center pb-1.5 pt-0.5 text-center text-2xs text-[var(--muted)] sm:col-span-1 sm:justify-self-start sm:text-left sm:text-xs lg:order-none lg:col-span-1 lg:py-0">
                         <span className="whitespace-nowrap">
                             <span className="font-mono">© 2026</span> Woofi-Developments
                         </span>
