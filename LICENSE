@@ -25,7 +25,7 @@ SOFTWARE.
 Exclusion from the licence above
 
 The MIT License above covers the source code of this repository only. It does
-not cover the commissioned artwork in `application/client/public/wolfi-*` and `application/client/public/assets/sona/` (and the copies in `mockups/_shared/assets/sona/` and `ui-prototypes/`). That
+not cover the commissioned artwork in `application/client/public/wolfi-*` and `application/client/public/assets/sona/` (and the copies in `mockups/_shared/assets/sona/` and `ui-prototypes/`). The organisation logos in `application/client/public/logos/` belong to their owners (Infineon Technologies, HTL Villach, BG/BRG Peraugymnasium) and are shown only to name those places. That
 artwork is copyright of its artist, is used with permission, and is excluded from
 the MIT grant: no right to copy, modify or redistribute it is given by this
 licence. Contact the artist (or ask the repository owner for the credit) before
