@@ -104,3 +104,20 @@ test('the head script paints the saved colours before any app code runs', async 
     expect(bg).toMatch(/^#0/);
     expect(canvas).not.toBe('');
 });
+
+test('career page scrolls all the way down with wheel and keyboard', async ({ page }) => {
+    await page.goto('/career', { waitUntil: 'networkidle' });
+    const reach = () =>
+        page.evaluate(() => {
+            const m = document.querySelector('main');
+            const el = m.scrollHeight > m.clientHeight + 4 ? m : document.scrollingElement;
+            return { top: el.scrollTop, max: el.scrollHeight - el.clientHeight };
+        });
+    await page.mouse.move(100, 300);
+    for (let i = 0; i < 60; i++) await page.mouse.wheel(0, 500);
+    await page.waitForTimeout(300);
+    const { top, max } = await reach();
+    expect(max).toBeGreaterThan(0);
+    expect(top).toBeGreaterThanOrEqual(max - 24);
+    await expect(page.getByText('BG/BRG Peraugymnasium')).toBeInViewport();
+});
