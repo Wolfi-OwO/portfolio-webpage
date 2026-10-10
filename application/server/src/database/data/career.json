@@ -73,12 +73,24 @@
   },
   {
     "title": "AHS-Unterstufe",
-    "organisation": "BG/BRG Peraugymnasium",
-    "location": "Spittal an der Drau, Kärnten, Österreich",
-    "startDate": "2015-09-01",
-    "endDate": "2019-07-31",
+    "organisation": "Peraugymnasium",
+    "location": "Villach, Kärnten, Österreich",
+    "startDate": "2017-09-01",
+    "endDate": "2021-07-31",
     "kind": "education",
     "track": "career",
-    "published": true
+    "published": true,
+    "description": "5.–8. Schulstufe (AHS-Unterstufe)."
+  },
+  {
+    "title": "Volksschule",
+    "organisation": "Volksschule Völkendorf",
+    "location": "Villach, Kärnten, Österreich",
+    "startDate": "2013-09-01",
+    "endDate": "2017-07-31",
+    "kind": "education",
+    "track": "career",
+    "published": true,
+    "description": "1.–4. Schulstufe."
   }
 ]
