@@ -1,20 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import '../proto.css';
 
-// Time runs downward, newest on top. Schools are tall bars from their first to their last day; jobs and internships
-// sit inside that span, at the dates they actually happened, each with the organisation's logo.
-// Phones get more height per month because their narrower cards wrap onto more lines.
-const SCALE = { wide: { px: 11, min: 100 }, narrow: { px: 16, min: 150 } };
-const useNarrow = () => {
-    const [narrow, setNarrow] = useState(() => window.matchMedia('(max-width: 640px)').matches);
-    useEffect(() => {
-        const mq = window.matchMedia('(max-width: 640px)');
-        const on = () => setNarrow(mq.matches);
-        mq.addEventListener('change', on);
-        return () => mq.removeEventListener('change', on);
-    }, []);
-    return narrow;
-};
+// Time runs left to right. Schools are long bars from their first to their last day; jobs and internships are bars of
+// their real length with a pin and card below, so overlaps with school are visible. YEAR_PX is generous on purpose:
+// a one-month internship still gets a readable slice.
+const YEAR_PX = 190;
+const CARD_W = 200;
+const PAD = 28;
 const LOGOS = [
     [/infineon/i, '/logos/infineon.png'],
     [/htl villach/i, '/logos/htl-villach.png'],
@@ -25,12 +17,12 @@ const months = (d) => {
     const x = new Date(d);
     return x.getFullYear() * 12 + x.getMonth();
 };
+const fmt = (d) => new Date(d).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
 const span = (a, z) => {
     const x = fmt(a);
     const y = z ? fmt(z) : 'now';
     return x === y ? x : `${x} — ${y}`;
 };
-const fmt = (d) => new Date(d).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
 const initials = (s = '') =>
     s
         .split(/\s+/)
@@ -42,83 +34,125 @@ const initials = (s = '') =>
 function Logo({ org }) {
     const src = logoFor(org);
     return (
-        <span className="cc-logo" title={org}>
+        <span className="ch-logo" title={org}>
             {src ? <img src={src} alt={org} loading="lazy" /> : <b>{initials(org)}</b>}
         </span>
     );
 }
 
-function Side({ list, side, y, px }) {
-    return (
-        <div className={`cc-lane cc-${side}`}>
-            {list.map((r) => {
-                const lineTop = y(r.z);
-                const lineH = Math.max((r.z - r.a) * px, 8);
-                return (
-                    <article
-                        key={r._id}
-                        role="listitem"
-                        className={`cc-entry ${r.kind === 'education' ? 'edu' : 'job'}`}
-                    >
-                        <i
-                            className="cc-line"
-                            style={{ top: lineTop, height: lineH }}
-                            aria-hidden="true"
-                        />
-                        <div className="cc-card" style={{ top: lineTop + lineH / 2 }}>
-                            <Logo org={r.organisation} />
-                            <div>
-                                <span className="mono cc-kind">
-                                    {r.kind === 'education'
-                                        ? 'Education'
-                                        : r.endDate
-                                          ? 'Work'
-                                          : 'Work · current'}
-                                </span>
-                                <b>{r.title}</b>
-                                <span className="org">{r.organisation}</span>
-                                <span className="mono muted when">
-                                    {span(r.startDate, r.endDate)}
-                                </span>
-                                {r.description && r.kind === 'education' && <p>{r.description}</p>}
-                            </div>
-                        </div>
-                    </article>
-                );
-            })}
-        </div>
-    );
-}
-
 export default function CareerChart({ entries }) {
-    const { px: PX_PER_MONTH } = SCALE[useNarrow() ? 'narrow' : 'wide'];
+    const scroller = useRef(null);
     const now = months(new Date());
     const rows = entries.map((e) => ({
         ...e,
         a: months(e.startDate),
         z: e.endDate ? months(e.endDate) + 1 : now + 1,
     }));
+    const first = rows.length ? Math.min(...rows.map((r) => r.a)) : 0;
+    const last = rows.length ? Math.max(...rows.map((r) => r.z)) : 0;
+
+    // Open scrolled to "now", where the recent jobs are.
+    useEffect(() => {
+        if (scroller.current) scroller.current.scrollLeft = scroller.current.scrollWidth;
+    }, [rows.length]);
+
     if (!rows.length) return null;
-    const top = Math.max(...rows.map((r) => r.z));
-    const bottom = Math.min(...rows.map((r) => r.a));
-    const height = (top - bottom) * PX_PER_MONTH + 24;
-    const y = (m) => (top - m) * PX_PER_MONTH + 12;
+    const px = YEAR_PX / 12;
+    const x = (m) => PAD + (m - first) * px;
+    const width = x(last) + PAD;
     const years = [];
-    for (let m = Math.ceil(bottom / 12) * 12; m <= top; m += 12) years.push(m);
+    for (let m = Math.ceil(first / 12) * 12; m <= last; m += 12) years.push(m);
+
     const edu = rows.filter((r) => r.kind === 'education');
-    const work = rows.filter((r) => r.kind !== 'education');
+    // Jobs: stagger the cards over levels so neighbouring cards never overlap.
+    const edges = [];
+    const work = rows
+        .filter((r) => r.kind !== 'education')
+        .sort((p, q) => p.a - q.a)
+        .map((r) => {
+            const mid = (x(r.a) + x(r.z)) / 2;
+            let level = edges.findIndex((right) => mid - CARD_W / 2 >= right + 8);
+            if (level === -1) level = edges.length;
+            edges[level] = mid + CARD_W / 2;
+            return { ...r, mid, level };
+        });
+    const levels = Math.max(1, edges.length);
 
     return (
-        <div className="cc" style={{ height }} role="list" aria-label="Career timeline">
-            <Side list={work} side="work" y={y} px={PX_PER_MONTH} />
-            <div className="cc-axis" aria-hidden="true">
-                {years.map((m) => (
-                    <span key={m} style={{ top: y(m) - 8 }}>
-                        {m / 12}
-                    </span>
-                ))}
+        <div className="ch" role="list" aria-label="Career timeline">
+            <div className="ch-scroll" ref={scroller} tabIndex={0}>
+                <div className="ch-inner" style={{ width }}>
+                    <div className="ch-years" aria-hidden="true">
+                        {years.map((m) => (
+                            <span key={m} style={{ left: x(m) }}>
+                                {m / 12}
+                            </span>
+                        ))}
+                    </div>
+                    {years.map((m) => (
+                        <i key={m} className="ch-grid" style={{ left: x(m) }} aria-hidden="true" />
+                    ))}
+
+                    <p className="ch-label mono">Education</p>
+                    <div className="ch-lane ch-edu">
+                        {edu.map((r) => (
+                            <article
+                                key={r._id}
+                                role="listitem"
+                                className="ch-bar"
+                                style={{ left: x(r.a), width: Math.max((r.z - r.a) * px, 56) }}
+                            >
+                                {/* One sticky wrapper so logo and text travel together and stay readable while the bar is scrolled. */}
+                                <div className="ch-bar-in">
+                                    <Logo org={r.organisation} />
+                                    <div>
+                                        <b>{r.title}</b>
+                                        <span className="org">{r.organisation}</span>
+                                        <span className="mono when">
+                                            {span(r.startDate, r.endDate)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+
+                    <p className="ch-label mono">Work</p>
+                    <div className="ch-lane ch-work" style={{ height: 34 + levels * 112 }}>
+                        {work.map((r) => (
+                            <article key={r._id} role="listitem" className="ch-job">
+                                <i
+                                    className="ch-span"
+                                    style={{ left: x(r.a), width: Math.max((r.z - r.a) * px, 10) }}
+                                />
+                                <i
+                                    className="ch-stem"
+                                    style={{ left: r.mid, height: 14 + r.level * 112 }}
+                                />
+                                <div
+                                    className="ch-card"
+                                    style={{
+                                        left: r.mid - CARD_W / 2,
+                                        width: CARD_W,
+                                        top: 26 + r.level * 112,
+                                    }}
+                                >
+                                    <Logo org={r.organisation} />
+                                    <div>
+                                        <span className="mono ch-kind">
+                                            {r.endDate ? 'Work' : 'Work · current'}
+                                        </span>
+                                        <b>{r.title}</b>
+                                        <span className="mono when">
+                                            {span(r.startDate, r.endDate)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                </div>
             </div>
-            <Side list={edu} side="edu" y={y} px={PX_PER_MONTH} />
         </div>
     );
 }
