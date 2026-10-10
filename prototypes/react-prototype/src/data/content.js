@@ -14,13 +14,24 @@ export const C = {
     { t: 'LearnSphere', d: 'A learning-platform prototype for practising school subjects and skills, featuring a personalized landing page, course catalog, progress tracking and interactive materials.', tech: ['React','Vite','Bootstrap'] },
     { t: 'Home Statistics Board', d: "A full-stack dashboard that connects to Daikin's Onecta API to collect and visualize home climate and energy statistics from heat-pump and AC units.", tech: ['React','Vite','Express'] },
   ],
+  // Same stations as the live data (application/server/.../career.json); endDate is exclusive when it falls on the 1st.
+  careerChart: [
+    { _id: 'k', kind: 'work', title: 'Soldat', organisation: 'Österreichisches Bundesheer', startDate: '2026-10-01' },
+    { _id: 'w4', kind: 'work', title: 'Softwareingenieur:in', organisation: 'Infineon Technologies', startDate: '2026-07-01', endDate: '2026-10-01' },
+    { _id: 'w3', kind: 'work', title: 'Softwareingenieur:in', organisation: 'Infineon Technologies', startDate: '2025-07-01', endDate: '2025-08-31' },
+    { _id: 'w2', kind: 'work', title: 'Softwareingenieur:in', organisation: 'Infineon Technologies', startDate: '2024-07-01', endDate: '2024-07-31' },
+    { _id: 'w1', kind: 'work', title: 'Technischer IT-Support', organisation: 'Infineon Technologies', startDate: '2023-08-01', endDate: '2023-08-31' },
+    { _id: 'e3', kind: 'education', title: 'Reife- und Diplomprüfung — Computer/Information Technology Administration and Management', organisation: 'HTL Villach', startDate: '2021-09-01', endDate: '2026-06-30' },
+    { _id: 'e2', kind: 'education', title: 'AHS-Unterstufe', organisation: 'Peraugymnasium', startDate: '2017-09-01', endDate: '2021-07-31' },
+    { _id: 'e1', kind: 'education', title: 'Volksschule', organisation: 'Volksschule Völkendorf', startDate: '2013-09-01', endDate: '2017-07-31' },
+  ],
   career: [
     { t: 'Software Engineer (internship)', o: 'Infineon Technologies', loc: 'Villach, Carinthia', from: 'Jul 2026', to: 'Sep 2026', k: 'work', d: 'Internship building the Experiments Management System dashboard for semiconductor manufacturing, on site in Villach.', tags: ['Angular','ASP.NET','PHP','JavaScript'] },
     { t: 'Software Engineer (internship)', o: 'Infineon Technologies', from: 'Jul 2025', to: 'Aug 2025', k: 'work' },
     { t: 'Software Engineer (internship)', o: 'Infineon Technologies', from: 'Jul 2024', to: 'Jul 2024', k: 'work' },
     { t: 'Technical IT support', o: 'Infineon Technologies', from: 'Aug 2023', to: 'Aug 2023', k: 'work' },
     { t: 'Reife- und Diplomprüfung — Computer/Information Technology Administration and Management', o: 'HTL Villach', from: 'Sep 2021', to: 'Jun 2026', k: 'education' },
-    { t: 'AHS-Unterstufe', o: 'BG/BRG Peraugymnasium', from: 'Sep 2015', to: 'Jul 2019', k: 'education' },
+    { t: 'AHS-Unterstufe', o: 'Peraugymnasium', from: 'Sep 2017', to: 'Jul 2021', k: 'education' },
   ],
   timeline: [
     { t: 'Internship', d: 'Full-time software developer internship.', from: '13 Jul 2026', to: '30 Sep 2026', k: 'work', state: 'done' },

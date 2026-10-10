@@ -1,0 +1,166 @@
+/* Career chart: horizontal timeline, scrolls sideways, opens at "now" */
+.ch-scroll {
+    overflow-x: auto;
+    padding-bottom: 14px;
+    margin-top: 8px;
+    border: 1px solid var(--line);
+    border-radius: var(--r, 22px);
+    background: var(--surface);
+}
+.ch-inner {
+    position: relative;
+    padding-top: 12px;
+    padding-bottom: 18px;
+}
+.ch-years {
+    position: relative;
+    height: 44px;
+    border-bottom: 1px dashed var(--line);
+}
+.ch-year {
+    position: absolute;
+    top: 2px;
+    padding-left: 6px;
+    font:
+        600 0.78rem 'JetBrains Mono',
+        monospace;
+    color: var(--fg, var(--text));
+}
+.ch-m {
+    position: absolute;
+    bottom: 0;
+    height: 18px;
+    text-align: center;
+    font:
+        500 0.6rem/18px 'JetBrains Mono',
+        monospace;
+    font-style: normal;
+    color: var(--muted);
+    border-left: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+}
+.ch-m-year {
+    border-left-color: var(--muted);
+}
+.ch-grid {
+    position: absolute;
+    top: 34px;
+    bottom: 0;
+    border-left: 1px dashed color-mix(in srgb, var(--line) 70%, transparent);
+}
+.ch-lane {
+    position: relative;
+    margin-top: 22px;
+}
+.ch-item {
+    display: contents;
+}
+.ch-line {
+    position: absolute;
+    top: 0;
+    height: 8px;
+    border-radius: 99px;
+    background: var(--accent);
+    transition:
+        height 0.18s,
+        top 0.18s,
+        box-shadow 0.18s,
+        filter 0.18s,
+        opacity 0.18s;
+}
+.ch-work .ch-line {
+    background: var(--live);
+}
+/* the line is only 8px tall, so an invisible larger hit area keeps one-month stubs hoverable */
+.ch-line::before {
+    content: '';
+    position: absolute;
+    inset: -12px -2px;
+}
+.ch-lab {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: var(--r-s, 16px);
+    transition:
+        opacity 0.18s,
+        transform 0.18s;
+}
+.ch-lab:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+}
+.ch-lab > div {
+    min-width: 0;
+}
+/* Hover or keyboard focus on one station dims all the others, so it is clear which line a label belongs to. */
+.ch-inner:has(.ch-item:hover, .ch-item:focus-within) .ch-item:not(:hover, :focus-within) > * {
+    opacity: 0.28;
+}
+.ch-item:hover .ch-line,
+.ch-item:focus-within .ch-line {
+    height: 14px;
+    top: -3px;
+    filter: brightness(1.25);
+    box-shadow: 0 0 18px 2px var(--accent);
+}
+.ch-work .ch-item:hover .ch-line,
+.ch-work .ch-item:focus-within .ch-line {
+    box-shadow: 0 0 18px 2px var(--live);
+}
+.ch-item:hover .ch-lab,
+.ch-item:focus-within .ch-lab {
+    transform: translateY(3px);
+}
+.ch-item:hover .ch-logo,
+.ch-item:focus-within .ch-logo {
+    box-shadow: 0 0 0 2px var(--accent);
+}
+.ch-item:hover .ch-lab b,
+.ch-item:focus-within .ch-lab b {
+    color: var(--accent);
+}
+.ch-logo {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #fff;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid var(--line);
+}
+.ch-logo img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+.ch-logo b {
+    color: #111;
+    font:
+        700 0.8rem 'JetBrains Mono',
+        monospace;
+}
+.ch b {
+    display: block;
+    font-weight: 700;
+    line-height: 1.25;
+    font-size: 0.82rem;
+}
+.ch .org {
+    display: block;
+    color: var(--muted);
+    font-size: 0.72rem;
+}
+.ch .when {
+    display: block;
+    color: var(--muted);
+    font-size: 0.68rem;
+}
+@media (max-width: 640px) {
+    html .ch-logo {
+        width: 36px;
+        height: 36px;
+    }
+}

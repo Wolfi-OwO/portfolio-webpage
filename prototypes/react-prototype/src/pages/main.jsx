@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useApp } from '../store.jsx';
 import { C } from '../data/content.js';
 import { AddBtn, Icon, SecLabel } from '../components/blocks.jsx';
+import CareerChart from '../components/career-chart.jsx';
 import { Availability, CareerRow, Heatmap, ProjCard, ServiceCard, TechGrid } from '../components/cards.jsx';
 import { Avatar } from './personal.jsx';
 import LoadingScreen, { shouldBoot } from '../components/LoadingScreen.jsx';
@@ -61,12 +62,10 @@ export function Projects() {
 
 export function Career() {
   const { data } = useApp();
-  const part = (k) => data.career.map((e, idx) => ({ e, idx })).filter(({ e }) => e.k === k);
   return (
     <>
       <header className="page-h"><span className="kicker mono">Career & education</span><h1>A short, <em>honest</em> CV</h1></header>
-      <section><SecLabel n="01" kind="career">Work</SecLabel><div className="career">{part('work').map(({ e, idx }) => <CareerRow key={e.t + idx} e={e} idx={idx} />)}</div></section>
-      <section><SecLabel n="02" kind="career">Education</SecLabel><div className="career">{part('education').map(({ e, idx }) => <CareerRow key={e.t + idx} e={e} idx={idx} />)}</div></section>
+      <CareerChart entries={data.careerChart} />
     </>
   );
 }
