@@ -1,4 +1,4 @@
-<!doctype html><html lang="en" data-palette="cobalt" data-theme="dark" data-contrast="low" class="dark" style='background-color: rgb(7, 11, 27); --c-accent: #375cff; --c-on: #ffffff; --c-bg: #070b1b; --c-surface: #0c1328; --c-surface-2: #141d38; --c-text: #f5f7fb; --c-muted: #bfc4d4; --c-line: rgba(245,247,251,0.6); --r: 36px; --r-s: 23px; --glow: 43%; font-size: 15.04px; height: auto;'><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mockup · career-v7-a</title><style>/* Palette, contrast and fine-tune layer: palettes declare raw --c-* colours, this maps them onto the tokens the site already uses. Only active once the layout sets data-palette. */
+<!doctype html><html lang="en" data-palette="cobalt" data-theme="dark" data-contrast="low" class="dark" style='--c-accent: #375cff; --c-on: #ffffff; --c-bg: #070b1b; --c-surface: #0c1328; --c-surface-2: #141d38; --c-text: #f5f7fb; --c-muted: #bfc4d4; --c-line: rgba(245,247,251,0.6); --r: 36px; --r-s: 23px; --glow: 43%; font-size: 15.04px; height: auto;'><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mockup · career-v7-a</title><style>/* Palette, contrast and fine-tune layer: palettes declare raw --c-* colours, this maps them onto the tokens the site already uses. Only active once the layout sets data-palette. */
 html:root[data-palette][data-theme] {
     --bg: var(--c-bg);
     --surface: var(--c-surface);
@@ -825,81 +825,118 @@ html:root[data-palette][data-theme='light'][data-contrast='low'] {
     }
 }
 
-/* Career chart: centre axis with years, work on the left, school on the right.
-   Every entry is a line from its first to its last day with its card centred on the line, so overlaps are visible at a glance. */
-.pw .cc {
-    position: relative;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 56px minmax(0, 1fr);
+/* Career chart: horizontal timeline, scrolls sideways, opens at "now" */
+.pw .ch-scroll {
+    overflow-x: auto;
+    padding-bottom: 14px;
     margin-top: 8px;
+    border: 1px solid var(--line);
+    border-radius: var(--r, 22px);
+    background: var(--surface);
 }
-.pw .cc-axis {
+.pw .ch-inner {
     position: relative;
+    padding-top: 12px;
+    padding-bottom: 18px;
 }
-.pw .cc-axis::before {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 0;
-    bottom: 0;
-    border-left: 1px dashed var(--line);
+.pw .ch-years {
+    position: relative;
+    height: 22px;
+    border-bottom: 1px dashed var(--line);
 }
-.pw .cc-axis span {
+.pw .ch-years span {
     position: absolute;
-    left: 50%;
     transform: translateX(-50%);
-    padding: 0 6px;
-    background: var(--bg);
     font:
-        500 0.72rem 'JetBrains Mono',
+        500 0.74rem 'JetBrains Mono',
         monospace;
     color: var(--muted);
 }
-.pw .cc-lane {
+.pw .ch-grid {
+    position: absolute;
+    top: 34px;
+    bottom: 0;
+    border-left: 1px dashed color-mix(in srgb, var(--line) 70%, transparent);
+}
+.pw .ch-label {
+    position: sticky;
+    left: 14px;
+    width: -moz-max-content;
+    width: max-content;
+    margin: 18px 0 8px 14px;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    z-index: 1;
+}
+.pw .ch-lane {
     position: relative;
 }
-.pw .cc-line {
-    position: absolute;
-    width: 6px;
-    border-radius: 99px;
-    background: var(--accent);
+.pw .ch-edu {
+    height: 112px;
 }
-.pw .cc-entry.job .cc-line {
+.pw .ch-bar {
+    position: absolute;
+    top: 0;
+    height: 112px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 18px;
+    overflow: clip;
+    border-radius: var(--r-s, 16px);
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+    background: linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--accent) 22%, var(--surface)),
+        color-mix(in srgb, var(--accent) 7%, var(--surface))
+    );
+}
+.pw .ch-bar-in {
+    position: sticky;
+    left: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    /* narrow enough to fit inside the visible part of the bar, otherwise sticky is pushed back by the bar's right edge */
+    max-width: max(150px, min(560px, calc(100vw - 210px)));
+}
+.pw .ch-bar-in > div {
+    min-width: 0;
+}
+.pw .ch-card b {
+    overflow-wrap: anywhere;
+}
+.pw .ch-span {
+    position: absolute;
+    top: 0;
+    height: 14px;
+    border-radius: 99px;
     background: var(--live);
 }
-.pw .cc-work .cc-line {
-    right: 0;
-}
-.pw .cc-edu .cc-line {
-    left: 0;
-}
-.pw .cc-card {
+.pw .ch-stem {
     position: absolute;
-    transform: translateY(-50%);
+    top: 14px;
+    width: 2px;
+    margin-left: -1px;
+    background: color-mix(in srgb, var(--live) 70%, transparent);
+}
+.pw .ch-card {
+    position: absolute;
     display: flex;
-    gap: 12px;
+    gap: 10px;
     align-items: flex-start;
-    padding: 12px 14px;
+    padding: 10px 12px;
     border-radius: var(--r-s, 16px);
-    border: 1px solid var(--line);
-    background: var(--surface);
-    max-width: 100%;
+    border: 1px solid color-mix(in srgb, var(--live) 45%, var(--line));
+    background: var(--bg);
 }
-.pw .cc-work .cc-card {
-    right: 20px;
-    flex-direction: row-reverse;
-    text-align: right;
+.pw .ch-card > div {
+    min-width: 0;
 }
-.pw .cc-edu .cc-card {
-    left: 20px;
-}
-.pw .cc-entry.edu .cc-card {
-    border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
-}
-.pw .cc-entry.job .cc-card {
-    border-color: color-mix(in srgb, var(--live) 45%, var(--line));
-}
-.pw .cc-logo {
+.pw .ch-logo {
     flex: none;
     width: 44px;
     height: 44px;
@@ -910,87 +947,72 @@ html:root[data-palette][data-theme='light'][data-contrast='low'] {
     overflow: hidden;
     border: 1px solid var(--line);
 }
-.pw .cc-logo img {
+.pw .ch-logo img {
     width: 30px;
     height: 30px;
     -o-object-fit: contain;
        object-fit: contain;
 }
-.pw .cc-logo b {
+.pw .ch-logo b {
     color: #111;
     font:
         700 0.8rem 'JetBrains Mono',
         monospace;
 }
-.pw .cc-kind {
+.pw .ch-kind {
     display: block;
-    font-size: 0.66rem;
+    font-size: 0.62rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--accent);
-}
-.pw .cc-entry.job .cc-kind {
     color: var(--live);
 }
-.pw .cc b {
+.pw .ch b {
     display: block;
     font-weight: 700;
     line-height: 1.25;
+    font-size: 0.9rem;
 }
-.pw .cc .org {
+.pw .ch .org {
     display: block;
     color: var(--muted);
-    font-size: 0.88rem;
+    font-size: 0.82rem;
 }
-.pw .cc .when {
+.pw .ch .when {
     display: block;
-    font-size: 0.76rem;
-}
-.pw .cc p {
-    font-size: 0.84rem;
     color: var(--muted);
-    margin-top: 6px;
-    line-height: 1.45;
+    font-size: 0.72rem;
+}
+.pw .ch-card b {
+    font-size: 0.82rem;
 }
 @media (max-width: 640px) {
-    html .pw .cc {
-        grid-template-columns: minmax(0, 1fr) 34px minmax(0, 1fr);
+    html .pw .ch-logo {
+        width: 36px;
+        height: 36px;
     }
-    html .pw .cc-axis span {
-        font-size: 0.58rem;
-        padding: 0 2px;
+    html .pw .ch-bar {
+        padding: 0 12px;
     }
-    html .pw .cc-card {
-        flex-direction: column !important;
-        gap: 6px;
-        padding: 8px;
-        text-align: left !important;
+    html .pw .ch b {
+        font-size: 0.8rem;
     }
-    html .pw .cc-work .cc-card {
-        right: 14px;
-        align-items: flex-end;
-        text-align: right !important;
+}
+.pw .ch-bar-in b {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+@media (max-width: 640px) {
+    html .pw .ch-edu {
+        height: 132px;
     }
-    html .pw .cc-edu .cc-card {
-        left: 14px;
+    html .pw .ch-bar {
+        height: 132px;
     }
-    html .pw .cc-logo {
-        width: 32px;
-        height: 32px;
-    }
-    .pw .cc-logo img {
-        width: 22px;
-        height: 22px;
-    }
-    html .pw .cc b {
+    html .pw .ch-bar-in b {
         font-size: 0.76rem;
-    }
-    html .pw .cc .org,
-    html .pw .cc p {
-        font-size: 0.66rem;
-    }
-    html .pw .cc .when {
-        font-size: 0.62rem;
+        -webkit-line-clamp: 3;
     }
 }
 
@@ -6336,6 +6358,9 @@ video {
 }
 .relative {
   position: relative;
+}
+.sticky {
+  position: sticky;
 }
 .inset-0 {
   inset: 0px;
