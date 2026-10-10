@@ -5,7 +5,7 @@ import '../proto.css';
 // Time runs right to left: today is at the left edge, the oldest station at the right. Every station, school or job, is a thin line from its
 // first to its last month with logo and text hanging under its newer end. YEAR_PX is generous on purpose: a one-month internship still gets a
 // visible stub. Labels that would overlap an earlier one in the same lane drop to the next row.
-const YEAR_PX = 264;
+const YEAR_PX = 336;
 const PAD = 28;
 const LABEL_W = { education: 440, work: 250 };
 const ROW_H = { education: 96, work: 66 };
