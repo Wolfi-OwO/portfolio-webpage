@@ -20,9 +20,11 @@ const months = (d) => {
 const fmt = (d) => new Date(d).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
 const span = (a, z) => {
     const x = fmt(a);
-    const y = z ? fmt(z) : 'now';
+    const y = z ? fmt(lastDay(z)) : 'now';
     return x === y ? x : `${x} — ${y}`;
 };
+// A stay covers its start month and every month up to the day before endDate: 2026-07-01 -> 2026-10-01 is July, August, September.
+const lastDay = (d) => (d ? new Date(new Date(d).getTime() - 864e5) : null);
 const MONTH_LETTERS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
 const initials = (s = '') =>
     s
@@ -46,7 +48,7 @@ export default function CareerChart({ entries }) {
     const rows = entries.map((e) => ({
         ...e,
         a: months(e.startDate),
-        z: e.endDate ? months(e.endDate) + 1 : now + 1,
+        z: e.endDate ? months(lastDay(e.endDate)) + 1 : now + 1,
     }));
     const first = rows.length ? Math.min(...rows.map((r) => r.a)) : 0;
     const last = rows.length ? Math.max(...rows.map((r) => r.z)) : 0;
@@ -101,8 +103,6 @@ export default function CareerChart({ entries }) {
                     {years.map((m) => (
                         <i key={m} className="ch-grid" style={{ left: x(m) }} aria-hidden="true" />
                     ))}
-
-                    <p className="ch-label mono">Education</p>
                     <div className="ch-lane ch-edu">
                         {edu.map((r) => (
                             <article
@@ -126,7 +126,6 @@ export default function CareerChart({ entries }) {
                         ))}
                     </div>
 
-                    <p className="ch-label mono">Work</p>
                     <div className="ch-lane ch-work" style={{ height: 34 + levels * 112 }}>
                         {work.map((r) => (
                             <article key={r._id} role="listitem" className="ch-job">
@@ -148,9 +147,6 @@ export default function CareerChart({ entries }) {
                                 >
                                     <Logo org={r.organisation} />
                                     <div>
-                                        <span className="mono ch-kind">
-                                            {r.endDate ? 'Work' : 'Work · current'}
-                                        </span>
                                         <b>{r.title}</b>
                                         <span className="mono when">
                                             {span(r.startDate, r.endDate)}
