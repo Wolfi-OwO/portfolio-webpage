@@ -8,6 +8,7 @@ const CARD_W = 232;
 const PAD = 28;
 const LOGOS = [
     [/infineon/i, '/logos/infineon.png'],
+    [/bundesheer/i, '/logos/bundesheer.png'],
     [/htl villach/i, '/logos/htl-villach.png'],
     [/perau/i, '/logos/perau.png'],
 ];

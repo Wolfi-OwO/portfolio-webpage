@@ -3,9 +3,9 @@
     "title": "Softwareingenieur:in",
     "organisation": "Infineon Technologies",
     "location": "Villach, Kärnten, Österreich",
-    "description": "Vollzeit-Anstellung im Anschluss an das Praktikum. Entwicklung des Experiments Management System Dashboards für die Halbleiterfertigung, vor Ort in Villach.",
-    "startDate": "2026-07-13",
-    "endDate": null,
+    "description": "Experiments Management System (Dashboard)",
+    "startDate": "2026-07-01",
+    "endDate": "2026-10-01",
     "kind": "work",
     "track": "career",
     "published": true,
@@ -92,5 +92,16 @@
     "track": "career",
     "published": true,
     "description": "1.–4. Schulstufe."
+  },
+  {
+    "title": "Soldat",
+    "organisation": "Österreichisches Bundesheer",
+    "location": "Villach, Kärnten, Österreich",
+    "startDate": "2026-10-01",
+    "endDate": null,
+    "kind": "work",
+    "track": "career",
+    "published": true,
+    "description": "Vollzeit, Grundwehrdienst."
   }
 ]

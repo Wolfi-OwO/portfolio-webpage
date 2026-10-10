@@ -380,3 +380,9 @@
         -webkit-line-clamp: 3;
     }
 }
+.pw .ch-card {
+    z-index: 1;
+}
+.pw .ch-stem {
+    z-index: 0;
+}
