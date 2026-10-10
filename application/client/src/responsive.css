@@ -175,56 +175,57 @@
     }
 }
 
-/* Career chart */
+/* Career chart: centre axis with years, work on the left, school on the right.
+   Every entry is a line from its first to its last day with its card centred on the line, so overlaps are visible at a glance. */
 .pw .cc {
     position: relative;
     display: grid;
-    grid-template-columns: 44px minmax(0, 1.15fr) minmax(0, 1fr);
-    gap: 0 18px;
+    grid-template-columns: minmax(0, 1fr) 56px minmax(0, 1fr);
     margin-top: 8px;
 }
 .pw .cc-axis {
     position: relative;
 }
+.pw .cc-axis::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    border-left: 1px dashed var(--line);
+}
 .pw .cc-axis span {
     position: absolute;
-    left: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0 6px;
+    background: var(--bg);
     font:
         500 0.72rem 'JetBrains Mono',
         monospace;
     color: var(--muted);
 }
-.pw .cc-axis::after {
-    content: '';
-    position: absolute;
-    right: 10px;
-    top: 0;
-    bottom: 0;
-    border-right: 1px dashed var(--line);
-}
 .pw .cc-lane {
     position: relative;
 }
-.pw .cc-bar {
+.pw .cc-line {
     position: absolute;
-    left: 0;
-    right: 0;
-    display: flex;
-    gap: 14px;
-    padding: 16px;
-    border-radius: var(--r, 22px);
-    border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
-    background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--accent) 16%, var(--surface)),
-        color-mix(in srgb, var(--accent) 4%, var(--surface))
-    );
-    overflow: hidden;
+    width: 6px;
+    border-radius: 99px;
+    background: var(--accent);
 }
-.pw .cc-job {
-    position: absolute;
-    left: 0;
+.pw .cc-entry.job .cc-line {
+    background: var(--live);
+}
+.pw .cc-work .cc-line {
     right: 0;
+}
+.pw .cc-edu .cc-line {
+    left: 0;
+}
+.pw .cc-card {
+    position: absolute;
+    transform: translateY(-50%);
     display: flex;
     gap: 12px;
     align-items: flex-start;
@@ -232,24 +233,21 @@
     border-radius: var(--r-s, 16px);
     border: 1px solid var(--line);
     background: var(--surface);
-    box-shadow: 0 8px 24px -16px rgb(0 0 0/0.6);
+    max-width: 100%;
 }
-.pw .cc-tick {
-    position: absolute;
-    left: -19px;
-    top: 20px;
-    width: 19px;
-    border-top: 2px solid var(--accent);
+.pw .cc-work .cc-card {
+    right: 20px;
+    flex-direction: row-reverse;
+    text-align: right;
 }
-.pw .cc-tick::before {
-    content: '';
-    position: absolute;
-    left: -4px;
-    top: -5px;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--accent);
+.pw .cc-edu .cc-card {
+    left: 20px;
+}
+.pw .cc-entry.edu .cc-card {
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+.pw .cc-entry.job .cc-card {
+    border-color: color-mix(in srgb, var(--live) 45%, var(--line));
 }
 .pw .cc-logo {
     flex: none;
@@ -280,6 +278,9 @@
     text-transform: uppercase;
     color: var(--accent);
 }
+.pw .cc-entry.job .cc-kind {
+    color: var(--live);
+}
 .pw .cc b {
     display: block;
     font-weight: 700;
@@ -302,35 +303,42 @@
 }
 @media (max-width: 640px) {
     html .pw .cc {
-        grid-template-columns: 30px minmax(0, 1fr) minmax(0, 1fr);
-        gap: 0 10px;
+        grid-template-columns: minmax(0, 1fr) 34px minmax(0, 1fr);
     }
     html .pw .cc-axis span {
-        font-size: 0.6rem;
+        font-size: 0.58rem;
+        padding: 0 2px;
     }
-    html .pw .cc-bar,
-    html .pw .cc-job {
-        flex-direction: column;
-        gap: 8px;
-        padding: 10px;
+    html .pw .cc-card {
+        flex-direction: column !important;
+        gap: 6px;
+        padding: 8px;
+        text-align: left !important;
+    }
+    html .pw .cc-work .cc-card {
+        right: 14px;
+        align-items: flex-end;
+        text-align: right !important;
+    }
+    html .pw .cc-edu .cc-card {
+        left: 14px;
     }
     html .pw .cc-logo {
-        width: 34px;
-        height: 34px;
+        width: 32px;
+        height: 32px;
     }
     .pw .cc-logo img {
-        width: 24px;
-        height: 24px;
+        width: 22px;
+        height: 22px;
     }
     html .pw .cc b {
-        font-size: 0.8rem;
+        font-size: 0.76rem;
     }
     html .pw .cc .org,
     html .pw .cc p {
-        font-size: 0.7rem;
+        font-size: 0.66rem;
     }
-    html .pw .cc-tick {
-        left: -11px;
-        width: 11px;
+    html .pw .cc .when {
+        font-size: 0.62rem;
     }
 }

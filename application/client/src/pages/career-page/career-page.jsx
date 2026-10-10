@@ -24,8 +24,8 @@ function CareerView() {
                         A short, <em>honest</em> CV
                     </h1>
                     <p className="lead">
-                        Schools run as bars from their first to their last day; jobs and internships
-                        sit inside them, at the dates they happened.
+                        Each line runs from the first to the last day. Work is on the left, school
+                        on the right, so you can see what happened in parallel.
                     </p>
                 </header>
                 <CareerChart entries={published} />

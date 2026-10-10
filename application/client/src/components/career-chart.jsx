@@ -4,7 +4,7 @@ import '../proto.css';
 // Time runs downward, newest on top. Schools are tall bars from their first to their last day; jobs and internships
 // sit inside that span, at the dates they actually happened, each with the organisation's logo.
 // Phones get more height per month because their narrower cards wrap onto more lines.
-const SCALE = { wide: { px: 10, min: 100 }, narrow: { px: 15, min: 170 } };
+const SCALE = { wide: { px: 11, min: 100 }, narrow: { px: 16, min: 150 } };
 const useNarrow = () => {
     const [narrow, setNarrow] = useState(() => window.matchMedia('(max-width: 640px)').matches);
     useEffect(() => {
@@ -48,8 +48,50 @@ function Logo({ org }) {
     );
 }
 
+function Side({ list, side, y, px }) {
+    return (
+        <div className={`cc-lane cc-${side}`}>
+            {list.map((r) => {
+                const lineTop = y(r.z);
+                const lineH = Math.max((r.z - r.a) * px, 8);
+                return (
+                    <article
+                        key={r._id}
+                        role="listitem"
+                        className={`cc-entry ${r.kind === 'education' ? 'edu' : 'job'}`}
+                    >
+                        <i
+                            className="cc-line"
+                            style={{ top: lineTop, height: lineH }}
+                            aria-hidden="true"
+                        />
+                        <div className="cc-card" style={{ top: lineTop + lineH / 2 }}>
+                            <Logo org={r.organisation} />
+                            <div>
+                                <span className="mono cc-kind">
+                                    {r.kind === 'education'
+                                        ? 'Education'
+                                        : r.endDate
+                                          ? 'Work'
+                                          : 'Work · current'}
+                                </span>
+                                <b>{r.title}</b>
+                                <span className="org">{r.organisation}</span>
+                                <span className="mono muted when">
+                                    {span(r.startDate, r.endDate)}
+                                </span>
+                                {r.description && r.kind === 'education' && <p>{r.description}</p>}
+                            </div>
+                        </div>
+                    </article>
+                );
+            })}
+        </div>
+    );
+}
+
 export default function CareerChart({ entries }) {
-    const { px: PX_PER_MONTH, min: MIN_ITEM } = SCALE[useNarrow() ? 'narrow' : 'wide'];
+    const { px: PX_PER_MONTH } = SCALE[useNarrow() ? 'narrow' : 'wide'];
     const now = months(new Date());
     const rows = entries.map((e) => ({
         ...e,
@@ -68,6 +110,7 @@ export default function CareerChart({ entries }) {
 
     return (
         <div className="cc" style={{ height }} role="list" aria-label="Career timeline">
+            <Side list={work} side="work" y={y} px={PX_PER_MONTH} />
             <div className="cc-axis" aria-hidden="true">
                 {years.map((m) => (
                     <span key={m} style={{ top: y(m) - 8 }}>
@@ -75,52 +118,7 @@ export default function CareerChart({ entries }) {
                     </span>
                 ))}
             </div>
-            <div className="cc-lane cc-edu">
-                {edu.map((r) => (
-                    <article
-                        key={r._id}
-                        role="listitem"
-                        className="cc-bar"
-                        style={{
-                            top: y(r.z),
-                            height: Math.max((r.z - r.a) * PX_PER_MONTH, MIN_ITEM),
-                        }}
-                    >
-                        <Logo org={r.organisation} />
-                        <div>
-                            <span className="mono cc-kind">Education</span>
-                            <b>{r.title}</b>
-                            <span className="org">{r.organisation}</span>
-                            <span className="mono muted when">{span(r.startDate, r.endDate)}</span>
-                            {r.description && <p>{r.description}</p>}
-                        </div>
-                    </article>
-                ))}
-            </div>
-            <div className="cc-lane cc-work">
-                {work.map((r) => (
-                    <article
-                        key={r._id}
-                        role="listitem"
-                        className="cc-job"
-                        style={{
-                            top: y(r.z),
-                            minHeight: Math.max((r.z - r.a) * PX_PER_MONTH, MIN_ITEM),
-                        }}
-                    >
-                        <i className="cc-tick" aria-hidden="true" />
-                        <Logo org={r.organisation} />
-                        <div>
-                            <span className="mono cc-kind">
-                                {r.endDate ? 'Work' : 'Work · current'}
-                            </span>
-                            <b>{r.title}</b>
-                            <span className="org">{r.organisation}</span>
-                            <span className="mono muted when">{span(r.startDate, r.endDate)}</span>
-                        </div>
-                    </article>
-                ))}
-            </div>
+            <Side list={edu} side="edu" y={y} px={PX_PER_MONTH} />
         </div>
     );
 }
