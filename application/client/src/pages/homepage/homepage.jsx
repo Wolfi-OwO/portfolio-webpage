@@ -164,7 +164,6 @@ export default function Homepage() {
                 <div className="page" style={{ padding: 0, maxWidth: 1040 }}>
                     <section className="hero">
                         <div className="hero-top mono muted">
-                            <span>Portfolio · Carinthia, AT</span>
                             <span className="hb">
                                 <AvailabilityBadge badge={badge} />
                             </span>

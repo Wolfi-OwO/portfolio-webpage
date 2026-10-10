@@ -536,3 +536,45 @@ html .pw .pgrid.bento > .proj:not(.lead-card) .pshot img {
         height: 260px;
     }
 }
+
+/* The chart box has a large corner radius, so the scrollbar's end arrows poked out
+   past the curve. No arrows, and the track is inset by the radius so the thumb
+   stays inside the rounded box. */
+.pw .ch-scroll::-webkit-scrollbar {
+    height: 10px;
+}
+.pw .ch-scroll::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+}
+.pw .ch-scroll::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 0 var(--r, 22px);
+}
+.pw .ch-scroll::-webkit-scrollbar-thumb {
+    background-clip: padding-box;
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background-color: var(--line);
+}
+.pw .hero-top {
+    justify-content: flex-end;
+}
+
+/* `scrollbar-width` / `scrollbar-color` anywhere above switch the ::-webkit-scrollbar
+   rules off in current Chromium, which is why the arrows kept showing. Reset both on
+   the chart so the styled bar applies. */
+.pw .ch-scroll {
+    scrollbar-width: auto;
+    scrollbar-color: auto;
+}
+/* The chart reuses the `.ch` class of the contact rows, which lift on hover. A
+   timeline you scroll and hover stations in must not move under the cursor. */
+html .pw .ch:has(> .ch-scroll),
+html .pw .ch:has(> .ch-scroll):hover {
+    transform: none;
+    box-shadow: none;
+    border-color: transparent;
+    transition: none;
+}
