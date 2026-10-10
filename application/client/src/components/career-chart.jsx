@@ -4,8 +4,8 @@ import '../proto.css';
 // Time runs left to right. Schools are long bars from their first to their last day; jobs and internships are bars of
 // their real length with a pin and card below, so overlaps with school are visible. YEAR_PX is generous on purpose:
 // a one-month internship still gets a readable slice.
-const YEAR_PX = 190;
-const CARD_W = 200;
+const YEAR_PX = 264;
+const CARD_W = 232;
 const PAD = 28;
 const LOGOS = [
     [/infineon/i, '/logos/infineon.png'],
@@ -23,6 +23,7 @@ const span = (a, z) => {
     const y = z ? fmt(z) : 'now';
     return x === y ? x : `${x} — ${y}`;
 };
+const MONTH_LETTERS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
 const initials = (s = '') =>
     s
         .split(/\s+/)
@@ -84,9 +85,18 @@ export default function CareerChart({ entries }) {
                 <div className="ch-inner" style={{ width }}>
                     <div className="ch-years" aria-hidden="true">
                         {years.map((m) => (
-                            <span key={m} style={{ left: x(m) }}>
+                            <span key={m} className="ch-year" style={{ left: x(m) }}>
                                 {m / 12}
                             </span>
+                        ))}
+                        {Array.from({ length: last - first + 1 }, (_, i) => first + i).map((m) => (
+                            <em
+                                key={m}
+                                className={m % 12 === 0 ? 'ch-m ch-m-year' : 'ch-m'}
+                                style={{ left: x(m), width: px }}
+                            >
+                                {MONTH_LETTERS[((m % 12) + 12) % 12]}
+                            </em>
                         ))}
                     </div>
                     {years.map((m) => (

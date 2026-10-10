@@ -191,16 +191,32 @@
 }
 .pw .ch-years {
     position: relative;
-    height: 22px;
+    height: 44px;
     border-bottom: 1px dashed var(--line);
 }
-.pw .ch-years span {
+.pw .ch-year {
     position: absolute;
-    transform: translateX(-50%);
+    top: 2px;
+    padding-left: 6px;
     font:
-        500 0.74rem 'JetBrains Mono',
+        600 0.78rem 'JetBrains Mono',
         monospace;
+    color: var(--fg, var(--text));
+}
+.pw .ch-m {
+    position: absolute;
+    bottom: 0;
+    height: 18px;
+    text-align: center;
+    font:
+        500 0.6rem/18px 'JetBrains Mono',
+        monospace;
+    font-style: normal;
     color: var(--muted);
+    border-left: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+}
+.pw .ch-m-year {
+    border-left-color: var(--muted);
 }
 .pw .ch-grid {
     position: absolute;
@@ -256,7 +272,8 @@
     min-width: 0;
 }
 .pw .ch-card b {
-    overflow-wrap: anywhere;
+    overflow-wrap: normal;
+    word-break: normal;
 }
 .pw .ch-span {
     position: absolute;

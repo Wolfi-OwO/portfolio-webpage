@@ -18,17 +18,7 @@ function CareerView() {
     return (
         <div className="pw">
             <div className="page" style={{ padding: 0, maxWidth: 1040 }}>
-                <header className="page-h">
-                    <span className="kicker mono">Career & education</span>
-                    <h1>
-                        A short, <em>honest</em> CV
-                    </h1>
-                    <p className="lead">
-                        Time runs left to right. Schools are long bars; jobs and internships sit
-                        below them at the dates they happened, so you can see what ran in parallel.
-                        Scroll sideways for earlier years.
-                    </p>
-                </header>
+                <h1 className="sr-only">Career and education</h1>
                 <CareerChart entries={published} />
             </div>
         </div>
