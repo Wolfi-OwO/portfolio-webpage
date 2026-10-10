@@ -336,7 +336,7 @@ export default function ActivityHeatmap() {
                     />
                 </h2>
 
-                <div className="flex gap-1 rounded-lg border border-[var(--line)] p-0.5">
+                <div className="heat-seg flex gap-1 rounded-lg border border-[var(--line)] p-0.5">
                     {SOURCES.map((option) => (
                         <button
                             key={option.id}
@@ -565,7 +565,7 @@ function Sources({ sources, intl }) {
     ];
 
     return (
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        <div className="heat-src mt-6 grid gap-3 sm:grid-cols-2">
             {entries.map(({ id, Icon, ok, reason, total, user, profileUrl }) => (
                 <a
                     key={id}
@@ -609,11 +609,11 @@ function Sources({ sources, intl }) {
 function Repos({ repos }) {
     return (
         <div className="mt-6">
-            <h3 className="font-mono text-2xs uppercase tracking-[0.2em] text-[var(--muted)]">
+            <h3 className="heat-h font-mono text-2xs uppercase tracking-[0.2em] text-[var(--muted)]">
                 <FormattedMessage id="activity.recent" defaultMessage="Recently touched" />
             </h3>
 
-            <ul className="mt-3 grid gap-px overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--line)] sm:grid-cols-2">
+            <ul className="heat-repos mt-3 grid gap-px overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--line)] sm:grid-cols-2">
                 {repos.map((repo) => {
                     const Icon = repo.host === 'gitlab' ? SiGitlab : SiGithub;
 

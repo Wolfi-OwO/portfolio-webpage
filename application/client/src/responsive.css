@@ -386,3 +386,46 @@
     background: repeating-linear-gradient(90deg, currentColor 0 6px, transparent 6px 10px);
     color: var(--muted);
 }
+
+/* Activity block. `.pw button { font: inherit }` and `.pw h3 { font-size }` out-rank
+   Tailwind's utilities, so the source toggle rendered at 15px Manrope and the
+   "recently touched" heading at 17px. Sizes below were measured against the
+   mockup (toggle 0.74rem mono, cards 0.9rem names, 0.7rem meta). */
+.pw .heat-seg button {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.76rem;
+    line-height: 1.2;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 5px 11px;
+}
+.pw .heat-h {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+}
+.pw .heat-src a,
+.pw .heat-repos a {
+    padding: 8px 14px;
+    gap: 10px;
+}
+.pw .heat-src a > svg:first-child {
+    width: 18px;
+    height: 18px;
+}
+.pw .heat-repos a > svg:first-child {
+    width: 14px;
+    height: 14px;
+}
+.pw .heat-src a > span > span:first-child,
+.pw .heat-repos a > span > span:first-child {
+    font-size: 0.86rem;
+    line-height: 1.3;
+}
+.pw .heat-src a > span > span:last-child,
+.pw .heat-repos a > span > span:last-child {
+    font-size: 0.68rem;
+    line-height: 1.3;
+    letter-spacing: 0.05em;
+}
