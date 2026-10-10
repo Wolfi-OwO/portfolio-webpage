@@ -1,7 +1,6 @@
-import { useEffect, useRef } from 'react';
 import '../proto.css';
 
-// Time runs left to right. Schools are long bars from their first to their last day; jobs and internships are bars of
+// Time runs right to left: today is at the left edge, the oldest station at the right. Schools are long bars from their first to their last day; jobs and internships are bars of
 // their real length with a pin and card below, so overlaps with school are visible. YEAR_PX is generous on purpose:
 // a one-month internship still gets a readable slice.
 const YEAR_PX = 264;
@@ -42,7 +41,6 @@ function Logo({ org }) {
 }
 
 export default function CareerChart({ entries }) {
-    const scroller = useRef(null);
     const now = months(new Date());
     const rows = entries.map((e) => ({
         ...e,
@@ -52,14 +50,10 @@ export default function CareerChart({ entries }) {
     const first = rows.length ? Math.min(...rows.map((r) => r.a)) : 0;
     const last = rows.length ? Math.max(...rows.map((r) => r.z)) : 0;
 
-    // Open scrolled to "now", where the recent jobs are.
-    useEffect(() => {
-        if (scroller.current) scroller.current.scrollLeft = scroller.current.scrollWidth;
-    }, [rows.length]);
-
     if (!rows.length) return null;
     const px = YEAR_PX / 12;
-    const x = (m) => PAD + (m - first) * px;
+    // Mirrored: the boundary of month m sits (last - m) months from the left edge.
+    const x = (m) => PAD + (last - m) * px;
     const width = x(last) + PAD;
     const years = [];
     for (let m = Math.ceil(first / 12) * 12; m <= last; m += 12) years.push(m);
@@ -69,7 +63,7 @@ export default function CareerChart({ entries }) {
     const edges = [];
     const work = rows
         .filter((r) => r.kind !== 'education')
-        .sort((p, q) => p.a - q.a)
+        .sort((p, q) => q.a - p.a)
         .map((r) => {
             const mid = (x(r.a) + x(r.z)) / 2;
             let level = edges.findIndex((right) => mid - CARD_W / 2 >= right + 8);
@@ -81,19 +75,23 @@ export default function CareerChart({ entries }) {
 
     return (
         <div className="ch" role="list" aria-label="Career timeline">
-            <div className="ch-scroll" ref={scroller} tabIndex={0}>
+            <div className="ch-scroll" tabIndex={0}>
                 <div className="ch-inner" style={{ width }}>
                     <div className="ch-years" aria-hidden="true">
                         {years.map((m) => (
-                            <span key={m} className="ch-year" style={{ left: x(m) }}>
+                            <span
+                                key={m}
+                                className="ch-year"
+                                style={{ left: Math.max(x(m + 12), PAD) }}
+                            >
                                 {m / 12}
                             </span>
                         ))}
-                        {Array.from({ length: last - first + 1 }, (_, i) => first + i).map((m) => (
+                        {Array.from({ length: last - first }, (_, i) => first + i).map((m) => (
                             <em
                                 key={m}
                                 className={m % 12 === 0 ? 'ch-m ch-m-year' : 'ch-m'}
-                                style={{ left: x(m), width: px }}
+                                style={{ left: x(m + 1), width: px }}
                             >
                                 {MONTH_LETTERS[((m % 12) + 12) % 12]}
                             </em>
@@ -110,7 +108,7 @@ export default function CareerChart({ entries }) {
                                 key={r._id}
                                 role="listitem"
                                 className="ch-bar"
-                                style={{ left: x(r.a), width: Math.max((r.z - r.a) * px, 56) }}
+                                style={{ left: x(r.z), width: Math.max((r.z - r.a) * px, 56) }}
                             >
                                 {/* One sticky wrapper so logo and text travel together and stay readable while the bar is scrolled. */}
                                 <div className="ch-bar-in">
@@ -133,7 +131,7 @@ export default function CareerChart({ entries }) {
                             <article key={r._id} role="listitem" className="ch-job">
                                 <i
                                     className="ch-span"
-                                    style={{ left: x(r.a), width: Math.max((r.z - r.a) * px, 10) }}
+                                    style={{ left: x(r.z), width: Math.max((r.z - r.a) * px, 10) }}
                                 />
                                 <i
                                     className="ch-stem"
@@ -142,7 +140,7 @@ export default function CareerChart({ entries }) {
                                 <div
                                     className="ch-card"
                                     style={{
-                                        left: r.mid - CARD_W / 2,
+                                        left: Math.max(r.mid - CARD_W / 2, 8),
                                         width: CARD_W,
                                         top: 26 + r.level * 112,
                                     }}
