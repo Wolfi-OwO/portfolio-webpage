@@ -4,7 +4,7 @@ The working prototype of the redesign: same pages, same copy and data as the HTM
 React app where the flows actually run. Fake data, real behaviour.
 
 ```sh
-cd ui-prototypes/react-prototype
+cd prototypes/react-prototype
 npm install
 npm run dev        # http://localhost:5174
 npm run build      # static copy in dist/, opens from disk too (hash routing, relative base)

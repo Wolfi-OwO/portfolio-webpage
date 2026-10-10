@@ -4,7 +4,7 @@ import '../appearance.css';
 import '../tooltip.css';
 import '../utils/tooltip.js';
 
-// The site has one look: Cobalt, low contrast, rounded. The palette picker lives in the mockups and ui-prototypes only;
+// The site has one look: Cobalt, low contrast, rounded. The palette picker lives in the mockups and prototypes only;
 // the app just applies the saved values and follows the light/dark class the layout already toggles.
 export default function useSavedLook() {
     useEffect(() => {
