@@ -32,7 +32,7 @@
     height: 18px;
     text-align: center;
     font:
-        500 0.6rem/18px 'JetBrains Mono',
+        500 0.56rem/18px 'JetBrains Mono',
         monospace;
     font-style: normal;
     color: var(--muted);
@@ -163,4 +163,49 @@
         width: 36px;
         height: 36px;
     }
+}
+
+/* Admin: edit and delete sit on the station itself, visible on hover or keyboard focus. */
+.ch-act {
+    position: absolute;
+    top: -6px;
+    right: 0;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.18s;
+}
+.ch-item:hover .ch-act,
+.ch-item:focus-within .ch-act {
+    opacity: 1;
+}
+.ch-act button {
+    width: 28px;
+    height: 28px;
+    padding: 5px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+}
+.ch-act button:hover,
+.ch-act button:focus-visible {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.ch-act svg {
+    width: 16px;
+    height: 16px;
+}
+/* an unpublished entry is only visible to the admin, so it is drawn faded */
+.ch-draft .ch-line,
+.ch-draft .ch-lab {
+    opacity: 0.55;
+}
+.ch-draft .ch-line {
+    background: repeating-linear-gradient(90deg, currentColor 0 6px, transparent 6px 10px);
+    color: var(--muted);
 }
