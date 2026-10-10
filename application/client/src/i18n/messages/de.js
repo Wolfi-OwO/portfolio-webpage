@@ -76,7 +76,7 @@ export default {
 
     'homepage.role': 'Fullstack-Entwickler / Kärnten, Österreich',
     'homepage.bio':
-        'Ich bin Softwareentwickler aus Kärnten. 2026 habe ich die HTL Villach mit Reife- und Diplomprüfung im Bereich Informatik abgeschlossen, und bei Infineon Technologies habe ich Praktika als Softwareentwickler gemacht. Ich arbeite an Webanwendungen, an Apps im Allgemeinen — darunter Android und Desktop — und an Projekten aus Data Science und KI. Mehr zu meinem Werdegang auf <link>LinkedIn</link>.',
+        'Ich bin Phillip, Softwareentwickler aus Kärnten. Ich baue Webanwendungen, Websites und Apps und fühle mich dort am wohlsten, wo Daten und Machine Learning auf alltägliche Software treffen: Werkzeuge, die schnell sind, ehrlich zeigen, was sie tun, und Freude machen. Neben dem Code klettere und wandere ich und tüftle an neuen Ideen. Mehr auf <link>LinkedIn</link>.',
     'homepage.technologies': 'Technologien, die ich nutze:',
 
     'availability.badge.openToWork': 'Offen für Arbeit',
