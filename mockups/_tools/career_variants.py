@@ -15,22 +15,22 @@ end=lambda z:(mo(z) if z else T1-1)+1
 def img(l,cls=''): return '<img src="%s" alt="">'%l if l else '<span class="ini">VV</span>'
 def lbl(a,z): return a+((' – '+z) if z and z!=a else ('' if z else ' – now'))
 yrs=''.join('<span style="left:%s%%">%d</span>'%(max(xr(y*12+12),0),y) for y in range(2014,2027))+''.join('<em style="left:%s%%;width:%s%%">%s</em>'%(xr(m+1),100/(T1-T0),'JFMAMJJASOND'[m%12]) for m in range(T0,T1))
-def bar(t,o,a,z,logo):
-    l=xr(end(z)); r=xr(mo(a))
-    return '<div class="gb" style="left:%s%%;width:%s%%">%s<span><b>%s</b><em>%s</em></span></div>'%(l,r-l,img(logo),t,o)
-# Pins sit on a stem at the middle of their span; the logo is centred on the stem and the text runs to its right.
-# A station closer than one text width (~195px of the 2930px track) to an older one drops to a second lane, so nothing overlaps.
-TRACK=2930; GAP=195/TRACK*100
-cs=sorted([((xr(mo(a))+xr(end(z)))/2,t,a,z,logo,org) for t,a,z,logo,org in W],key=lambda p:-p[0])
-pins=''; lastx=[None,None]
-for c,t,a,z,logo,org in cs:
-    lane=0
-    while lastx[lane] is not None and lastx[lane]-c<GAP: lane+=1
-    lastx[lane]=c
-    top=lane*92
-    pins+='<i class="gs" style="left:%.3f%%;height:%dpx"></i><div class="gp" style="left:%.3f%%;top:%dpx"><img src="%s" alt=""><span><b>%s</b><em>%s</em><em>%s</em></span></div>'%(c,26+top+24,c,top,logo,t,org,lbl(a,z))
-CSSB="""<style>.gantt{position:relative;margin-top:26px;overflow-x:auto}.gantt>*{min-width:3000px}.gy{position:relative;height:44px;border-bottom:1px dashed var(--line)}.gy em{position:absolute;bottom:0;text-align:center;font:500 .55rem/18px 'JetBrains Mono',monospace;font-style:normal;color:var(--muted);border-left:1px solid color-mix(in srgb,var(--line) 60%,transparent)}.gy span{position:absolute;font:500 .7rem 'JetBrains Mono',monospace;color:var(--muted);transform:translateX(-50%)}.gl{margin-top:22px}.gl small{display:block;color:var(--accent);letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px}.gtrack{position:relative;height:96px}.gtrack.pins{height:176px;margin-top:26px}.gy,.gtrack{margin-left:70px;width:2930px;min-width:0}.gb{position:absolute;top:0;height:96px;display:flex;align-items:center;gap:12px;padding:0 16px;border-radius:var(--r,22px);border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line));background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 18%,var(--surface)),color-mix(in srgb,var(--accent) 5%,var(--surface)));overflow:hidden}.gb img{width:48px;height:48px;box-sizing:border-box;object-fit:contain;display:block;border-radius:12px;background:#fff;padding:8px;flex:none}.gb b{display:block;font-size:.9rem;line-height:1.25}.gb em{font-style:normal;color:var(--muted);font-size:.8rem}.gp{position:absolute;display:flex;align-items:center;gap:10px;width:200px;margin-left:-24px;text-align:left}.gp img{width:48px;height:48px;box-sizing:border-box;object-fit:contain;display:block;border-radius:50%;background:#fff;padding:8px;border:2px solid var(--accent);flex:none}.ini{display:grid;place-items:center;width:48px;height:48px;border-radius:12px;background:#fff;color:#111;font:700 .8rem monospace;flex:none}.gp b{display:block;font-size:.78rem;line-height:1.25}.gp em{display:block;font-style:normal;font-size:.68rem;line-height:1.3;color:var(--muted)}.gs{position:absolute;top:-26px;border-left:2px solid var(--accent);transform:translateX(-1px)}</style>"""
-B='<div class="pw"><div class="page" style="padding:0;max-width:1100px"><div class="gantt"><div class="gy">'+yrs+'</div><div class="gl"><div class="gtrack">'+bar(*E[0])+bar(*E[1])+bar(*E[2])+'</div></div><div class="gl"><div class="gtrack pins">'+pins+'</div></div></div></div></div>'+CSSB
+LBL=250; GAP=LBL/2930*100
+def lines(items,cls,step=66,wide=240):
+    # Every station is a thin line from its first to its last month; the logo + text hangs under its newer end (left edge).
+    # A label closer than one label width to the previous one in the same lane drops to the next lane, so nothing overlaps.
+    its=sorted([(xr(end(z)),xr(mo(a)),t,o,a,z,logo) for t,o,a,z,logo in items],key=lambda i:i[0])
+    out='';lastx=[]
+    for l,r,t,o,a,z,logo in its:
+        lane=0
+        while lane<len(lastx) and l-lastx[lane]<wide/2930*100: lane+=1
+        if lane==len(lastx): lastx.append(l)
+        lastx[lane]=l
+        out+='<i class="gline %s" style="left:%.3f%%;width:%.3f%%"></i><div class="glab" style="left:%.3f%%;top:%dpx;width:%dpx">%s<span><b>%s</b><em>%s</em><em>%s</em></span></div>'%(cls,l,max(r-l,0.45),l,18+lane*step,wide,img(logo),t,o,lbl(a,z))
+    return out,18+len(lastx)*step
+CSSB="""<style>.gantt{position:relative;margin-top:26px;overflow-x:auto}.gantt>*{min-width:3000px}.gy{position:relative;height:44px;border-bottom:1px dashed var(--line)}.gy em{position:absolute;bottom:0;text-align:center;font:500 .55rem/18px 'JetBrains Mono',monospace;font-style:normal;color:var(--muted);border-left:1px solid color-mix(in srgb,var(--line) 60%,transparent)}.gy span{position:absolute;font:500 .7rem 'JetBrains Mono',monospace;color:var(--muted);transform:translateX(-50%)}.gl{margin-top:22px}.gl small{display:block;color:var(--accent);letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px}.gtrack{position:relative}.gline{position:absolute;top:0;height:8px;border-radius:99px;background:var(--accent)}.gline.work{background:var(--live,#4cd48a)}.glab{position:absolute;display:flex;align-items:center;gap:10px;text-align:left}.glab img,.glab .ini{width:44px;height:44px;box-sizing:border-box;object-fit:contain;display:block;border-radius:12px;background:#fff;padding:7px;flex:none}.glab b{display:block;font-size:.8rem;line-height:1.25}.glab em{display:block;font-style:normal;font-size:.68rem;line-height:1.3;color:var(--muted)}.gy,.gtrack{margin-left:70px;width:2930px;min-width:0}.gb{position:absolute;top:0;height:96px;display:flex;align-items:center;gap:12px;padding:0 16px;border-radius:var(--r,22px);border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line));background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 18%,var(--surface)),color-mix(in srgb,var(--accent) 5%,var(--surface)));overflow:hidden}.gb img{width:48px;height:48px;box-sizing:border-box;object-fit:contain;display:block;border-radius:12px;background:#fff;padding:8px;flex:none}.gb b{display:block;font-size:.9rem;line-height:1.25}.gb em{font-style:normal;color:var(--muted);font-size:.8rem}.gp{position:absolute;display:flex;align-items:center;gap:10px;width:200px;margin-left:-24px;text-align:left}.gp img{width:48px;height:48px;box-sizing:border-box;object-fit:contain;display:block;border-radius:50%;background:#fff;padding:8px;border:2px solid var(--accent);flex:none}.ini{display:grid;place-items:center;width:48px;height:48px;border-radius:12px;background:#fff;color:#111;font:700 .8rem monospace;flex:none}.gp b{display:block;font-size:.78rem;line-height:1.25}.gp em{display:block;font-style:normal;font-size:.68rem;line-height:1.3;color:var(--muted)}.gs{position:absolute;top:-26px;border-left:2px solid var(--accent);transform:translateX(-1px)}</style>"""
+eh,ehh=lines(E,'edu',96,480); wh,whh=lines([(t,org,a,z,logo) for t,a,z,logo,org in W],'work')
+B='<div class="pw"><div class="page" style="padding:0;max-width:1100px"><div class="gantt"><div class="gy">'+yrs+'</div><div class="gl"><div class="gtrack" style="height:%dpx">'%ehh+eh+'</div></div><div class="gl"><div class="gtrack" style="height:%dpx">'%whh+wh+'</div></div></div></div></div>'+CSSB
 open('career-v7-b.html','w').write(head+B+tail)
 rows=[(t,o,a,z,l,'education') for t,o,a,z,l in E]+[(t,org,a,z,logo,'work') for t,a,z,logo,org in W]
 rows.sort(key=lambda r:r[2],reverse=True)
