@@ -1,11 +1,12 @@
 import '../proto.css';
 
-// Time runs right to left: today is at the left edge, the oldest station at the right. Schools are long bars from their first to their last day; jobs and internships are bars of
-// their real length with a pin and card below, so overlaps with school are visible. YEAR_PX is generous on purpose:
-// a one-month internship still gets a readable slice.
+// Time runs right to left: today is at the left edge, the oldest station at the right. Every station, school or job, is a thin line from its
+// first to its last month with logo and text hanging under its newer end. YEAR_PX is generous on purpose: a one-month internship still gets a
+// visible stub. Labels that would overlap an earlier one in the same lane drop to the next row.
 const YEAR_PX = 264;
-const CARD_W = 232;
 const PAD = 28;
+const LABEL_W = { education: 440, work: 250 };
+const ROW_H = { education: 96, work: 66 };
 const LOGOS = [
     [/infineon/i, '/logos/infineon.png'],
     [/bundesheer/i, '/logos/bundesheer.png'],
@@ -43,6 +44,47 @@ function Logo({ org }) {
     );
 }
 
+function Lane({ kind, items, x, px }) {
+    const w = LABEL_W[kind];
+    const step = ROW_H[kind];
+    const rightEdges = [];
+    const placed = [...items]
+        .sort((p, q) => q.a - p.a)
+        .map((r) => {
+            const left = x(r.z);
+            let lane = rightEdges.findIndex((edge) => left >= edge);
+            if (lane === -1) lane = rightEdges.length;
+            rightEdges[lane] = left + w + 8;
+            return { ...r, left, lane };
+        });
+    const lanes = Math.max(1, rightEdges.length);
+    return (
+        <div className={`ch-lane ch-${kind}`} style={{ height: 18 + lanes * step }}>
+            {placed.map((r) => (
+                // display: contents keeps line and label siblings of the lane, so both can be absolutely placed yet hover as one station
+                <article key={r._id} role="listitem" className="ch-item">
+                    <i
+                        className="ch-line"
+                        style={{ left: r.left, width: Math.max((r.z - r.a) * px, 10) }}
+                    />
+                    <div
+                        className="ch-lab"
+                        tabIndex={0}
+                        style={{ left: r.left, top: 18 + r.lane * step, width: w }}
+                    >
+                        <Logo org={r.organisation} />
+                        <div>
+                            <b>{r.title}</b>
+                            <span className="org">{r.organisation}</span>
+                            <span className="mono when">{span(r.startDate, r.endDate)}</span>
+                        </div>
+                    </div>
+                </article>
+            ))}
+        </div>
+    );
+}
+
 export default function CareerChart({ entries }) {
     const now = months(new Date());
     const rows = entries.map((e) => ({
@@ -50,31 +92,17 @@ export default function CareerChart({ entries }) {
         a: months(e.startDate),
         z: e.endDate ? months(lastDay(e.endDate)) + 1 : now + 1,
     }));
-    const first = rows.length ? Math.min(...rows.map((r) => r.a)) : 0;
-    const last = rows.length ? Math.max(...rows.map((r) => r.z)) : 0;
-
     if (!rows.length) return null;
+    const first = Math.min(...rows.map((r) => r.a));
+    const last = Math.max(...rows.map((r) => r.z));
     const px = YEAR_PX / 12;
     // Mirrored: the boundary of month m sits (last - m) months from the left edge.
     const x = (m) => PAD + (last - m) * px;
-    const width = x(last) + PAD;
+    const width = x(first) + PAD + LABEL_W.education;
     const years = [];
     for (let m = Math.ceil(first / 12) * 12; m <= last; m += 12) years.push(m);
-
     const edu = rows.filter((r) => r.kind === 'education');
-    // Jobs: stagger the cards over levels so neighbouring cards never overlap.
-    const edges = [];
-    const work = rows
-        .filter((r) => r.kind !== 'education')
-        .sort((p, q) => q.a - p.a)
-        .map((r) => {
-            const mid = (x(r.a) + x(r.z)) / 2;
-            let level = edges.findIndex((right) => mid - CARD_W / 2 >= right + 8);
-            if (level === -1) level = edges.length;
-            edges[level] = mid + CARD_W / 2;
-            return { ...r, mid, level };
-        });
-    const levels = Math.max(1, edges.length);
+    const work = rows.filter((r) => r.kind !== 'education');
 
     return (
         <div className="ch" role="list" aria-label="Career timeline">
@@ -103,59 +131,8 @@ export default function CareerChart({ entries }) {
                     {years.map((m) => (
                         <i key={m} className="ch-grid" style={{ left: x(m) }} aria-hidden="true" />
                     ))}
-                    <div className="ch-lane ch-edu">
-                        {edu.map((r) => (
-                            <article
-                                key={r._id}
-                                role="listitem"
-                                className="ch-bar"
-                                style={{ left: x(r.z), width: Math.max((r.z - r.a) * px, 56) }}
-                            >
-                                {/* One sticky wrapper so logo and text travel together and stay readable while the bar is scrolled. */}
-                                <div className="ch-bar-in">
-                                    <Logo org={r.organisation} />
-                                    <div>
-                                        <b>{r.title}</b>
-                                        <span className="org">{r.organisation}</span>
-                                        <span className="mono when">
-                                            {span(r.startDate, r.endDate)}
-                                        </span>
-                                    </div>
-                                </div>
-                            </article>
-                        ))}
-                    </div>
-
-                    <div className="ch-lane ch-work" style={{ height: 34 + levels * 112 }}>
-                        {work.map((r) => (
-                            <article key={r._id} role="listitem" className="ch-job">
-                                <i
-                                    className="ch-span"
-                                    style={{ left: x(r.z), width: Math.max((r.z - r.a) * px, 10) }}
-                                />
-                                <i
-                                    className="ch-stem"
-                                    style={{ left: r.mid, height: 14 + r.level * 112 }}
-                                />
-                                <div
-                                    className="ch-card"
-                                    style={{
-                                        left: Math.max(r.mid - CARD_W / 2, 8),
-                                        width: CARD_W,
-                                        top: 26 + r.level * 112,
-                                    }}
-                                >
-                                    <Logo org={r.organisation} />
-                                    <div>
-                                        <b>{r.title}</b>
-                                        <span className="mono when">
-                                            {span(r.startDate, r.endDate)}
-                                        </span>
-                                    </div>
-                                </div>
-                            </article>
-                        ))}
-                    </div>
+                    <Lane kind="education" items={edu} x={x} px={px} />
+                    <Lane kind="work" items={work} x={x} px={px} />
                 </div>
             </div>
         </div>

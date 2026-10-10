@@ -224,83 +224,78 @@
     bottom: 0;
     border-left: 1px dashed color-mix(in srgb, var(--line) 70%, transparent);
 }
-.pw .ch-label {
-    position: sticky;
-    left: 14px;
-    width: max-content;
-    margin: 18px 0 8px 14px;
-    font-size: 0.68rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--accent);
-    z-index: 1;
-}
 .pw .ch-lane {
     position: relative;
+    margin-top: 22px;
 }
-.pw .ch-edu {
-    height: 112px;
+.pw .ch-item {
+    display: contents;
 }
-.pw .ch-bar {
+.pw .ch-line {
     position: absolute;
     top: 0;
-    height: 112px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 0 18px;
-    overflow: clip;
-    border-radius: var(--r-s, 16px);
-    border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
-    background: linear-gradient(
-        90deg,
-        color-mix(in srgb, var(--accent) 22%, var(--surface)),
-        color-mix(in srgb, var(--accent) 7%, var(--surface))
-    );
-}
-.pw .ch-bar-in {
-    position: sticky;
-    left: 16px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    min-width: 0;
-    /* narrow enough to fit inside the visible part of the bar, otherwise sticky is pushed back by the bar's right edge */
-    max-width: max(150px, min(560px, calc(100vw - 210px)));
-}
-.pw .ch-bar-in > div {
-    min-width: 0;
-}
-.pw .ch-card b {
-    overflow-wrap: normal;
-    word-break: normal;
-}
-.pw .ch-span {
-    position: absolute;
-    top: 0;
-    height: 14px;
+    height: 8px;
     border-radius: 99px;
+    background: var(--accent);
+    transition:
+        height 0.18s,
+        top 0.18s,
+        box-shadow 0.18s,
+        filter 0.18s,
+        opacity 0.18s;
+}
+.pw .ch-work .ch-line {
     background: var(--live);
 }
-.pw .ch-stem {
+/* the line is only 8px tall, so an invisible larger hit area keeps one-month stubs hoverable */
+.pw .ch-line::before {
+    content: '';
     position: absolute;
-    top: 14px;
-    width: 2px;
-    margin-left: -1px;
-    background: color-mix(in srgb, var(--live) 70%, transparent);
+    inset: -12px -2px;
 }
-.pw .ch-card {
+.pw .ch-lab {
     position: absolute;
     display: flex;
+    align-items: center;
     gap: 10px;
-    align-items: flex-start;
-    padding: 10px 12px;
     border-radius: var(--r-s, 16px);
-    border: 1px solid color-mix(in srgb, var(--live) 45%, var(--line));
-    background: var(--bg);
+    transition:
+        opacity 0.18s,
+        transform 0.18s;
 }
-.pw .ch-card > div {
+.pw .ch-lab:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+}
+.pw .ch-lab > div {
     min-width: 0;
+}
+/* Hover or keyboard focus on one station dims all the others, so it is clear which line a label belongs to. */
+.pw .ch-inner:has(.ch-item:hover, .ch-item:focus-within) .ch-item:not(:hover, :focus-within) > * {
+    opacity: 0.28;
+}
+.pw .ch-item:hover .ch-line,
+.pw .ch-item:focus-within .ch-line {
+    height: 14px;
+    top: -3px;
+    filter: brightness(1.25);
+    box-shadow: 0 0 18px 2px var(--accent);
+}
+.pw .ch-work .ch-item:hover .ch-line,
+.pw .ch-work .ch-item:focus-within .ch-line {
+    box-shadow: 0 0 18px 2px var(--live);
+}
+.pw .ch-item:hover .ch-lab,
+.pw .ch-item:focus-within .ch-lab {
+    transform: translateY(3px);
+}
+.pw .ch-item:hover .ch-logo,
+.pw .ch-item:focus-within .ch-logo {
+    box-shadow: 0 0 0 2px var(--accent);
+}
+.pw .ch-item:hover .ch-lab b,
+.pw .ch-item:focus-within .ch-lab b {
+    color: var(--accent);
 }
 .pw .ch-logo {
     flex: none;
@@ -324,65 +319,25 @@
         700 0.8rem 'JetBrains Mono',
         monospace;
 }
-.pw .ch-kind {
-    display: block;
-    font-size: 0.62rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--live);
-}
 .pw .ch b {
     display: block;
     font-weight: 700;
     line-height: 1.25;
-    font-size: 0.9rem;
+    font-size: 0.82rem;
 }
 .pw .ch .org {
     display: block;
     color: var(--muted);
-    font-size: 0.82rem;
+    font-size: 0.72rem;
 }
 .pw .ch .when {
     display: block;
     color: var(--muted);
-    font-size: 0.72rem;
-}
-.pw .ch-card b {
-    font-size: 0.82rem;
+    font-size: 0.68rem;
 }
 @media (max-width: 640px) {
     html .pw .ch-logo {
         width: 36px;
         height: 36px;
     }
-    html .pw .ch-bar {
-        padding: 0 12px;
-    }
-    html .pw .ch b {
-        font-size: 0.8rem;
-    }
-}
-.pw .ch-bar-in b {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-@media (max-width: 640px) {
-    html .pw .ch-edu {
-        height: 132px;
-    }
-    html .pw .ch-bar {
-        height: 132px;
-    }
-    html .pw .ch-bar-in b {
-        font-size: 0.76rem;
-        -webkit-line-clamp: 3;
-    }
-}
-.pw .ch-card {
-    z-index: 1;
-}
-.pw .ch-stem {
-    z-index: 0;
 }
