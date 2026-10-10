@@ -176,25 +176,161 @@
 }
 
 /* Career chart */
-.pw .cc{position:relative;display:grid;grid-template-columns:44px minmax(0,1.15fr) minmax(0,1fr);gap:0 18px;margin-top:8px}
-.pw .cc-axis{position:relative}
-.pw .cc-axis span{position:absolute;left:0;font:500 .72rem 'JetBrains Mono',monospace;color:var(--muted)}
-.pw .cc-axis::after{content:'';position:absolute;right:10px;top:0;bottom:0;border-right:1px dashed var(--line)}
-.pw .cc-lane{position:relative}
-.pw .cc-bar{position:absolute;left:0;right:0;display:flex;gap:14px;padding:16px;border-radius:var(--r,22px);border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line));background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 16%,var(--surface)),color-mix(in srgb,var(--accent) 4%,var(--surface)));overflow:hidden}
-.pw .cc-job{position:absolute;left:0;right:0;display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:var(--r-s,16px);border:1px solid var(--line);background:var(--surface);box-shadow:0 8px 24px -16px rgb(0 0 0/.6)}
-.pw .cc-tick{position:absolute;left:-19px;top:20px;width:19px;border-top:2px solid var(--accent)}
-.pw .cc-tick::before{content:'';position:absolute;left:-4px;top:-5px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
-.pw .cc-logo{flex:none;width:44px;height:44px;border-radius:12px;background:#fff;display:grid;place-items:center;overflow:hidden;border:1px solid var(--line)}
-.pw .cc-logo img{width:30px;height:30px;object-fit:contain}.pw .cc-logo b{color:#111;font:700 .8rem 'JetBrains Mono',monospace}
-.pw .cc-kind{display:block;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
-.pw .cc b{display:block;font-weight:700;line-height:1.25}.pw .cc .org{display:block;color:var(--muted);font-size:.88rem}.pw .cc .when{display:block;font-size:.76rem}
-.pw .cc p{font-size:.84rem;color:var(--muted);margin-top:6px;line-height:1.45}
-@media(max-width:640px){
-  html .pw .cc{grid-template-columns:30px minmax(0,1fr) minmax(0,1fr);gap:0 10px}
-  html .pw .cc-axis span{font-size:.6rem}
-  html .pw .cc-bar,html .pw .cc-job{flex-direction:column;gap:8px;padding:10px}
-  html .pw .cc-logo{width:34px;height:34px}.pw .cc-logo img{width:24px;height:24px}
-  html .pw .cc b{font-size:.8rem}html .pw .cc .org,html .pw .cc p{font-size:.7rem}
-  html .pw .cc-tick{left:-11px;width:11px}
+.pw .cc {
+    position: relative;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 0 18px;
+    margin-top: 8px;
+}
+.pw .cc-axis {
+    position: relative;
+}
+.pw .cc-axis span {
+    position: absolute;
+    left: 0;
+    font:
+        500 0.72rem 'JetBrains Mono',
+        monospace;
+    color: var(--muted);
+}
+.pw .cc-axis::after {
+    content: '';
+    position: absolute;
+    right: 10px;
+    top: 0;
+    bottom: 0;
+    border-right: 1px dashed var(--line);
+}
+.pw .cc-lane {
+    position: relative;
+}
+.pw .cc-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: flex;
+    gap: 14px;
+    padding: 16px;
+    border-radius: var(--r, 22px);
+    border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+    background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--accent) 16%, var(--surface)),
+        color-mix(in srgb, var(--accent) 4%, var(--surface))
+    );
+    overflow: hidden;
+}
+.pw .cc-job {
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 14px;
+    border-radius: var(--r-s, 16px);
+    border: 1px solid var(--line);
+    background: var(--surface);
+    box-shadow: 0 8px 24px -16px rgb(0 0 0/0.6);
+}
+.pw .cc-tick {
+    position: absolute;
+    left: -19px;
+    top: 20px;
+    width: 19px;
+    border-top: 2px solid var(--accent);
+}
+.pw .cc-tick::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: -5px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+}
+.pw .cc-logo {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #fff;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid var(--line);
+}
+.pw .cc-logo img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+.pw .cc-logo b {
+    color: #111;
+    font:
+        700 0.8rem 'JetBrains Mono',
+        monospace;
+}
+.pw .cc-kind {
+    display: block;
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+}
+.pw .cc b {
+    display: block;
+    font-weight: 700;
+    line-height: 1.25;
+}
+.pw .cc .org {
+    display: block;
+    color: var(--muted);
+    font-size: 0.88rem;
+}
+.pw .cc .when {
+    display: block;
+    font-size: 0.76rem;
+}
+.pw .cc p {
+    font-size: 0.84rem;
+    color: var(--muted);
+    margin-top: 6px;
+    line-height: 1.45;
+}
+@media (max-width: 640px) {
+    html .pw .cc {
+        grid-template-columns: 30px minmax(0, 1fr) minmax(0, 1fr);
+        gap: 0 10px;
+    }
+    html .pw .cc-axis span {
+        font-size: 0.6rem;
+    }
+    html .pw .cc-bar,
+    html .pw .cc-job {
+        flex-direction: column;
+        gap: 8px;
+        padding: 10px;
+    }
+    html .pw .cc-logo {
+        width: 34px;
+        height: 34px;
+    }
+    .pw .cc-logo img {
+        width: 24px;
+        height: 24px;
+    }
+    html .pw .cc b {
+        font-size: 0.8rem;
+    }
+    html .pw .cc .org,
+    html .pw .cc p {
+        font-size: 0.7rem;
+    }
+    html .pw .cc-tick {
+        left: -11px;
+        width: 11px;
+    }
 }
