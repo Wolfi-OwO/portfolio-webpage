@@ -153,7 +153,9 @@ export default function Homepage() {
     const career = availability
         .filter((e) => e.track === 'career' && e.published)
         .sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
-    const featured = [2, 0, 3].map((i) => projects[i]).filter(Boolean);
+    const featured = ['Metrion', 'NetViz', 'Nutrilens']
+        .map((t) => projects.find((p) => p.title === t))
+        .filter(Boolean);
 
     return (
         <>
@@ -170,7 +172,7 @@ export default function Homepage() {
                         <Lines
                             lines={[
                                 <>
-                                    Hi, I'm <em>{IDENTITY.name}</em>.
+                                    Hi, I'm <em>Phillip</em>.
                                 </>,
                                 'I make software that',
                                 'does what it says.',
@@ -194,7 +196,7 @@ export default function Homepage() {
                                 <p className="lead">
                                     <FormattedMessage
                                         id="homepage.bio"
-                                        defaultMessage="I'm a software developer from Carinthia. I graduated from HTL Villach in 2026 with a Reife- und Diplomprüfung in computer science, and I've done software engineering internships at Infineon Technologies. I work on web applications, on apps in general — Android and desktop among them — and on projects in data science and AI. More about my background on <link>LinkedIn</link>."
+                                        defaultMessage="I'm Phillip, a software developer from Carinthia. I build web applications, websites and apps, and I'm happiest where data and machine learning meet everyday software: tools that are fast, honest about what they do, and a pleasure to use. Alongside the code I climb, hike and keep tinkering with new ideas. More on <link>LinkedIn</link>."
                                         values={{
                                             link: (chunks) => (
                                                 <a
