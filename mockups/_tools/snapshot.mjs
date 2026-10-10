@@ -15,7 +15,11 @@ for (const [name, url] of PAGES) {
   const r = await page.evaluate(() => {
     document.querySelectorAll('script,.toast').forEach((e) => e.remove());
     const css = [...document.querySelectorAll('style')].map((s) => s.textContent).join('\n').replace(/\/\*# sourceMappingURL[^*]*\*\//g, '');
-    document.querySelector('main').style.overflow = 'visible';
+    // The app shell is a viewport-tall column with a scrolling <main> from lg up. A static copy must scroll as a normal page.
+    const main = document.querySelector('main');
+    main.style.overflow = 'visible';
+    for (let el = main.parentElement; el && el !== document.documentElement; el = el.parentElement) { el.style.height = 'auto'; el.style.minHeight = '100dvh'; el.style.overflow = 'visible'; }
+    document.documentElement.style.height = 'auto'; document.body.style.height = 'auto'; document.body.style.overflow = 'auto';
     return { css, cls: document.documentElement.className, style: document.documentElement.getAttribute('style') || '', body: document.body.innerHTML };
   });
   const fix = (s) => s.replace(/(src|href)="\/(logos|shots|assets|profile-image\.jpg|favicon\.svg)/g, '$1="_shared/$2').replace(/url\(\/(logos|shots|assets)\//g, 'url(_shared/$1/');
