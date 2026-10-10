@@ -67,7 +67,8 @@ test('footer is compact: links and copyright fit in two short rows', async ({ pa
 test('technology strip is a single line and moves', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
     const track = page.locator('.marquee-track');
-    await track.scrollIntoViewIfNeeded();
+    // scrollIntoViewIfNeeded waits for a stable element, and this one never holds still.
+    await track.evaluate((el) => el.scrollIntoView({ block: 'center' }));
     const x0 = await track.evaluate((el) => el.getBoundingClientRect().x);
     await page.waitForTimeout(1200);
     const x1 = await track.evaluate((el) => el.getBoundingClientRect().x);
@@ -86,11 +87,20 @@ test('hero portrait stays round and fits the screen', async ({ page }) => {
     expect(box.width).toBeLessThanOrEqual(page.viewportSize().width);
 });
 
-test('reload keeps the saved dark colours from the first frame', async ({ page }) => {
+test('the head script paints the saved colours before any app code runs', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
-    await page.reload({ waitUntil: 'commit' });
-    const bg = await page.evaluate(() =>
-        getComputedStyle(document.documentElement).getPropertyValue('--bg').trim(),
-    );
+    // Second visit with every script except the theme init blocked: what is on screen now came from the head script alone.
+    await page.route('**/*', (route) => {
+        const req = route.request();
+        return req.resourceType() === 'script' && !req.url().includes('theme-init')
+            ? route.abort()
+            : route.continue();
+    });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    const { bg, canvas } = await page.evaluate(() => ({
+        bg: document.documentElement.style.getPropertyValue('--bg'),
+        canvas: document.documentElement.style.backgroundColor,
+    }));
     expect(bg).toMatch(/^#0/);
+    expect(canvas).not.toBe('');
 });

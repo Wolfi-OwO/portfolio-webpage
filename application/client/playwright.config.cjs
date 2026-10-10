@@ -18,7 +18,7 @@ const names = [
     'Galaxy S24',
     'Galaxy S9+',
     'Galaxy Z Fold 7 Cover',
-    'iPad Mini',
+    'Pixel 10 Pro',
 ];
 
 module.exports = defineConfig({
