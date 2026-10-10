@@ -2,6 +2,8 @@ import '../proto.css';
 
 const SHOTS = {
     NetViz: '/shots/netviz.png',
+    Metrion: '/shots/metrion.png',
+    Nutrilens: '/shots/nutrilens.png',
     'Machine Learning Visualizer': '/shots/ml.png',
 };
 export const Lines = ({ lines }) => (
