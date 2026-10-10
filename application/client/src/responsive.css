@@ -429,3 +429,110 @@
     line-height: 1.3;
     letter-spacing: 0.05em;
 }
+
+/* Project cards: a 12-column wall. Each row's spans add up to 12, so every row ends
+   on the same line while the cards inside differ in width (rowSpans in design-bits). */
+html .pw .pgrid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 18px;
+    align-items: stretch;
+}
+html .pw .pgrid > .proj {
+    grid-column: span var(--span, 4);
+    padding: 0;
+    overflow: hidden;
+    gap: 0;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+/* The picture runs to the card's edge and takes the card's own curve: no frame, no
+   browser chrome. A fixed ratio keeps every card of a row on the same image height. */
+html .pw .pshot {
+    overflow: hidden;
+    flex: none;
+    background: var(--surface-2);
+}
+html .pw .pshot img {
+    display: block;
+    width: 100%;
+    height: 260px;
+    aspect-ratio: auto;
+    max-height: none;
+    object-fit: cover;
+    object-position: top left;
+    transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+html .pw .proj:hover .pshot img {
+    transform: scale(1.04);
+}
+html .pw .pbody {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 22px 24px 24px;
+    flex: 1;
+}
+/* Hierarchy: title clearly above the description, description above the meta/tags. */
+html .pw .pbody h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+}
+/* Long descriptions are clamped so rows stay compact; the full text lives in the repo. */
+html .pw .pbody p {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0;
+}
+html .pw .pbody .tags {
+    flex: none;
+    align-content: flex-start;
+    align-items: center;
+}
+html .pw .pbody .tag {
+    font-size: 0.68rem;
+    line-height: 1;
+    padding: 6px 10px;
+}
+html .pw .tag.more {
+    cursor: help;
+    color: var(--accent);
+}
+/* Homepage: one large card beside two stacked ones, bottoms flush. */
+html .pw .pgrid.bento > .proj {
+    grid-column: span 5;
+}
+html .pw .pgrid.bento > .lead-card {
+    grid-column: span 7;
+    grid-row: span 2;
+}
+html .pw .pgrid.bento > .lead-card .pshot {
+    flex: 1;
+    min-height: 0;
+}
+html .pw .pgrid.bento > .lead-card .pshot img {
+    height: 100%;
+    aspect-ratio: auto;
+}
+html .pw .pgrid.bento > .proj:not(.lead-card) .pshot img {
+    height: 190px;
+}
+@media (max-width: 900px) {
+    html .pw .pgrid > .proj,
+    html .pw .pgrid.bento > .proj,
+    html .pw .pgrid.bento > .lead-card {
+        grid-column: 1 / -1;
+        grid-row: auto;
+    }
+    html .pw .pgrid.bento > .lead-card .pshot img {
+        height: 260px;
+    }
+}

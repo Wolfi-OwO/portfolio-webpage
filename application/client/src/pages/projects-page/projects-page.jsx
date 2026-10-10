@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import { useApiList } from '../../hooks/useApiList.js';
 import { isAdmin } from '../../utils/auth.js';
-import { ProjectCard } from '../../components/design-bits.jsx';
+import { ProjectCard, hasShot, rowSpans } from '../../components/design-bits.jsx';
 import ProjectsAdminPage from './projects-admin-page.jsx';
 
 const FILTERS = ['All', 'React', 'TypeScript', 'Express', 'Python', 'Docker'];
@@ -23,6 +23,12 @@ function ProjectsView() {
             filter === 'All' ||
             (p.technologies || []).some((id) => (tech[id] || '').startsWith(filter)),
     );
+    // Cards with a screenshot lead, then the image-less ones; each group is laid out
+    // in its own rows so a text-only card never sits beside a tall image card.
+    const visual = shown.filter(hasShot);
+    const plain = shown.filter((p) => !hasShot(p));
+    const spansV = rowSpans(visual.length);
+    const spansP = rowSpans(plain.length);
     return (
         <div className="pw">
             <div className="page" style={{ padding: 0, maxWidth: 1040 }}>
@@ -47,9 +53,12 @@ function ProjectsView() {
                         ))}
                     </div>
                 </header>
-                <div className="grid2">
-                    {shown.map((p) => (
-                        <ProjectCard key={p._id} p={p} tech={tech} />
+                <div className="pgrid">
+                    {visual.map((p, i) => (
+                        <ProjectCard key={p._id} p={p} tech={tech} span={spansV[i]} />
+                    ))}
+                    {plain.map((p, i) => (
+                        <ProjectCard key={p._id} p={p} tech={tech} span={spansP[i]} />
                     ))}
                 </div>
                 {shown.length === 0 && <p className="muted">Nothing with {filter} yet.</p>}

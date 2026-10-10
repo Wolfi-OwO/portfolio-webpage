@@ -227,9 +227,9 @@ export default function Homepage() {
                         <h2 className="sec-label">
                             <span className="sec-n">01</span>Selected work
                         </h2>
-                        <div className="grid3">
-                            {featured.map((p) => (
-                                <ProjectCard key={p._id} p={p} tech={tech} />
+                        <div className="pgrid bento">
+                            {featured.map((p, i) => (
+                                <ProjectCard key={p._id} p={p} tech={tech} lead={i === 0} />
                             ))}
                         </div>
                         <Link className="btn ghost more" to="/projects">
