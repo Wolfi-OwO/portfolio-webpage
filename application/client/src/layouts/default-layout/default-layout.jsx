@@ -106,6 +106,8 @@ export default function DefaultLayout() {
     useEffect(() => {
         window.scrollTo({ top: 0 });
         scrollRef.current?.scrollTo({ top: 0 });
+        // Focus the scroll area so Space, PageDown and the arrow keys scroll it right after navigating.
+        scrollRef.current?.focus({ preventScroll: true });
     }, [location.pathname]);
 
     async function handleLogout() {
@@ -549,7 +551,8 @@ export default function DefaultLayout() {
                 spacing (the header is in flow), not the old 96px clearance. */}
             <main
                 ref={scrollRef}
-                className="app-scroll relative z-10 flex-1 px-4 pb-16 pt-8 sm:px-6 md:pt-10 lg:overflow-y-auto lg:px-8"
+                tabIndex={-1}
+                className="app-scroll relative z-10 flex-1 px-4 pb-16 pt-8 outline-none sm:px-6 md:pt-10 lg:overflow-y-auto lg:px-8"
             >
                 <Outlet />
             </main>
