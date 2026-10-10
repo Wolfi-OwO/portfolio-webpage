@@ -1,3 +1,5 @@
+import { useIntl } from 'react-intl';
+import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import '../proto.css';
 
 // Time runs right to left: today is at the left edge, the oldest station at the right. Every station, school or job, is a thin line from its
@@ -18,15 +20,22 @@ const months = (d) => {
     const x = new Date(d);
     return x.getFullYear() * 12 + x.getMonth();
 };
-const fmt = (d) => new Date(d).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
-const span = (a, z) => {
-    const x = fmt(a);
-    const y = z ? fmt(lastDay(z)) : 'now';
+// English reads as British, German as Austrian (de-AT: Jänner, Sept.), whatever the browser locale is.
+const dateLocale = (loc) => (loc.startsWith('de') ? 'de-AT' : 'en-GB');
+const fmt = (d, loc) =>
+    new Date(d).toLocaleDateString(dateLocale(loc), { month: 'short', year: 'numeric' });
+const span = (a, z, loc) => {
+    const x = fmt(a, loc);
+    const y = z ? fmt(lastDay(z), loc) : loc.startsWith('de') ? 'heute' : 'now';
     return x === y ? x : `${x} — ${y}`;
 };
 // A stay covers its start month and every month up to the day before endDate: 2026-07-01 -> 2026-10-01 is July, August, September.
 const lastDay = (d) => (d ? new Date(new Date(d).getTime() - 864e5) : null);
-const MONTH_LETTERS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+// Three letters per month on the axis, Austrian German says Jän (not Jan) and Mär; cells are 22px wide, which fits three letters of the mono font.
+const MONTHS = {
+    en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    de: ['Jän', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+};
 const initials = (s = '') =>
     s
         .split(/\s+/)
@@ -44,7 +53,7 @@ function Logo({ org }) {
     );
 }
 
-function Lane({ kind, items, x, px }) {
+function Lane({ kind, items, x, px, locale, admin, onEdit, onDelete }) {
     const w = LABEL_W[kind];
     const step = ROW_H[kind];
     const rightEdges = [];
@@ -62,7 +71,11 @@ function Lane({ kind, items, x, px }) {
         <div className={`ch-lane ch-${kind}`} style={{ height: 18 + lanes * step }}>
             {placed.map((r) => (
                 // display: contents keeps line and label siblings of the lane, so both can be absolutely placed yet hover as one station
-                <article key={r._id} role="listitem" className="ch-item">
+                <article
+                    key={r._id}
+                    role="listitem"
+                    className={r.published === false ? 'ch-item ch-draft' : 'ch-item'}
+                >
                     <i
                         className="ch-line"
                         style={{ left: r.left, width: Math.max((r.z - r.a) * px, 10) }}
@@ -76,8 +89,28 @@ function Lane({ kind, items, x, px }) {
                         <div>
                             <b>{r.title}</b>
                             <span className="org">{r.organisation}</span>
-                            <span className="mono when">{span(r.startDate, r.endDate)}</span>
+                            <span className="mono when">
+                                {span(r.startDate, r.endDate, locale)}
+                            </span>
                         </div>
+                        {admin && (
+                            <span className="ch-act">
+                                <button
+                                    type="button"
+                                    aria-label={`Edit ${r.title}`}
+                                    onClick={() => onEdit(r)}
+                                >
+                                    <PencilSquareIcon />
+                                </button>
+                                <button
+                                    type="button"
+                                    aria-label={`Delete ${r.title}`}
+                                    onClick={() => onDelete(r)}
+                                >
+                                    <TrashIcon />
+                                </button>
+                            </span>
+                        )}
                     </div>
                 </article>
             ))}
@@ -85,7 +118,8 @@ function Lane({ kind, items, x, px }) {
     );
 }
 
-export default function CareerChart({ entries }) {
+export default function CareerChart({ entries, admin = false, onEdit, onDelete }) {
+    const { locale } = useIntl();
     const now = months(new Date());
     const rows = entries.map((e) => ({
         ...e,
@@ -103,6 +137,8 @@ export default function CareerChart({ entries }) {
     for (let m = Math.ceil(first / 12) * 12; m <= last; m += 12) years.push(m);
     const edu = rows.filter((r) => r.kind === 'education');
     const work = rows.filter((r) => r.kind !== 'education');
+
+    const laneProps = { locale, admin, onEdit, onDelete };
 
     return (
         <div className="ch" role="list" aria-label="Career timeline">
@@ -124,15 +160,19 @@ export default function CareerChart({ entries }) {
                                 className={m % 12 === 0 ? 'ch-m ch-m-year' : 'ch-m'}
                                 style={{ left: x(m + 1), width: px }}
                             >
-                                {MONTH_LETTERS[((m % 12) + 12) % 12]}
+                                {
+                                    MONTHS[locale.startsWith('de') ? 'de' : 'en'][
+                                        ((m % 12) + 12) % 12
+                                    ]
+                                }
                             </em>
                         ))}
                     </div>
                     {years.map((m) => (
                         <i key={m} className="ch-grid" style={{ left: x(m) }} aria-hidden="true" />
                     ))}
-                    <Lane kind="education" items={edu} x={x} px={px} />
-                    <Lane kind="work" items={work} x={x} px={px} />
+                    <Lane kind="education" items={edu} x={x} px={px} {...laneProps} />
+                    <Lane kind="work" items={work} x={x} px={px} {...laneProps} />
                 </div>
             </div>
         </div>
