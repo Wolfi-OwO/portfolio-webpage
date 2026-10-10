@@ -34,3 +34,5 @@ dist-ssr
 application/client/dist
 application/server/coverage
 application/jobs/dist.playwright-mcp/
+application/client/test-results/
+application/client/playwright-report/
