@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import { useApiList } from '../../hooks/useApiList.js';
 import { isAdmin } from '../../utils/auth.js';
-import { ProjectCard, hasShot, rowSpans } from '../../components/design-bits.jsx';
+import { ProjectCard } from '../../components/design-bits.jsx';
+import { hasShot, rowSpans } from '../../components/project-layout.js';
 import ProjectsAdminPage from './projects-admin-page.jsx';
 
 const FILTERS = ['All', 'React', 'TypeScript', 'Express', 'Python', 'Docker'];
