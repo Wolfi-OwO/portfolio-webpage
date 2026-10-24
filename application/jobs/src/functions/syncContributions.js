@@ -90,9 +90,7 @@ const GITLAB_TOKEN = process.env.GITLAB_TOKEN || '';
 // addresses, and the account was later renamed. Matching commits by the current username
 // alone dropped everything written under an older identity (about half the history), so
 // any of these substrings in the author name or email also counts as the owner.
-const GITLAB_ALIASES = (
-    process.env.GITLAB_ALIASES ?? 'koflerp,wolfi-owo,kofler phillip,kofelrp@edu.htl-villach.at'
-)
+const GITLAB_ALIASES = (process.env.GITLAB_ALIASES ?? 'koflerp,wolfi-owo,kofler phillip')
     .split(',')
     .map((alias) => alias.trim().toLowerCase())
     .filter(Boolean);
