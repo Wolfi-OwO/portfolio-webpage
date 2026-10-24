@@ -158,7 +158,6 @@ export default {
     'contact.noteEmail': 'Am besten für Projektanfragen. Ich lese meine E-Mails täglich.',
     'contact.noteGithub': 'Alles, was ich öffentlich entwickle.',
     'contact.noteLinkedin': 'Beruflicher Werdegang und Erfahrungen.',
-    'contact.noteDiscord': 'Am schnellsten für kurze Fragen. Zum Kopieren klicken.',
 
     'contact.copied': 'In die Zwischenablage kopiert',
 

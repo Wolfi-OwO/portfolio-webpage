@@ -34,7 +34,7 @@ Live at [woofi-developments.at](https://woofi-developments.at) — status at [st
 ![Homepage — profile card with a live status line, and what I build](documentation/screenshots/homepage.png)
 
 - A profile card that doubles as a service card: it reads the same `/api/status` the status page uses, so the hero reports this site's own live uptime instead of hand-written stats.
-- Social links for GitHub, LinkedIn, Discord and email — Discord copies the handle, since a Discord username isn't a URL.
+- Social links for GitHub and email.
 
 ### Career
 
@@ -76,9 +76,9 @@ Live at [woofi-developments.at](https://woofi-developments.at) — status at [st
 
 ### Contact
 
-![Contact page — email, GitHub, LinkedIn and Discord](documentation/screenshots/contact.png)
+![Contact page — email and GitHub](documentation/screenshots/contact.png)
 
-- One card per channel: email, GitHub, LinkedIn and Discord, plus response time and availability at a glance.
+- One card per channel: email and GitHub, plus response time and availability at a glance.
 
 ## Why it is built this way
 

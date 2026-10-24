@@ -1,4 +1,4 @@
-import { DiscordIcon, GitHubIcon, MailIcon } from '../components/social-icons.jsx';
+import { GitHubIcon, MailIcon } from '../components/social-icons.jsx';
 
 // Single source of truth for who I am and where to reach me — imported by both
 // the homepage profile card and the contact page so the two can never drift.
@@ -18,7 +18,6 @@ export const IDENTITY = {
     // No longer a SOCIALS chip (the slug contains the civil name). Kept only because the
     // homepage bio still links it; remove together with that sentence in the homepage rewrite.
     linkedInUrl: 'https://www.linkedin.com/in/kofler-phillip-8666ab338/',
-    discordHandle: 'woofiowo',
 };
 
 export const SOCIALS = [
@@ -28,15 +27,6 @@ export const SOCIALS = [
         value: 'Wolfi-OwO',
         href: IDENTITY.githubUrl,
         Icon: GitHubIcon,
-    },
-    // Discord usernames aren't URL-addressable, so this one copies the handle
-    // instead of pretending to be a link that would 404.
-    {
-        key: 'discord',
-        label: 'Discord',
-        value: IDENTITY.discordHandle,
-        copy: IDENTITY.discordHandle,
-        Icon: DiscordIcon,
     },
     {
         key: 'email',

@@ -5,7 +5,6 @@ import LoadingScreen from '../../components/loading-screen.jsx';
 import { useApiList } from '../../hooks/useApiList.js';
 import { Link } from 'react-router-dom';
 import { Lines, ProjectCard } from '../../components/design-bits.jsx';
-import { fmtYear } from '../../utils/format-year.js';
 import '../../proto.css';
 import AvailabilityBadge from '../../components/availability-badge.jsx';
 import ActivityHeatmap from '../../components/activity-heatmap.jsx';
@@ -144,15 +143,12 @@ export default function Homepage() {
     );
 
     const [booting, setBooting] = useState(shouldBoot);
-    // Availability is fetched once and shared: the hero badge and the career preview are two views of the same list.
+    // Availability is fetched once and shared: the hero badge reads it.
     const [availability] = useApiList('/api/availability');
     const [projects] = useApiList('/api/projects');
     const [technologies] = useApiList('/api/technologies');
     const tech = Object.fromEntries(technologies.map((t) => [t._id, t.tech]));
     const badge = badgeState(availability.filter((entry) => entry.published));
-    const career = availability
-        .filter((e) => e.track === 'career' && e.published)
-        .sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
     const featured = ['Metrion', 'NetViz', 'Nutrilens']
         .map((t) => projects.find((p) => p.title === t))
         .filter(Boolean);
@@ -217,6 +213,9 @@ export default function Homepage() {
                                     <Link className="btn ghost" to="/projects">
                                         Read the work →
                                     </Link>
+                                    <Link className="btn ghost" to="/career">
+                                        Career &amp; education →
+                                    </Link>
                                 </div>
                             </div>
                         </div>
@@ -238,42 +237,14 @@ export default function Homepage() {
 
                     <section>
                         <h2 className="sec-label">
-                            <span className="sec-n">02</span>Where I've been
-                        </h2>
-                        <div className="mini-career">
-                            {career.slice(0, 3).map((e) => (
-                                <div
-                                    className={`crow k-${e.kind === 'education' ? 'education' : 'work'}`}
-                                    key={e._id}
-                                >
-                                    <span className="mono muted when">
-                                        {fmtYear(e.startDate)} — {fmtYear(e.endDate)}
-                                    </span>
-                                    <div>
-                                        <b>{e.title}</b>
-                                        <span className="org">
-                                            {e.organisation}
-                                            {e.location ? ` · ${e.location.split(',')[0]}` : ''}
-                                        </span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <Link className="btn ghost more" to="/career">
-                            Full career & education →
-                        </Link>
-                    </section>
-
-                    <section>
-                        <h2 className="sec-label">
-                            <span className="sec-n">03</span>Activity
+                            <span className="sec-n">02</span>Activity
                         </h2>
                         <ActivityHeatmap />
                     </section>
 
                     <section>
                         <h2 className="sec-label">
-                            <span className="sec-n">04</span>Technologies I use
+                            <span className="sec-n">03</span>Technologies I use
                         </h2>
                         <div className="marquee" aria-label="Technologies I use">
                             <div className="marquee-track">

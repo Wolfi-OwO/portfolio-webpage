@@ -17,10 +17,6 @@ const notes = {
         id: 'contact.noteLinkedin',
         defaultMessage: 'Work history, if you need it.',
     },
-    discord: {
-        id: 'contact.noteDiscord',
-        defaultMessage: 'Fastest for a quick question. Click to copy.',
-    },
 };
 
 const facts = [
