@@ -326,7 +326,7 @@ export default function ActivityHeatmap() {
     if (failed) return null;
 
     return (
-        <section className="mt-8 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 sm:p-9">
+        <section className="heat-sec mt-8 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 sm:p-9">
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="font-mono text-xs uppercase tracking-[0.18em] text-[var(--muted)]">
                     <span className="text-[var(--accent)]">//</span>{' '}

@@ -582,10 +582,10 @@ html .pw .ch:has(> .ch-scroll):hover {
 /* Activity block rhythm: one 28px step between the legend, the account cards and the
    repo list, 12px from a heading to what it labels, 8px between a name and its meta. */
 html .pw .heat-src {
-    margin-top: 28px;
+    margin-top: 18px;
 }
 html .pw .heat-recent {
-    margin-top: 32px;
+    margin-top: 22px;
 }
 html .pw .heat-recent .heat-h {
     margin: 0 0 12px;
@@ -595,8 +595,8 @@ html .pw .heat-repos {
 }
 html .pw .heat-src a,
 html .pw .heat-repos a {
-    padding: 14px 18px;
-    gap: 14px;
+    padding: 10px 16px;
+    gap: 12px;
 }
 html .pw .heat-src a > span > span:first-child,
 html .pw .heat-repos a > span > span:first-child {
@@ -767,4 +767,30 @@ html .pw .cp-page .cp-cols,
 html .pw .cp-page .cp-stats,
 html .pw .cp-page .page-h {
     margin: 0;
+}
+
+/* The activity block was ~750px tall: on a 14" laptop it filled the whole window and
+   the page could not be read at a glance. Tighter padding and gaps bring it to a
+   screen's height without shrinking any type. */
+html .pw .heat-sec {
+    padding: 22px 26px 24px;
+    margin-top: 0;
+}
+html .pw .heat-sec > p:first-of-type,
+html .pw .heat-sec > div:first-child + p {
+    margin-top: 8px;
+}
+html .pw .heat-sec .app-scroll {
+    padding-bottom: 4px;
+}
+html .pw .heat-sec > div.relative {
+    margin-top: 10px;
+}
+html .pw .heat-sec > div.mt-3 {
+    margin-top: 6px;
+}
+@media (max-width: 760px) {
+    html .pw .heat-sec {
+        padding: 18px 16px 20px;
+    }
 }
