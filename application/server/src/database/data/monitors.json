@@ -49,11 +49,5 @@
     "url": "https://status.woofi-developments.at/",
     "group": "Portfolio",
     "metrionKey": "status-page"
-  },
-  {
-    "name": "Preussen Web",
-    "url": "https://preussen.woofi-developments.at/login",
-    "group": "Preussen",
-    "metrionKey": "preussen"
   }
 ]

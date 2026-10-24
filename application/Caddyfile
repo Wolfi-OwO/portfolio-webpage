@@ -349,54 +349,6 @@ woofi-developments.at, www.woofi-developments.at, status.woofi-developments.at {
     }
 }
 
-# preussen-web dashboard. Its container lives in the separate preussen
-# compose stack (Preussenbot/docker-compose.prod.yml) — reachable here as
-# `preussen-web` because both stacks join the external `edge-net` network
-# (see the `networks` block at the bottom of this file and of that compose
-# file). preussen-bot gets no site block at all: it is a pure Discord
-# gateway worker with no HTTP surface (Azure's container app for it has
-# fqdn: null), so there is nothing here to route to it.
-preussen.woofi-developments.at {
-    encode zstd gzip
-
-    # Caps request bodies at 1 MB. The pattern-suggestions analyzer
-    # (rules/analyze) is CPU-heavy and was a DoS vector: without a cap a staff
-    # session could make the server buffer and parse an arbitrarily large JSON
-    # body. The app's own 700,000-byte content-length check is the inner
-    # bound; this is the outer one, enforced before the request reaches Node.
-    request_body {
-        max_size 1MB
-    }
-
-    # A separate header block on purpose, not a copy of the portfolio one
-    # above: that CSP is `script-src 'self'` with no 'unsafe-inline', which
-    # would break preussen-web. It is a Next.js App Router app, which streams
-    # RSC hydration data via an inline `<script>self.__next_f.push(...)</script>`
-    # tag on every page load (confirmed: no next.config.ts header/nonce setup
-    # and no middleware.ts in applications/web, so there is no nonce to
-    # tighten this with) — script-src needs 'unsafe-inline' or the app never
-    # hydrates. img-src additionally needs cdn.discordapp.com: guild icons
-    # are rendered from `https://cdn.discordapp.com/icons/...`
-    # (src/components/guilds/guild-picker.tsx) via a plain <img>, not
-    # next/image, so there is no build-time domain allowlist to lean on
-    # instead.
-    header {
-        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "DENY"
-        Referrer-Policy "strict-origin-when-cross-origin"
-        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://cdn.discordapp.com; font-src 'self'; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
-        Permissions-Policy "camera=(), microphone=(), geolocation=()"
-    }
-
-    import access_log
-    import error_pages
-
-    reverse_proxy preussen-web-green:8080 {
-        import edge_upstream_errors
-    }
-}
-
 # netviz — migrated from Azure Container Apps (netviz-rg) to this VPS
 # (see docs/MIGRATION_CONTABO.md). Its container lives in the separate
 # netviz compose stack (network-visualizer/application/docker-compose.prod.yml)
@@ -604,7 +556,7 @@ http://127.0.0.1:9444 {
 # pr-12-a1b2c3.netviz.preview.woofi-developments.at, label.3 is "netviz"
 # and label.4 is "pr-12-a1b2c3" — verified with a throwaway Caddy
 # container before this went anywhere near production (2026-09-05).
-*.netviz.preview.woofi-developments.at, *.nutrilens.preview.woofi-developments.at, *.preussen.preview.woofi-developments.at {
+*.netviz.preview.woofi-developments.at, *.nutrilens.preview.woofi-developments.at {
     tls {
         on_demand
     }
@@ -624,14 +576,6 @@ http://127.0.0.1:9444 {
     # /opt/previews/secrets/basic_auth_password.txt.
     basic_auth {
         preview REPLACE_WITH_BCRYPT_HASH_FROM_VPS
-    }
-
-    # Caps preview request bodies at 1 MB, but only for the Preussen previews:
-    # they run unreleased Preussen code (including the CPU-heavy rules/analyze
-    # route), while nutrilens previews may legitimately accept image uploads.
-    @preussen host *.preussen.preview.woofi-developments.at
-    request_body @preussen {
-        max_size 1MB
     }
 
     import access_log
