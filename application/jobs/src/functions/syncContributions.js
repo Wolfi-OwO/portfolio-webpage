@@ -86,6 +86,16 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
 const GITLAB_HOST = (process.env.GITLAB_HOST || 'https://gitlab.com').replace(/\/$/, '');
 const GITLAB_USER = process.env.GITLAB_USER || 'WoofiOwO';
 const GITLAB_TOKEN = process.env.GITLAB_TOKEN || '';
+// The same person committed as "Koflerp", "Wolfi-OwO", "Kofler Phillip" and with school
+// addresses, and the account was later renamed. Matching commits by the current username
+// alone dropped everything written under an older identity (about half the history), so
+// any of these substrings in the author name or email also counts as the owner.
+const GITLAB_ALIASES = (
+    process.env.GITLAB_ALIASES ?? 'koflerp,wolfi-owo,kofler phillip,kofelrp@edu.htl-villach.at'
+)
+    .split(',')
+    .map((alias) => alias.trim().toLowerCase())
+    .filter(Boolean);
 
 // How far back the backfill is willing to look. GitHub accounts older than this
 // simply stop contributing rows; there is no point walking to 1970.
@@ -135,7 +145,10 @@ async function storeDays(source, scope, days) {
         entries.map(([date, count]) => ({
             updateOne: {
                 filter: { source, scope, date },
-                update: { $set: { count } },
+                // GitLab counts only ever grow: a day recomputed lower (an alias list
+                // that changed, a repository that left the token's reach) must not
+                // erase what an earlier sync already found.
+                update: source === 'gitlab' ? { $max: { count } } : { $set: { count } },
                 upsert: true,
             },
         })),
@@ -242,7 +255,21 @@ async function gitlabUser(headers) {
     if (!res.ok) throw new Error(`GitLab responded ${res.status}`);
 
     const users = await res.json();
-    return users[0] || null;
+    const user = users[0] || null;
+    if (!user) return null;
+
+    // Verified account emails are authoritative for "this commit is mine", and need a
+    // token; without one only the alias list applies.
+    user.emails = [];
+    if (GITLAB_TOKEN) {
+        const emails = await fetchWithTimeout(`${GITLAB_HOST}/api/v4/user/emails`, { headers });
+        if (emails.ok) {
+            const list = await emails.json();
+            if (Array.isArray(list)) user.emails = list.map((e) => String(e.email).toLowerCase());
+        }
+    }
+
+    return user;
 }
 
 /** GitLab's own graph: accurate, but only a rolling twelve months. */
@@ -325,7 +352,9 @@ function isOwnCommit(commit, user) {
 
     return (
         haystack.includes((user.username || '').toLowerCase()) ||
-        (Boolean(user.name) && haystack.includes(user.name.toLowerCase()))
+        (Boolean(user.name) && haystack.includes(user.name.toLowerCase())) ||
+        GITLAB_ALIASES.some((alias) => haystack.includes(alias)) ||
+        (user.emails || []).some((email) => haystack.includes(email))
     );
 }
 
