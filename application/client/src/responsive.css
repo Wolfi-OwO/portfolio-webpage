@@ -578,3 +578,85 @@ html .pw .ch:has(> .ch-scroll):hover {
     border-color: transparent;
     transition: none;
 }
+
+/* Activity block rhythm: one 28px step between the legend, the account cards and the
+   repo list, 12px from a heading to what it labels, 8px between a name and its meta. */
+html .pw .heat-src {
+    margin-top: 28px;
+}
+html .pw .heat-recent {
+    margin-top: 32px;
+}
+html .pw .heat-recent .heat-h {
+    margin: 0 0 12px;
+}
+html .pw .heat-repos {
+    margin-top: 0;
+}
+html .pw .heat-src a,
+html .pw .heat-repos a {
+    padding: 14px 18px;
+    gap: 14px;
+}
+html .pw .heat-src a > span > span:first-child,
+html .pw .heat-repos a > span > span:first-child {
+    margin-bottom: 3px;
+}
+
+/* Homepage "Selected work": three equal cards in one row. The earlier bento made the
+   tall Metrion screenshot 900px high; equal cards keep the three images comparable. */
+html .pw .pgrid.bento > .proj,
+html .pw .pgrid.bento > .lead-card {
+    grid-column: span 4;
+    grid-row: auto;
+}
+html .pw .pgrid.bento .pshot,
+html .pw .pgrid.bento > .lead-card .pshot {
+    flex: none;
+}
+html .pw .pgrid.bento .pshot img,
+html .pw .pgrid.bento > .lead-card .pshot img,
+html .pw .pgrid.bento > .proj:not(.lead-card) .pshot img {
+    height: 200px;
+    aspect-ratio: auto;
+}
+html .pw .pgrid.bento .pbody p {
+    -webkit-line-clamp: 3;
+}
+@media (max-width: 900px) {
+    html .pw .pgrid.bento > .proj,
+    html .pw .pgrid.bento > .lead-card {
+        grid-column: 1 / -1;
+    }
+}
+
+/* "+N" is a tag like the others: same box, so it sits on the same baseline. */
+html .pw .pbody .tag.more {
+    padding: 6px 10px;
+    border-style: dashed;
+}
+html .pw .pbody .tags {
+    gap: 6px;
+    align-items: flex-start;
+}
+
+/* Big screens and TVs. The page column is a fixed 1040px, which on a 27" monitor or a
+   TV reads as a narrow strip with tiny text. `zoom` scales every px value together
+   (type, gaps, the 1040px column, the chart), so the layout is the laptop layout
+   enlarged rather than a different one. Steps follow common widths: 1920 (FHD),
+   2560 (QHD / 27"), 3840 (4K TV). */
+@media (min-width: 1700px) {
+    #root {
+        zoom: 1.25;
+    }
+}
+@media (min-width: 2200px) {
+    #root {
+        zoom: 1.6;
+    }
+}
+@media (min-width: 3000px) {
+    #root {
+        zoom: 2.2;
+    }
+}

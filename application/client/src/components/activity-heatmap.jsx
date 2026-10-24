@@ -607,8 +607,11 @@ function Sources({ sources, intl }) {
 }
 
 function Repos({ repos }) {
+    // react-intl's plain 'en' formats 10/24/2026 (month first); this site is read in
+    // British English or Austrian German, both day first.
+    const dateLocale = useIntl().locale.startsWith('de') ? 'de-AT' : 'en-GB';
     return (
-        <div className="mt-6">
+        <div className="heat-recent mt-6">
             <h3 className="heat-h font-mono text-2xs uppercase tracking-[0.2em] text-[var(--muted)]">
                 <FormattedMessage id="activity.recent" defaultMessage="Recently touched" />
             </h3>
@@ -634,12 +637,11 @@ function Repos({ repos }) {
 
                                     {repo.lastActivity && (
                                         <span className="block font-mono text-2xs uppercase tracking-wider text-[var(--muted)]">
-                                            <FormattedDate
-                                                value={repo.lastActivity}
-                                                day="2-digit"
-                                                month="2-digit"
-                                                year="numeric"
-                                            />
+                                            {new Intl.DateTimeFormat(dateLocale, {
+                                                day: '2-digit',
+                                                month: '2-digit',
+                                                year: 'numeric',
+                                            }).format(new Date(repo.lastActivity))}
                                             {repo.language ? ` · ${repo.language}` : ''}
                                         </span>
                                     )}

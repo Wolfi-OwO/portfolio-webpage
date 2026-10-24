@@ -14,10 +14,10 @@ export const Lines = ({ lines }) => (
 
 const MAX_TAGS = 4;
 
-export function ProjectCard({ p, tech, span, lead = false }) {
+export function ProjectCard({ p, tech, span, lead = false, maxTags = MAX_TAGS }) {
     const shot = SHOTS[p.title];
     const names = (p.technologies || []).map((id) => tech[id]).filter(Boolean);
-    const rest = names.slice(MAX_TAGS);
+    const rest = names.slice(maxTags);
     return (
         <article
             className={`card proj ${shot ? 'has-shot' : 'plain'} ${lead ? 'lead-card' : ''}`}
@@ -34,7 +34,7 @@ export function ProjectCard({ p, tech, span, lead = false }) {
                 <h3>{p.title}</h3>
                 <p>{p.description}</p>
                 <div className="tags">
-                    {names.slice(0, MAX_TAGS).map((n) => (
+                    {names.slice(0, maxTags).map((n) => (
                         <span className="tag" key={n}>
                             {n}
                         </span>
