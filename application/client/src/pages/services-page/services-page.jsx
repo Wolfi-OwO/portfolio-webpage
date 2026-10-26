@@ -45,7 +45,7 @@ function ServicesView() {
     const rate = shown[0]?.hourlyRate ?? 30;
     return (
         <div className="pw">
-            <div className="page" style={{ padding: 0, maxWidth: 1040 }}>
+            <div className="page" style={{ padding: 0 }}>
                 <header className="page-h">
                     <span className="kicker mono">What I build</span>
                     <h1>

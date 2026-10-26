@@ -32,7 +32,7 @@ function ProjectsView() {
     const spansP = rowSpans(plain.length);
     return (
         <div className="pw">
-            <div className="page" style={{ padding: 0, maxWidth: 1040 }}>
+            <div className="page" style={{ padding: 0 }}>
                 <header className="page-h">
                     <span className="kicker mono">Projects</span>
                     <h1>

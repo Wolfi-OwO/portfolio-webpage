@@ -81,7 +81,7 @@ export default function PersonalPage() {
 
     return (
         <div className="pw">
-            <div className="page" style={{ padding: 0, maxWidth: 1040 }}>
+            <div className="page" style={{ padding: 0 }}>
                 <section className="phero">
                     <div className="ptxt">
                         <span className="kicker mono">Beyond the code</span>

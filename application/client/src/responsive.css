@@ -640,24 +640,34 @@ html .pw .pbody .tags {
     align-items: flex-start;
 }
 
-/* Big screens and TVs. The page column is a fixed 1040px, which on a 27" monitor or a
-   TV reads as a narrow strip with tiny text. `zoom` scales every px value together
-   (type, gaps, the 1040px column, the chart), so the layout is the laptop layout
-   enlarged rather than a different one. Steps follow common widths: 1920 (FHD),
-   2560 (QHD / 27"), 3840 (4K TV). */
+/* Big screens. The page column used to be a fixed 1080px, scaled with `zoom` on large
+   screens: on a 27" 2560 monitor that made everything 1.6x too big and on a 34" ultrawide
+   (3440x1440) 2.2x, so the page behaved like a 1560x650 window. Type stays at its normal
+   size now and the column grows with the screen instead. Steps follow common widths:
+   1920 (FHD), 2560 (27" QHD, or 4K at 150%), 3440 (34" ultrawide). Only a 4K screen at
+   100% scaling (3840 wide AND 1800+ tall) gets a mild zoom, because there the text would
+   otherwise be tiny. */
 @media (min-width: 1700px) {
-    #root {
-        zoom: 1.25;
+    html .pw .page {
+        max-width: 1280px;
     }
 }
 @media (min-width: 2200px) {
-    #root {
-        zoom: 1.6;
+    html .pw .page {
+        max-width: 1520px;
     }
 }
 @media (min-width: 3000px) {
+    html .pw .page {
+        max-width: 1840px;
+    }
+}
+@media (min-width: 3000px) and (min-height: 1800px) {
     #root {
-        zoom: 2.2;
+        zoom: 1.3;
+    }
+    html .pw .page {
+        max-width: 1520px;
     }
 }
 

@@ -751,7 +751,7 @@
 
 /* full-bleed header and footer, flush to the viewport edges */
 .pw .page {
-    max-width: 1080px;
+    max-width: 1040px;
     padding: 96px 24px 96px;
     gap: 76px;
 }

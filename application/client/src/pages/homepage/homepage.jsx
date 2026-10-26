@@ -157,7 +157,7 @@ export default function Homepage() {
         <>
             {booting && <LoadingScreen onDone={() => setBooting(false)} />}
             <div className="pw">
-                <div className="page" style={{ padding: 0, maxWidth: 1040 }}>
+                <div className="page" style={{ padding: 0 }}>
                     <section className="hero">
                         <div className="hero-top mono muted">
                             <span className="hb">

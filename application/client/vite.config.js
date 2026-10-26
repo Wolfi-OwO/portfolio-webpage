@@ -24,12 +24,16 @@ export default defineConfig({
         },
     },
     server: {
+        // DEV_API_TARGET=https://www.woofi-developments.at runs the dev client against the live API, so career entries, projects and
+        // activity are the real ones instead of an empty local database. Left unset it talks to the local server.
         proxy: {
             '/api': {
-                target: 'http://localhost:8080/',
+                target: process.env.DEV_API_TARGET || 'http://localhost:8080/',
+                changeOrigin: true,
             },
             '/auth': {
-                target: 'http://localhost:8080/',
+                target: process.env.DEV_API_TARGET || 'http://localhost:8080/',
+                changeOrigin: true,
             },
         },
     },
