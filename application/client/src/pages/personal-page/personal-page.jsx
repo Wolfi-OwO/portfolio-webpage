@@ -181,9 +181,7 @@ export default function PersonalPage() {
                             </Cover>
                             <div className="np-d">
                                 <h3>{np.t}</h3>
-                                <p className="muted">
-                                    {np.a} · {np.al}
-                                </p>
+                                <p className="muted">{[np.a, np.al].filter(Boolean).join(' · ')}</p>
                                 {np.vid && (
                                     <div className="btns">
                                         <a
@@ -200,9 +198,9 @@ export default function PersonalPage() {
                         </div>
                         <div className="card tracks-c">
                             <div className="tracks-h">
-                                <h3>Most played tracks</h3>
+                                <h3>Recently played</h3>
                                 <span className="mono muted small">
-                                    Example data until a music source is connected.
+                                    Latest from my YouTube Music history.
                                 </span>
                             </div>
                             <ol className="tracks">
@@ -216,11 +214,14 @@ export default function PersonalPage() {
                                             <b>{m.t}</b>
                                             <em>{m.a}</em>
                                         </span>
-                                        <span className="al muted">{m.al}</span>
-                                        <span className="bar">
-                                            <i style={{ '--w': `${m.p}%` }} />
-                                        </span>
-                                        <span className="mono muted small pl">{m.p} plays</span>
+                                        <a
+                                            className="btn sm pl"
+                                            href={`https://music.youtube.com/watch?v=${m.vid}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            Play
+                                        </a>
                                     </li>
                                 ))}
                             </ol>

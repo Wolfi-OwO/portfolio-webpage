@@ -2928,7 +2928,7 @@
 .pw .tracks li {
     position: relative;
     display: grid;
-    grid-template-columns: 28px 48px minmax(0, 1.4fr) minmax(0, 1fr) minmax(70px, 0.8fr) 70px;
+    grid-template-columns: 28px 48px minmax(0, 1fr) auto;
     gap: 14px;
     align-items: center;
     padding: 10px 12px;
@@ -2991,7 +2991,7 @@
         grid-template-columns: 1fr;
     }
     .pw .tracks li {
-        grid-template-columns: 24px 44px minmax(0, 1fr) 60px;
+        grid-template-columns: 24px 44px minmax(0, 1fr) auto;
     }
     .pw .tracks .al,
     .pw .tracks .bar {

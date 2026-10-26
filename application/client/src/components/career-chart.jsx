@@ -1,9 +1,10 @@
+import { useEffect, useRef } from 'react';
 import { useIntl } from 'react-intl';
 import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import '../proto.css';
 
-// Time runs right to left: today is at the left edge, the oldest station at the right. Every station, school or job, is a thin line from its
-// first to its last month with logo and text hanging under its newer end. YEAR_PX is generous on purpose: a one-month internship still gets a
+// Time runs left to right: the oldest station is at the left edge, today at the right. Every station, school or job, is a thin line from its
+// first to its last month with logo and text hanging under its older (left) end. YEAR_PX is generous on purpose: a one-month internship still gets a
 // visible stub. Labels that would overlap an earlier one in the same lane drop to the next row.
 const YEAR_PX = 336;
 const PAD = 28;
@@ -58,9 +59,9 @@ function Lane({ kind, items, x, px, locale, admin, onEdit, onDelete }) {
     const step = ROW_H[kind];
     const rightEdges = [];
     const placed = [...items]
-        .sort((p, q) => q.a - p.a)
+        .sort((p, q) => p.a - q.a)
         .map((r) => {
-            const left = x(r.z);
+            const left = x(r.a);
             let lane = rightEdges.findIndex((edge) => left >= edge);
             if (lane === -1) lane = rightEdges.length;
             rightEdges[lane] = left + w + 8;
@@ -120,6 +121,12 @@ function Lane({ kind, items, x, px, locale, admin, onEdit, onDelete }) {
 
 export default function CareerChart({ entries, admin = false, onEdit, onDelete }) {
     const { locale } = useIntl();
+    const scroller = useRef(null);
+    // The newest stations are at the right edge, so the chart opens scrolled there.
+    useEffect(() => {
+        const el = scroller.current;
+        if (el) el.scrollLeft = el.scrollWidth;
+    }, [entries]);
     const now = months(new Date());
     const rows = entries.map((e) => ({
         ...e,
@@ -130,9 +137,14 @@ export default function CareerChart({ entries, admin = false, onEdit, onDelete }
     const first = Math.min(...rows.map((r) => r.a));
     const last = Math.max(...rows.map((r) => r.z));
     const px = YEAR_PX / 12;
-    // Mirrored: the boundary of month m sits (last - m) months from the left edge.
-    const x = (m) => PAD + (last - m) * px;
-    const width = x(first) + PAD + LABEL_W.education;
+    // The boundary of month m sits (m - first) months from the left edge.
+    const x = (m) => PAD + (m - first) * px;
+    // Labels hang to the right of their start, so the canvas ends at whichever of line end or label end reaches further.
+    const width =
+        Math.max(
+            x(last),
+            ...rows.map((r) => x(r.a) + LABEL_W[r.kind === 'education' ? 'education' : 'work']),
+        ) + PAD;
     const years = [];
     for (let m = Math.ceil(first / 12) * 12; m <= last; m += 12) years.push(m);
     const edu = rows.filter((r) => r.kind === 'education');
@@ -142,15 +154,11 @@ export default function CareerChart({ entries, admin = false, onEdit, onDelete }
 
     return (
         <div className="ch" role="list" aria-label="Career timeline">
-            <div className="ch-scroll" tabIndex={0}>
+            <div className="ch-scroll" tabIndex={0} ref={scroller}>
                 <div className="ch-inner" style={{ width }}>
                     <div className="ch-years" aria-hidden="true">
                         {years.map((m) => (
-                            <span
-                                key={m}
-                                className="ch-year"
-                                style={{ left: Math.max(x(m + 12), PAD) }}
-                            >
+                            <span key={m} className="ch-year" style={{ left: x(m) }}>
                                 {m / 12}
                             </span>
                         ))}
@@ -158,7 +166,7 @@ export default function CareerChart({ entries, admin = false, onEdit, onDelete }
                             <em
                                 key={m}
                                 className={m % 12 === 0 ? 'ch-m ch-m-year' : 'ch-m'}
-                                style={{ left: x(m + 1), width: px }}
+                                style={{ left: x(m), width: px }}
                             >
                                 {
                                     MONTHS[locale.startsWith('de') ? 'de' : 'en'][
