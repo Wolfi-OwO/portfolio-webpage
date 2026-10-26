@@ -140,6 +140,11 @@ x-web: &web-base
     - GITLAB_HOST=${GITLAB_HOST:-https://gitlab.com}
     - GITLAB_USER=${GITLAB_USER:-WoofiOwO}
     - GITLAB_TOKEN=${GITLAB_TOKEN:-}
+    # Liked Music statistics on the Personal page (see .env.example). Unset =
+    # /api/music answers 204 and the page keeps its built-in snapshot.
+    - YOUTUBE_CLIENT_ID=${YOUTUBE_CLIENT_ID:-}
+    - YOUTUBE_CLIENT_SECRET=${YOUTUBE_CLIENT_SECRET:-}
+    - YOUTUBE_REFRESH_TOKEN=${YOUTUBE_REFRESH_TOKEN:-}
   networks:
     - portfolio-net
 

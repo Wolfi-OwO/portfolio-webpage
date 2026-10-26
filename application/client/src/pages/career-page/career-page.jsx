@@ -63,8 +63,8 @@ function CareerView() {
                         Where I've <em>been</em>
                     </h1>
                     <p className="lead">
-                        School, an HTL diploma in IT and summer placements at Infineon, drawn on
-                        one timeline. Hover a line to see which station it is.
+                        School, an HTL diploma in IT and summer placements at Infineon, drawn on one
+                        timeline. Hover a line to see which station it is.
                     </p>
                 </header>
                 {published.length > 0 && (

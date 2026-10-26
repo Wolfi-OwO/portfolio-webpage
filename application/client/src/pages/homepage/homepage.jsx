@@ -227,7 +227,13 @@ export default function Homepage() {
                         </h2>
                         <div className="pgrid bento">
                             {featured.map((p, i) => (
-                                <ProjectCard key={p._id} p={p} tech={tech} lead={i === 0} maxTags={3} />
+                                <ProjectCard
+                                    key={p._id}
+                                    p={p}
+                                    tech={tech}
+                                    lead={i === 0}
+                                    maxTags={3}
+                                />
                             ))}
                         </div>
                         <Link className="btn ghost more" to="/projects">
