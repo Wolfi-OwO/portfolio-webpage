@@ -18,11 +18,13 @@ const r = buildReport(
         item('C', 'VIZE - Topic', '2026-08-15T10:00:00Z'),
         item('Deleted video', '', '2026-08-15T10:00:00Z', 'gone'),
         item('D', 'Old', '2025-01-01T10:00:00Z'),
+        item('E', 'ColdplayVEVO', '2026-09-01T10:00:00Z'),
     ],
     new Date('2026-10-26T12:00:00Z'),
 );
-assert.equal(r.total, 4);
-assert.equal(r.artistCount, 3);
+assert.equal(r.total, 5);
+assert.equal(r.artistCount, 4);
+assert.ok(r.artists.some((a) => a.name === 'Coldplay'));
 assert.deepEqual(r.artists[0], { name: 'Kygo', n: 2 });
 assert.deepEqual(
     r.months.map((m) => m.key),
@@ -30,5 +32,5 @@ assert.deepEqual(
 );
 assert.equal(r.months[5].n, 2);
 assert.equal(r.months[3].n, 1);
-assert.equal(r.items.length, 4);
+assert.equal(r.items.length, 5);
 console.log('music report ok');

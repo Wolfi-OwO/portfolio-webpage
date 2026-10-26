@@ -268,9 +268,11 @@ export default function PersonalPage() {
                         )}
                         <div className="card tracks-c">
                             <div className="tracks-h">
-                                <h3>Recently played</h3>
+                                <h3>{live ? 'Latest likes' : 'Recently played'}</h3>
                                 <span className="mono muted small">
-                                    Latest from my YouTube Music history.
+                                    {live
+                                        ? 'Live from my YouTube Music likes.'
+                                        : 'Latest from my YouTube Music history.'}
                                 </span>
                             </div>
                             <ol className="tracks">

@@ -1,7 +1,7 @@
 import { InternalServerError } from '../middlewares/error-handlers.js';
 import { logger } from '../utils/logger.js';
 
-// The Data API has no watch history or play counts, so "On repeat" is built from the Liked videos playlist ("LL"), read with the owner's
+// The Data API has no watch history or play counts, so "On repeat" is built from the Liked Music playlist ("LM", only the songs, no Shorts), read with the owner's
 // refresh token. Quota: a page of playlistItems costs 1 unit of 10 000 per day, so 4 pages every 30 minutes is negligible; the cache exists
 // to keep the public endpoint from forwarding each visit to Google.
 const CACHE_MS = 30 * 60 * 1000;
@@ -37,7 +37,7 @@ async function likedItems(token) {
         const url = new URL('https://www.googleapis.com/youtube/v3/playlistItems');
         url.search = new URLSearchParams({
             part: 'snippet',
-            playlistId: 'LL',
+            playlistId: 'LM',
             maxResults: String(PAGE_SIZE),
             ...(pageToken && { pageToken }),
         });
@@ -54,8 +54,9 @@ async function likedItems(token) {
     return items;
 }
 
-// YouTube Music uploads carry the artist as "<Artist> - Topic"; plain video uploads carry the channel name.
-const artistOf = (s) => (s.videoOwnerChannelTitle || '').replace(/ - Topic$/, '');
+// YouTube Music uploads carry the artist as "<Artist> - Topic"; label channels end in VEVO ("ImagineDragonsVEVO"); plain uploads carry the channel name.
+const artistOf = (s) =>
+    (s.videoOwnerChannelTitle || '').replace(/ - Topic$/, '').replace(/VEVO$/, '');
 
 export function buildReport(items, now = new Date()) {
     const tracks = items
