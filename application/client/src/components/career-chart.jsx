@@ -8,6 +8,7 @@ import '../proto.css';
 // visible stub. Labels that would overlap an earlier one in the same lane drop to the next row.
 const YEAR_PX = 336;
 const PAD = 28;
+const FUTURE_MONTHS = 12;
 const LABEL_W = { education: 440, work: 250 };
 const ROW_H = { education: 96, work: 66 };
 const LOGOS = [
@@ -122,10 +123,10 @@ function Lane({ kind, items, x, px, locale, admin, onEdit, onDelete }) {
 export default function CareerChart({ entries, admin = false, onEdit, onDelete }) {
     const { locale } = useIntl();
     const scroller = useRef(null);
-    // The newest stations are at the right edge, so the chart opens scrolled there.
+    // The chart opens with today about three quarters across, so the empty year ahead peeks in without hiding the newest stations.
     useEffect(() => {
         const el = scroller.current;
-        if (el) el.scrollLeft = el.scrollWidth;
+        if (el) el.scrollLeft = Number(el.dataset.now) - el.clientWidth * 0.75;
     }, [entries]);
     const now = months(new Date());
     const rows = entries.map((e) => ({
@@ -139,14 +140,16 @@ export default function CareerChart({ entries, admin = false, onEdit, onDelete }
     const px = YEAR_PX / 12;
     // The boundary of month m sits (m - first) months from the left edge.
     const x = (m) => PAD + (m - first) * px;
+    // A year of empty axis after the newest month: nothing is planned there, the space is the point.
+    const axisEnd = Math.max(last, now + 1) + FUTURE_MONTHS;
     // Labels hang to the right of their start, so the canvas ends at whichever of line end or label end reaches further.
     const width =
         Math.max(
-            x(last),
+            x(axisEnd),
             ...rows.map((r) => x(r.a) + LABEL_W[r.kind === 'education' ? 'education' : 'work']),
         ) + PAD;
     const years = [];
-    for (let m = Math.ceil(first / 12) * 12; m <= last; m += 12) years.push(m);
+    for (let m = Math.ceil(first / 12) * 12; m <= axisEnd; m += 12) years.push(m);
     const edu = rows.filter((r) => r.kind === 'education');
     const work = rows.filter((r) => r.kind !== 'education');
 
@@ -154,7 +157,7 @@ export default function CareerChart({ entries, admin = false, onEdit, onDelete }
 
     return (
         <div className="ch" role="list" aria-label="Career timeline">
-            <div className="ch-scroll" tabIndex={0} ref={scroller}>
+            <div className="ch-scroll" tabIndex={0} ref={scroller} data-now={x(now + 1)}>
                 <div className="ch-inner" style={{ width }}>
                     <div className="ch-years" aria-hidden="true">
                         {years.map((m) => (
@@ -162,7 +165,7 @@ export default function CareerChart({ entries, admin = false, onEdit, onDelete }
                                 {m / 12}
                             </span>
                         ))}
-                        {Array.from({ length: last - first }, (_, i) => first + i).map((m) => (
+                        {Array.from({ length: axisEnd - first }, (_, i) => first + i).map((m) => (
                             <em
                                 key={m}
                                 className={m % 12 === 0 ? 'ch-m ch-m-year' : 'ch-m'}
