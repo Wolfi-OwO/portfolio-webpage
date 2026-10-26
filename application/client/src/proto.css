@@ -4225,3 +4225,79 @@
 .pw .s-major {
     background: #c05a50;
 }
+
+/* Liked-songs statistics (needs /api/music) */
+.pw .music > .mstats {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 22px;
+}
+.pw .ms-tiles {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+}
+.pw .ms-tiles > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: var(--surface-2);
+}
+.pw .ms-tiles b {
+    font-size: 1.9rem;
+    line-height: 1.1;
+}
+.pw .ms-cols {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 28px;
+}
+.pw .ms-cols h3 {
+    margin: 0 0 12px;
+    font-size: 1.05rem;
+}
+.pw .ms-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+}
+.pw .ms-list li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(60px, 1fr) 28px;
+    gap: 12px;
+    align-items: center;
+}
+.pw .ms-list li > span:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.pw .ms-months {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+    height: 120px;
+}
+.pw .ms-months > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+}
+.pw .ms-months i {
+    width: 100%;
+    height: calc(var(--w) * 0.9);
+    min-height: 4px;
+    border-radius: 8px 8px 3px 3px;
+    background: var(--accent);
+}
+@media (max-width: 720px) {
+    .pw .ms-cols {
+        grid-template-columns: 1fr;
+    }
+}

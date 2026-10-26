@@ -26,6 +26,7 @@ import { authRouter } from './routes/auth-route.js';
 import { infoRouter } from './routes/info-route.js';
 import { monitorsRouter } from './routes/monitors-route.js';
 import { statusRouter } from './routes/status-route.js';
+import { musicRouter } from './routes/music-route.js';
 import { secretRouter } from './routes/secret-route.js';
 import { contactRouter } from './routes/contact-route.js';
 import { errorHandler, NotFound } from './middlewares/error-handlers.js';
@@ -156,6 +157,7 @@ app.use('/api/activity/', activityRouter);
 app.use('/api/technologies/', technologiesRouter);
 app.use('/api/monitors/', monitorsRouter);
 app.use('/api/status/', statusRouter);
+app.use('/api/music/', musicRouter);
 app.use('/api/secret/', secretRouter);
 app.use('/api/contact/', contactRouter);
 

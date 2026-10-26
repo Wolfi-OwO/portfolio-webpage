@@ -61,7 +61,22 @@ export default function PersonalPage() {
         setToast('Copied to clipboard.');
         setTimeout(() => setToast(''), 2200);
     };
-    const np = P.music[0];
+    // Live liked-songs report from /api/music; stays null (and the built-in snapshot shows) while the API is not connected.
+    const [live, setLive] = useState(null);
+    useEffect(() => {
+        let active = true;
+        fetch('/api/music')
+            .then((res) => (res.status === 200 ? res.json() : null))
+            .then((body) => active && body?.items?.length && setLive(body))
+            .catch(() => {});
+        return () => {
+            active = false;
+        };
+    }, []);
+    const tracks = live
+        ? live.items.map((m, i) => ({ ...m, h: P.music[i % P.music.length].h }))
+        : P.music;
+    const np = tracks[0];
     const g = lb != null ? list[lb] : null;
 
     return (
@@ -196,6 +211,61 @@ export default function PersonalPage() {
                                 )}
                             </div>
                         </div>
+                        {live && (
+                            <div className="card mstats">
+                                <div className="ms-tiles">
+                                    <div>
+                                        <b>{live.total}</b>
+                                        <span className="mono muted small">liked songs</span>
+                                    </div>
+                                    <div>
+                                        <b>{live.artistCount}</b>
+                                        <span className="mono muted small">artists</span>
+                                    </div>
+                                    <div>
+                                        <b>{live.months[live.months.length - 1].n}</b>
+                                        <span className="mono muted small">liked this month</span>
+                                    </div>
+                                </div>
+                                <div className="ms-cols">
+                                    <div>
+                                        <h3>Top artists</h3>
+                                        <ul className="ms-list">
+                                            {live.artists.map((a) => (
+                                                <li key={a.name}>
+                                                    <span>{a.name}</span>
+                                                    <span className="bar">
+                                                        <i
+                                                            style={{
+                                                                '--w': `${(a.n / live.artists[0].n) * 100}%`,
+                                                            }}
+                                                        />
+                                                    </span>
+                                                    <span className="mono muted small">{a.n}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h3>Likes per month</h3>
+                                        <div className="ms-months">
+                                            {live.months.map((m) => (
+                                                <div key={m.key}>
+                                                    <i
+                                                        style={{
+                                                            '--w': `${(m.n / Math.max(1, ...live.months.map((x) => x.n))) * 100}%`,
+                                                        }}
+                                                    />
+                                                    <span className="mono muted small">
+                                                        {m.key.slice(5)}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                         <div className="card tracks-c">
                             <div className="tracks-h">
                                 <h3>Recently played</h3>
@@ -204,7 +274,7 @@ export default function PersonalPage() {
                                 </span>
                             </div>
                             <ol className="tracks">
-                                {P.music.map((m, i) => (
+                                {tracks.map((m, i) => (
                                     <li key={m.t + i}>
                                         <span className="mono muted rk">
                                             {String(i + 1).padStart(2, '0')}
