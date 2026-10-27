@@ -71,6 +71,38 @@
     ]
   },
   {
+    "title": "Burrow",
+    "description": "A private, self-hosted file drive that sorts what you upload into a category tree you define: a scheduled AI job files pictures by content, other files by type, and everything gets a real in-browser preview, share links and resumable uploads for multi-gigabyte files.",
+    "repositoryUrl": "https://github.com/Wolfi-OwO/burrow.git",
+    "livedemo": "https://burrow.woofi-developments.at/",
+    "technologies": [
+      {
+        "tech": "React",
+        "color": "bg-sky-100 text-sky-800 dark:bg-sky-500/20 dark:text-sky-300"
+      },
+      {
+        "tech": "TypeScript",
+        "color": "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300"
+      },
+      {
+        "tech": "Express",
+        "color": "bg-neutral-200 text-neutral-800 dark:bg-neutral-700/30 dark:text-neutral-200"
+      },
+      {
+        "tech": "PostgreSQL",
+        "color": "bg-indigo-100 text-indigo-800 dark:bg-indigo-500/20 dark:text-indigo-300"
+      },
+      {
+        "tech": "Python",
+        "color": "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300"
+      },
+      {
+        "tech": "Docker",
+        "color": "bg-indigo-100 text-indigo-800 dark:bg-indigo-500/20 dark:text-indigo-300"
+      }
+    ]
+  },
+  {
     "title": "Nutrilens",
     "description": "AI-assisted nutrition tracking: point a phone camera at a meal, get a food-recognition prediction in seconds and track it against a personal diet plan, with a manual-entry fallback and a weight and calorie progress view.",
     "repositoryUrl": "https://github.com/Wolfi-OwO/nutrilens.git",

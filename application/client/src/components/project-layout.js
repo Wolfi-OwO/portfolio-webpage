@@ -2,6 +2,7 @@
 // nothing else, or Vite's fast refresh falls back to a full reload.
 export const SHOTS = {
     NetViz: '/shots/netviz.png',
+    Burrow: '/shots/burrow.png',
     Metrion: '/shots/metrion.png',
     Nutrilens: '/shots/nutrilens.png',
     'Machine Learning Visualizer': '/shots/ml.png',
