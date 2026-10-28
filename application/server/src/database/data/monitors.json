@@ -49,5 +49,17 @@
     "url": "https://status.woofi-developments.at/",
     "group": "Portfolio",
     "metrionKey": "status-page"
+  },
+  {
+    "name": "Burrow",
+    "url": "https://burrow.woofi-developments.at",
+    "group": "Burrow",
+    "metrionKey": "burrow"
+  },
+  {
+    "name": "Metrion",
+    "url": "https://metrion-viewer.yellowmushroom-787641f4.westeurope.azurecontainerapps.io/",
+    "group": "Metrion",
+    "metrionKey": "metrion"
   }
 ]

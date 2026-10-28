@@ -125,16 +125,17 @@ function skippedResult() {
 }
 
 async function fillProjectsData() {
-    const existingCount = await ProjectModel.countDocuments();
-
-    if (existingCount > 0) {
-        logger.info(`Projects - Already seeded (${existingCount} found), skipping.`);
-        return skippedResult();
-    }
-
+    // Adds what is missing, matched on the title, so a project added to projects.json later reaches a database
+    // that was seeded long ago without duplicating the ones already there.
+    const existingTitles = new Set((await ProjectModel.find({}, 'title')).map((p) => p.title));
     const allProjects = JSON.parse(
         await fsp.readFile(path.join(DATA_DIR, 'projects.json'), 'utf-8'),
-    );
+    ).filter((project) => !existingTitles.has(project.title));
+
+    if (allProjects.length === 0) {
+        logger.info(`Projects - Nothing new to add (${existingTitles.size} found), skipping.`);
+        return skippedResult();
+    }
 
     const preparedProjects = [];
 
@@ -228,16 +229,16 @@ async function fillCareerData() {
 }
 
 async function fillMonitorsData() {
-    const existingCount = await MonitorModel.countDocuments();
-
-    if (existingCount > 0) {
-        logger.info(`Monitors - Already seeded (${existingCount} found), skipping.`);
-        return skippedResult();
-    }
-
+    // Adds what is missing, matched on the name (see fillProjectsData).
+    const existingNames = new Set((await MonitorModel.find({}, 'name')).map((m) => m.name));
     const allMonitors = JSON.parse(
         await fsp.readFile(path.join(DATA_DIR, 'monitors.json'), 'utf-8'),
-    );
+    ).filter((monitor) => !existingNames.has(monitor.name));
+
+    if (allMonitors.length === 0) {
+        logger.info(`Monitors - Nothing new to add (${existingNames.size} found), skipping.`);
+        return skippedResult();
+    }
 
     return processDocuments(allMonitors, MonitorModel.create.bind(MonitorModel));
 }
