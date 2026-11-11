@@ -142,7 +142,7 @@
     "title": "Metrion",
     "description": "A multi-tenant infrastructure metrics platform — sign in with Google, Microsoft or GitHub, issue per-project API keys, and stream CPU, memory, disk and network metrics from any language into a self-hosted TimescaleDB, with a dependency graph that attributes an outage to its actual root cause instead of alerting every downstream service.",
     "repositoryUrl": "https://github.com/Wolfi-OwO/mona.git",
-    "livedemo": "https://metrion-viewer.yellowmushroom-787641f4.westeurope.azurecontainerapps.io/",
+    "livedemo": "https://metrion.woofi-developments.at/",
     "technologies": [
       {
         "tech": "React",
