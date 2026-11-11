@@ -267,17 +267,6 @@ export default function Homepage() {
                             </div>
                         </div>
                     </section>
-
-                    <section className="cta-band">
-                        <h2>Not sure what you need?</h2>
-                        <p>
-                            Describe what should happen and I'll tell you what it takes to build it,
-                            even if it isn't worth it.
-                        </p>
-                        <Link className="btn" to="/contact">
-                            Start a conversation
-                        </Link>
-                    </section>
                 </div>
             </div>
         </>
