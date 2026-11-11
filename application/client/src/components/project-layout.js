@@ -6,6 +6,11 @@ export const SHOTS = {
     Metrion: '/shots/metrion.png',
     Nutrilens: '/shots/nutrilens.png',
     'Machine Learning Visualizer': '/shots/ml.png',
+    // No live demo to photograph for these: a drawn cover keeps the wall even without pretending to be a screenshot.
+    Alpinfex: '/shots/alpinfex.svg',
+    'Image Upscaler': '/shots/image-upscaler.svg',
+    LearnSphere: '/shots/learnsphere.svg',
+    'Home Statistics Board': '/shots/home-statistics-board.svg',
 };
 
 export const hasShot = (p) => Boolean(SHOTS[p.title]);

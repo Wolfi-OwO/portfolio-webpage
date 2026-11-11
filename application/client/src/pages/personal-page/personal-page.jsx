@@ -345,14 +345,6 @@ export default function PersonalPage() {
                         </div>
                     </div>
                 </section>
-
-                <section className="cta-band">
-                    <h2>Say hi, whatever the reason.</h2>
-                    <p>Work, a game night or just a good song recommendation.</p>
-                    <a className="btn" href="/contact">
-                        Get in touch
-                    </a>
-                </section>
             </div>
 
             {g && (

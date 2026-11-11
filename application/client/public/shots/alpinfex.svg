@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" role="img" aria-label="Cover for Alpinfex">
+  <rect width="1280" height="800" fill="#0b1220" />
+  <g stroke="#15203a" stroke-width="2"><path d="M80 0V800" /><path d="M160 0V800" /><path d="M240 0V800" /><path d="M320 0V800" /><path d="M400 0V800" /><path d="M480 0V800" /><path d="M560 0V800" /><path d="M640 0V800" /><path d="M720 0V800" /><path d="M800 0V800" /><path d="M880 0V800" /><path d="M960 0V800" /><path d="M1040 0V800" /><path d="M1120 0V800" /><path d="M1200 0V800" /><path d="M0 80H1280" /><path d="M0 160H1280" /><path d="M0 240H1280" /><path d="M0 320H1280" /><path d="M0 400H1280" /><path d="M0 480H1280" /><path d="M0 560H1280" /><path d="M0 640H1280" /><path d="M0 720H1280" /></g>
+  <g><polygon points="0,520 140,400 230,470 380,300 520,460 640,380 800,520 1280,520 1280,560 0,560" fill="#1c2f8f" /><polygon points="300,560 520,330 650,430 800,250 960,420 1100,340 1280,470 1280,560" fill="#2a43c4" /><polygon points="560,560 760,380 880,470 1040,290 1180,430 1280,380 1280,560" fill="#3b5bff" /><circle cx="1010" cy="170" r="46" fill="#e6ecf6" fill-opacity="0.9" /></g>
+  <text x="80" y="640" font-family="Manrope, Inter, 'Segoe UI', system-ui, sans-serif" font-weight="800" font-size="88" fill="#e6ecf6">Alpinfex</text>
+  <text x="84" y="700" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="26" letter-spacing="3" fill="#8ea0bd">BLOG FOR MOUNTAINEERS</text>
+  <rect x="80" y="80" width="72" height="10" fill="#3b5bff" />
+</svg>

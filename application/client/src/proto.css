@@ -4301,3 +4301,43 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Editor buttons on a project card (shown to the signed-in owner only). */
+.pw .proj .pbody {
+    position: relative;
+}
+.pw .pactions {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 2;
+    display: flex;
+    gap: 6px;
+}
+.pw .pactions button {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition:
+        border-color 120ms linear,
+        color 120ms linear;
+}
+.pw .pactions button:hover,
+.pw .pactions button:focus-visible {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.pw .pactions button.danger:hover,
+.pw .pactions button.danger:focus-visible {
+    border-color: var(--down);
+    color: var(--down);
+}
+.pw .pactions + h3 {
+    padding-right: 88px;
+}

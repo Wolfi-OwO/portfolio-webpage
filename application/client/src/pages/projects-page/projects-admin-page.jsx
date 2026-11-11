@@ -1,16 +1,10 @@
 import { useEffect, useMemo, useReducer, useState } from 'react';
 import { initialState, reducer } from './projectsReducer.js';
-import { FormattedDate } from 'react-intl';
-import {
-    ArrowTopRightOnSquareIcon,
-    ClockIcon,
-    PencilSquareIcon,
-    PlusIcon,
-    TrashIcon,
-    XMarkIcon,
-} from '@heroicons/react/24/outline';
+import { PencilSquareIcon, PlusIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { authHeaders, isAdmin } from '../../utils/auth.js';
 import { chipProps } from '../../utils/tech-color.js';
+import { ProjectCard } from '../../components/design-bits.jsx';
+import { rowSpans } from '../../components/project-layout.js';
 import TailwindColorPicker from '../../components/TailwindColorPicker.jsx';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 
@@ -139,6 +133,23 @@ export default function ProjectsPage() {
         }
     }
 
+    // The editor shows the same image cards as the public page. Its projects carry full technology objects, the
+    // card wants ids and a name lookup, so they are translated here.
+    const techNames = {};
+    const views = state.projects.map((project) => ({
+        project,
+        view: {
+            ...project,
+            technologies: (project.technologies || []).map((t) => {
+                const key = t._id ?? t.tech;
+                techNames[key] = t.tech;
+                return key;
+            }),
+        },
+    }));
+    const spans = rowSpans(views.length);
+    const cards = views.map((entry, i) => ({ ...entry, span: spans[i] }));
+
     return (
         <div className="animate-fade-up mx-auto w-full max-w-5xl space-y-8">
             <section className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -167,147 +178,46 @@ export default function ProjectsPage() {
                 <ProjectForm state={state} dispatch={dispatch} onSubmit={handleSubmit} />
             )}
 
-            <section className="4xl:grid-cols-4 grid gap-5 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
-                {state.projects.map((project) => (
-                    <ProjectCard
-                        key={project._id}
-                        project={project}
-                        admin={admin}
-                        onEdit={() => dispatch({ type: 'OPEN_FORM_EDIT', payload: project })}
-                        onDelete={() => handleDelete(project)}
-                    />
-                ))}
-            </section>
-        </div>
-    );
-}
-
-function liveDemoLabel(url) {
-    try {
-        return new URL(url).hostname;
-    } catch {
-        return url;
-    }
-}
-
-function ProjectCard({ project, admin, onEdit, onDelete }) {
-    const hasRepo = Boolean(project.repositoryUrl);
-
-    const openRepo = () => {
-        if (hasRepo) {
-            window.open(project.repositoryUrl, '_blank', 'noopener,noreferrer');
-        }
-    };
-
-    const onKeyDown = (event) => {
-        if (!hasRepo) return;
-        if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            openRepo();
-        }
-    };
-
-    return (
-        <div
-            role={hasRepo ? 'link' : undefined}
-            tabIndex={hasRepo ? 0 : undefined}
-            onClick={hasRepo ? openRepo : undefined}
-            onKeyDown={hasRepo ? onKeyDown : undefined}
-            aria-label={hasRepo ? `Open repository for ${project.title}` : undefined}
-            className={`group relative flex flex-col rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-6 shadow-sm transition ${
-                hasRepo
-                    ? 'cursor-pointer hover:-translate-y-1 hover:border-[var(--accent)] hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]'
-                    : ''
-            }`}
-        >
-            <div className="flex items-start justify-between gap-3">
-                <h2 className="text-xl font-semibold text-[var(--text)]">{project.title}</h2>
-
-                <div className="flex items-center gap-1">
-                    {admin && (
-                        <>
-                            <button
-                                type="button"
-                                onClick={(event) => {
-                                    event.stopPropagation();
-                                    onEdit();
-                                }}
-                                aria-label={`Edit ${project.title}`}
-                                title="Edit"
-                                className="cursor-pointer rounded-full p-1.5 text-[var(--muted)] transition hover:bg-[var(--bg)] hover:text-[var(--text)]"
-                            >
-                                <PencilSquareIcon className="h-4 w-4" />
-                            </button>
-                            <button
-                                type="button"
-                                onClick={(event) => {
-                                    event.stopPropagation();
-                                    onDelete();
-                                }}
-                                aria-label={`Delete ${project.title}`}
-                                title="Delete"
-                                className="cursor-pointer rounded-full p-1.5 text-[var(--muted)] transition hover:bg-[color-mix(in_srgb,var(--down)_10%,transparent)] hover:text-[var(--down)]"
-                            >
-                                <TrashIcon className="h-4 w-4" />
-                            </button>
-                        </>
-                    )}
-
-                    {hasRepo && (
-                        <ArrowTopRightOnSquareIcon
-                            aria-hidden="true"
-                            className="h-5 w-5 shrink-0 text-[var(--muted)] transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[var(--text)]"
+            <div className="pw">
+                <div className="pgrid">
+                    {cards.map(({ project, view, span }) => (
+                        <ProjectCard
+                            key={project._id}
+                            p={view}
+                            tech={techNames}
+                            span={span}
+                            actions={
+                                admin ? (
+                                    <>
+                                        <button
+                                            type="button"
+                                            aria-label={`Edit ${project.title}`}
+                                            title="Edit"
+                                            onClick={() =>
+                                                dispatch({
+                                                    type: 'OPEN_FORM_EDIT',
+                                                    payload: project,
+                                                })
+                                            }
+                                        >
+                                            <PencilSquareIcon className="h-4 w-4" />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="danger"
+                                            aria-label={`Delete ${project.title}`}
+                                            title="Delete"
+                                            onClick={() => handleDelete(project)}
+                                        >
+                                            <TrashIcon className="h-4 w-4" />
+                                        </button>
+                                    </>
+                                ) : null
+                            }
                         />
-                    )}
+                    ))}
                 </div>
             </div>
-
-            <p className="mt-3 flex-1 text-sm leading-6 text-[var(--muted)]">
-                {project.description}
-            </p>
-
-            {project.livedemo && (
-                <div className="mt-3 flex min-w-0 items-center gap-2 text-sm">
-                    <span className="shrink-0 text-[var(--muted)]">Live Demo:</span>
-                    <a
-                        className="truncate font-semibold text-[var(--accent)] underline hover:opacity-80"
-                        href={project.livedemo}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title={project.livedemo}
-                        onClick={(event) => event.stopPropagation()}
-                    >
-                        {liveDemoLabel(project.livedemo)}
-                    </a>
-                </div>
-            )}
-
-            <p className="mt-3 flex items-center text-sm leading-6 text-[var(--muted)]">
-                <ClockIcon className="mr-1 h-4 w-4" />
-                <FormattedDate
-                    value={project.createdAt}
-                    year="numeric"
-                    month="long"
-                    day="numeric"
-                    hour="2-digit"
-                    minute="2-digit"
-                />
-            </p>
-
-            <ul className="mt-4 flex flex-wrap gap-2">
-                {project.technologies.map(({ tech, color }, techIndex) => {
-                    const { className, style } = chipProps(color);
-                    return (
-                        <li
-                            key={techIndex}
-                            style={style}
-                            className={`rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset ring-black/10 dark:ring-white/10 ${className || ''}`}
-                        >
-                            {tech}
-                        </li>
-                    );
-                })}
-            </ul>
         </div>
     );
 }
