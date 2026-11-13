@@ -1,6 +1,6 @@
 /* Type.
    mono — JetBrains Mono: the structural voice. Prompts, output, labels, numbers.
-   sans — Manrope: prose and headings. Weight 800 with negative tracking is what
+   sans — Schibsted Grotesk: prose and headings. Weight 800 with negative tracking is what
           carries the headlines; there is no second display face. */
 /* Self-hosted rather than fetched from Google's font CDN. Such a request
    sets no cookie but still transmits the visitor's IP to a US server on first
@@ -9,11 +9,11 @@
    because self-hosting is trivially available. These are the same families and
    the same weights the old URL requested, and @fontsource ships
    `font-display: swap`, so rendering is unchanged. */
-@import '@fontsource/manrope/400.css';
-@import '@fontsource/manrope/500.css';
-@import '@fontsource/manrope/600.css';
-@import '@fontsource/manrope/700.css';
-@import '@fontsource/manrope/800.css';
+@import '@fontsource/schibsted-grotesk/400.css';
+@import '@fontsource/schibsted-grotesk/500.css';
+@import '@fontsource/schibsted-grotesk/600.css';
+@import '@fontsource/schibsted-grotesk/700.css';
+@import '@fontsource/schibsted-grotesk/800.css';
 @import '@fontsource/jetbrains-mono/400.css';
 @import '@fontsource/jetbrains-mono/500.css';
 @import '@fontsource/jetbrains-mono/700.css';

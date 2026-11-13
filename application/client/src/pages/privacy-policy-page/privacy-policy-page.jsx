@@ -104,7 +104,7 @@ export default function PrivacyPolicyPage() {
                 <Section id="privacy.fonts" defaultTitle="Fonts">
                     <FormattedMessage
                         id="privacy.fonts.text"
-                        defaultMessage="The typefaces used here (Manrope and JetBrains Mono) are served from my own server. Your browser makes no request to Google Fonts or any other outside host for them, so no IP address is passed to a third party in order to render this page."
+                        defaultMessage="The typefaces used here (Schibsted Grotesk and JetBrains Mono) are served from my own server. Your browser makes no request to Google Fonts or any other outside host for them, so no IP address is passed to a third party in order to render this page."
                     />
                 </Section>
 

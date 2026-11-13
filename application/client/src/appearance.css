@@ -47,14 +47,14 @@ html:root[data-palette][data-theme][data-contrast='medhigh'] {
     --line: color-mix(in srgb, var(--c-text) 22%, transparent);
 }
 html:root[data-palette][data-theme='dark'][data-contrast='high'] {
-    --text: color-mix(in srgb, var(--c-text) 62%, #fff);
-    --muted: color-mix(in srgb, var(--c-muted) 45%, var(--c-text));
-    --line: color-mix(in srgb, var(--c-text) 30%, transparent);
+    --text: color-mix(in srgb, var(--c-text) 85%, #fff);
+    --muted: color-mix(in srgb, var(--c-muted) 60%, var(--c-text));
+    --line: color-mix(in srgb, var(--c-text) 20%, transparent);
 }
 html:root[data-palette][data-theme='light'][data-contrast='high'] {
-    --text: color-mix(in srgb, var(--c-text) 62%, #000);
-    --muted: color-mix(in srgb, var(--c-muted) 45%, var(--c-text));
-    --line: color-mix(in srgb, var(--c-text) 30%, transparent);
+    --text: color-mix(in srgb, var(--c-text) 85%, #000);
+    --muted: color-mix(in srgb, var(--c-muted) 60%, var(--c-text));
+    --line: color-mix(in srgb, var(--c-text) 20%, transparent);
 }
 html:root[data-contrast='high'] :focus-visible,
 html:root[data-contrast='medhigh'] :focus-visible {
@@ -94,7 +94,7 @@ html:root[data-contrast='high'] a:not(.btn):not(.brand):hover {
 }
 .pchip em {
     font-style: normal;
-    font: 500 0.62rem Manrope;
+    font: 500 0.62rem Schibsted Grotesk;
     line-height: 1.1;
     text-align: center;
     max-width: 64px;
@@ -225,7 +225,7 @@ html:root[data-contrast='high'] a:not(.btn):not(.brand):hover {
     border: 0;
     background: none;
     border-radius: 999px;
-    font: 600 0.8rem Manrope;
+    font: 600 0.8rem Schibsted Grotesk;
     color: var(--muted);
     cursor: pointer;
     transition: 0.2s;
@@ -378,7 +378,7 @@ html[data-motion='off'] [data-r] {
     border: 1px solid var(--line);
     background: var(--surface);
     color: var(--text);
-    font: 600 0.78rem Manrope;
+    font: 600 0.78rem Schibsted Grotesk;
     cursor: pointer;
     box-shadow: var(--float);
     transition: 0.2s;

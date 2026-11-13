@@ -19,7 +19,7 @@
     color: var(--tip-ink, var(--text, #fff));
     border: 1px solid var(--_bd);
     font:
-        500 0.78rem/1.35 Manrope,
+        500 0.78rem/1.35 Schibsted Grotesk,
         system-ui,
         sans-serif;
     letter-spacing: 0.005em;

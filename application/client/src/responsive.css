@@ -388,7 +388,7 @@
 }
 
 /* Activity block. `.pw button { font: inherit }` and `.pw h3 { font-size }` out-rank
-   Tailwind's utilities, so the source toggle rendered at 15px Manrope and the
+   Tailwind's utilities, so the source toggle rendered at 15px Schibsted Grotesk and the
    "recently touched" heading at 17px. Sizes below were measured against the
    mockup (toggle 0.74rem mono, cards 0.9rem names, 0.7rem meta). */
 .pw .heat-seg button {

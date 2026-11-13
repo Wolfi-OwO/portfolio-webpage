@@ -192,7 +192,7 @@ export default {
 
     'privacy.fonts.title': 'Schriftarten',
     'privacy.fonts.text':
-        'Die verwendeten Schriften (Manrope und JetBrains Mono) liegen auf meinem eigenen Server und werden von dort ausgeliefert. Dein Browser baut dafür keine Verbindung zu Google Fonts oder einem anderen fremden Server auf, und es wird dabei auch keine IP-Adresse an Dritte übermittelt.',
+        'Die verwendeten Schriften (Schibsted Grotesk und JetBrains Mono) liegen auf meinem eigenen Server und werden von dort ausgeliefert. Dein Browser baut dafür keine Verbindung zu Google Fonts oder einem anderen fremden Server auf, und es wird dabei auch keine IP-Adresse an Dritte übermittelt.',
 
     'privacy.storage.title': 'Was in deinem Browser gespeichert wird',
     'privacy.storage.text':
