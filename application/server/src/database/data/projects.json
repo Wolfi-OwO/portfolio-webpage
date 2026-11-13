@@ -40,7 +40,7 @@
   },
   {
     "title": "NetViz",
-    "description": "Design, visualize and simulate real enterprise networks in the browser — a drag-and-drop topology builder with live hop-by-hop packet simulation, a Wireshark-style capture view, and a CIDR calculator.",
+    "description": "Design, visualize and simulate real enterprise networks in the browser. It has a drag-and-drop topology builder, live hop-by-hop packet simulation, a Wireshark-style capture view and a CIDR calculator.",
     "repositoryUrl": "https://github.com/Wolfi-OwO/network-visualizer.git",
     "livedemo": "https://netviz.woofi-developments.at/",
     "technologies": [
@@ -140,7 +140,7 @@
   },
   {
     "title": "Metrion",
-    "description": "A multi-tenant infrastructure metrics platform — sign in with Google, Microsoft or GitHub, issue per-project API keys, and stream CPU, memory, disk and network metrics from any language into a self-hosted TimescaleDB, with a dependency graph that attributes an outage to its actual root cause instead of alerting every downstream service.",
+    "description": "A multi-tenant infrastructure metrics platform. Sign in with Google, Microsoft or GitHub, issue per-project API keys and stream CPU, memory, disk and network metrics from any language into a self-hosted TimescaleDB. A dependency graph names the root cause of an outage instead of alerting every service downstream.",
     "repositoryUrl": "https://github.com/Wolfi-OwO/mona.git",
     "livedemo": "https://metrion.woofi-developments.at/",
     "technologies": [

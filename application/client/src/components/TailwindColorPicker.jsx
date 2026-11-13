@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { FIELD } from './field-classes.js';
 import { Squares2X2Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import {
     COLORS,
@@ -119,7 +120,7 @@ export default function TailwindColorPicker({ value, onChange }) {
                         }
                     }}
                     placeholder="#1e90ff or 30, 144, 255"
-                    className="min-w-[12rem] flex-1 rounded-2xl border border-[var(--line)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] placeholder-[var(--muted)] transition focus:border-[var(--accent)] focus:bg-[var(--surface)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                    className={`${FIELD} min-w-[12rem] flex-1 px-3 py-2`}
                 />
 
                 <button

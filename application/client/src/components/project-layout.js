@@ -1,11 +1,11 @@
 // Kept apart from design-bits.jsx: a module that exports components must export
 // nothing else, or Vite's fast refresh falls back to a full reload.
 export const SHOTS = {
-    NetViz: '/shots/netviz.png',
-    Burrow: '/shots/burrow.png',
-    Metrion: '/shots/metrion.png',
-    Nutrilens: '/shots/nutrilens.png',
-    'Machine Learning Visualizer': '/shots/ml.png',
+    NetViz: '/shots/netviz.webp',
+    Burrow: '/shots/burrow.webp',
+    Metrion: '/shots/metrion.webp',
+    Nutrilens: '/shots/nutrilens.webp',
+    'Machine Learning Visualizer': '/shots/ml.webp',
     // No live demo to photograph for these: a drawn cover keeps the wall even without pretending to be a screenshot.
     Alpinfex: '/shots/alpinfex.svg',
     'Image Upscaler': '/shots/image-upscaler.svg',

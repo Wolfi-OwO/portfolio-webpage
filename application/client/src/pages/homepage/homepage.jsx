@@ -1,13 +1,10 @@
-import { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
-import LoadingScreen from '../../components/loading-screen.jsx';
 import { useApiList } from '../../hooks/useApiList.js';
 import { Link } from 'react-router-dom';
 import { Lines, ProjectCard } from '../../components/design-bits.jsx';
 import '../../proto.css';
 import ActivityHeatmap from '../../components/activity-heatmap.jsx';
-import { shouldBoot } from '../../utils/boot.js';
 import { IDENTITY } from '../../utils/identity.js';
 import {
     SiJavascript,
@@ -140,7 +137,6 @@ export default function Homepage() {
         'Woofi Developments builds modern web applications with React, Node.js, and cloud technologies - fullstack software development based in Carinthia, Austria.',
     );
 
-    const [booting, setBooting] = useState(shouldBoot);
     const [projects] = useApiList('/api/projects');
     const [technologies] = useApiList('/api/technologies');
     const tech = Object.fromEntries(technologies.map((t) => [t._id, t.tech]));
@@ -150,7 +146,6 @@ export default function Homepage() {
 
     return (
         <>
-            {booting && <LoadingScreen onDone={() => setBooting(false)} />}
             <div className="pw">
                 <div className="page" style={{ padding: 0 }}>
                     <section className="hero">
@@ -166,7 +161,7 @@ export default function Homepage() {
                         <div className="hero-row">
                             <img
                                 className="portrait"
-                                src="/profile-image.jpg"
+                                src="/profile-image.webp"
                                 alt={`${IDENTITY.name}, portrait`}
                                 fetchPriority="high"
                             />
@@ -181,7 +176,7 @@ export default function Homepage() {
                                 <p className="lead">
                                     <FormattedMessage
                                         id="homepage.bio"
-                                        defaultMessage="I'm Phillip, a software developer from Carinthia. I build web applications, websites and apps, and I'm happiest where data and machine learning meet everyday software: tools that are fast, honest about what they do, and a pleasure to use. Alongside the code I climb, hike and keep tinkering with new ideas. More on <link>LinkedIn</link>."
+                                        defaultMessage="I'm Phillip, a software developer from Carinthia. I build web applications, websites and apps, and I'm happiest where data and machine learning meet everyday software: tools that are fast and a pleasure to use. Alongside the code I climb, hike and keep tinkering with new ideas. More on <link>LinkedIn</link>."
                                         values={{
                                             link: (chunks) => (
                                                 <a
@@ -212,9 +207,7 @@ export default function Homepage() {
                     </section>
 
                     <section>
-                        <h2 className="sec-label">
-                            <span className="sec-n">01</span>Selected work
-                        </h2>
+                        <h2 className="sec-label">Selected work</h2>
                         <div className="pgrid bento">
                             {featured.map((p, i) => (
                                 <ProjectCard
@@ -232,30 +225,32 @@ export default function Homepage() {
                     </section>
 
                     <section>
-                        <h2 className="sec-label">
-                            <span className="sec-n">02</span>Activity
-                        </h2>
+                        <h2 className="sec-label">Activity</h2>
                         <ActivityHeatmap />
                     </section>
 
                     <section>
-                        <h2 className="sec-label">
-                            <span className="sec-n">03</span>Technologies I use
-                        </h2>
-                        <div className="marquee" aria-label="Technologies I use">
-                            <div className="marquee-track">
-                                {[0, 1].map((copy) => (
-                                    <ul key={copy} className="marquee-set" aria-hidden={copy === 1}>
-                                        {technologies_list.map(({ name, icon: Icon, color }) => (
-                                            <li className="tech" key={name}>
-                                                <Icon className="tico" style={{ color }} />
-                                                {name}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ))}
-                            </div>
-                        </div>
+                        <h2 className="sec-label">Technologies I use</h2>
+                        <ul className="tech-list" aria-label="Technologies I use">
+                            {technologies_list.map(({ name, icon: Icon, color }) => (
+                                <li className="tech" key={name}>
+                                    <Icon className="tico" style={{ color }} />
+                                    {name}
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2 className="sec-label">About this site</h2>
+                        <p className="colophon">
+                            It runs on one VPS in the EU behind Caddy and is deployed from GitHub
+                            Actions with a blue-green switch, so a release never takes the old
+                            version down first. The fonts are served from here, nothing loads from a
+                            third-party host, and the{' '}
+                            <a href="https://status.woofi-developments.at">status page</a> shows
+                            what is up right now.
+                        </p>
                     </section>
                 </div>
             </div>

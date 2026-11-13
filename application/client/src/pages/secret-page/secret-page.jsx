@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { FIELD } from '../../components/field-classes.js';
 import { Link } from 'react-router-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 import {
@@ -140,7 +141,7 @@ function PasswordGate({ onUnlocked }) {
                                     id: 'secret.gate.password',
                                     defaultMessage: 'Password',
                                 })}
-                                className="w-full rounded-xl border border-[var(--line)] bg-[var(--bg)] py-3 pl-4 pr-12 text-center text-sm tracking-widest text-[var(--text)] placeholder-[var(--muted)] transition focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                                className={`${FIELD} py-3 pl-4 pr-12 text-center tracking-widest`}
                             />
 
                             <button
