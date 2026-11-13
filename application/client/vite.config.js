@@ -14,6 +14,9 @@ export default defineConfig({
     build: {
         target: 'es2020',
         sourcemap: false,
+        // Vite inlines assets under 4 kB as data: URIs, which the CSP (font-src 'self')
+        // blocks, so the small font subsets threw console errors. Emit them as files.
+        assetsInlineLimit: 0,
         rollupOptions: {
             // Two independent HTML entries: the main SPA, and a standalone bundle
             // for the `status.` subdomain (see server.js) so visiting the status
