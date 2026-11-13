@@ -39,7 +39,8 @@ export default function RunningNow() {
         };
     }, []);
 
-    if (!data?.groups?.length) return null;
+    // The slot keeps its height before the data arrives, so the content below does not jump.
+    if (!data?.groups?.length) return <div className="now-slot" aria-hidden="true" />;
 
     const rows = [...data.groups].sort(
         (a, b) => (ORDER.indexOf(a.name) + 1 || 99) - (ORDER.indexOf(b.name) + 1 || 99),

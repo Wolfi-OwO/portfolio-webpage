@@ -41,7 +41,14 @@ export default function useSavedLook() {
                 // storage blocked: the page just paints a frame later
             }
         };
+        // First visit: the palette is applied after mount, which changes every colour variable
+        // at once. Without this guard each of the ~900 elements with a colour transition animated
+        // that change on the main thread (2.2 s of blocking time on a cold mobile load).
+        root.classList.add('look-applying');
         sync();
+        requestAnimationFrame(() =>
+            requestAnimationFrame(() => root.classList.remove('look-applying')),
+        );
         const mo = new MutationObserver(sync);
         mo.observe(root, { attributes: true, attributeFilter: ['class'] });
         return () => mo.disconnect();

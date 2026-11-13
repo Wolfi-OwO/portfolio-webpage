@@ -4279,3 +4279,18 @@
         height: 60px;
     }
 }
+.pw .now-slot {
+    min-height: 26rem;
+}
+@media (max-width: 900px) {
+    .pw .now-slot {
+        min-height: 0;
+    }
+}
+/* The featured cards arrive from the API after first paint; holding their height keeps the
+   sections below from jumping when they appear. */
+@media (min-width: 901px) {
+    .pw .pgrid.bento {
+        min-height: 31rem;
+    }
+}
