@@ -6,7 +6,7 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                sans: ['Schibsted Grotesk', 'ui-sans-serif', 'system-ui', 'sans-serif'],
                 mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
             },
 
