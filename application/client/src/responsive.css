@@ -1,43 +1,15 @@
-/* Technology strip: one line that never stops. Two identical sets side by side, the track slides by exactly one set. */
-.pw .marquee {
-    overflow: hidden;
-    mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
-}
-.pw .marquee-track {
+.pw .tech-list {
     display: flex;
-    width: max-content;
-    animation: marquee-ltr 38s linear infinite;
-}
-.pw .marquee:hover .marquee-track {
-    animation-play-state: paused;
-}
-.pw .marquee-set {
-    display: flex;
+    flex-wrap: wrap;
     gap: 10px;
-    padding: 2px 5px;
     margin: 0;
+    padding: 0;
     list-style: none;
 }
-.pw .marquee .tech {
-    flex: none;
-    white-space: nowrap;
-}
-@keyframes marquee-ltr {
-    from {
-        transform: translateX(-50%);
-    }
-    to {
-        transform: translateX(0);
-    }
-}
-@media (prefers-reduced-motion: reduce) {
-    .pw .marquee-track {
-        animation: none;
-    }
-    .pw .marquee {
-        overflow-x: auto;
-    }
+.pw .colophon {
+    max-width: 62ch;
+    margin: 0;
+    color: var(--muted);
 }
 .pw .tech .tico {
     width: 20px;
@@ -112,16 +84,7 @@
         text-overflow: ellipsis;
         white-space: nowrap;
     }
-    html .pw .cta-band {
-        padding: 22px 18px;
-        border-radius: 22px;
-    }
-    html .pw .cta-band h2 {
-        font-size: 1.25rem;
-    }
-    html .pw .cta-band p {
-        font-size: 0.88rem;
-    }
+
     html .pw .crow {
         grid-template-columns: 1fr;
         gap: 4px;
@@ -130,12 +93,7 @@
         flex-direction: column;
         align-items: flex-start;
     }
-    html .pw .steps {
-        flex-direction: column;
-    }
-    html .pw .step-arr {
-        transform: rotate(90deg);
-    }
+
     html .pw .tech {
         padding: 8px 12px;
         font-size: 0.82rem;

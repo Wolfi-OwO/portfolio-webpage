@@ -495,23 +495,7 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.74rem;
 }
-.pw .cta-band {
-    background: var(--cta-bg, var(--surface));
-    border: 1px solid var(--line);
-    border-radius: var(--r);
-    padding: 44px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    align-items: flex-start;
-}
-.pw .cta-band h2 {
-    font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.4rem);
-}
-.pw .cta-band p {
-    color: var(--muted);
-    max-width: 60ch;
-}
+
 /* forms & contact */
 .pw .split {
     display: grid;
@@ -810,15 +794,6 @@
 .pw .page-h h1 {
     font-size: clamp(2.1rem, 0.9rem + 3.4vw, 3.9rem);
 }
-.pw h1 em {
-    font-style: normal;
-    color: var(--on-accent);
-    background: var(--accent);
-    padding: 0 0.18em 0.04em;
-    border-radius: 0.28em;
-    display: inline-block;
-    transform: rotate(-1.5deg);
-}
 .pw h3 {
     font-size: 1.08rem;
 }
@@ -842,11 +817,7 @@
     font-weight: 700;
     letter-spacing: 0;
 }
-.pw .cta-band h2 {
-    font-size: clamp(1.8rem, 1rem + 2.6vw, 3.1rem);
-    letter-spacing: -0.035em;
-    line-height: 1.05;
-}
+
 .pw .stat b {
     font-size: 2.3rem;
 }
@@ -995,34 +966,7 @@
 .pw .links a:hover {
     letter-spacing: 0.02em;
 }
-.pw .cta-band {
-    background: var(--accent);
-    color: var(--on-accent);
-    border: 0;
-    border-radius: 40px;
-    padding: 56px;
-    position: relative;
-    overflow: hidden;
-}
-.pw .cta-band::after {
-    content: '';
-    position: absolute;
-    right: -60px;
-    bottom: -80px;
-    width: 260px;
-    height: 260px;
-    border-radius: 50%;
-    background: rgb(255 255 255/0.16);
-}
-.pw .cta-band p {
-    color: color-mix(in srgb, var(--on-accent) 80%, transparent);
-}
-.pw .cta-band .btn {
-    background: var(--on-accent);
-    color: var(--accent);
-    border-color: var(--on-accent);
-    box-shadow: none;
-}
+
 .pw .tech {
     border-radius: 999px;
     padding: 12px 18px;
@@ -1138,6 +1082,7 @@
 
 /* A's headline treatment: accent text, thick underline — not a filled block */
 .pw h1 em {
+    font-style: normal;
     background: none;
     color: inherit;
     text-decoration-color: var(--accent);
@@ -1194,22 +1139,7 @@
     color: var(--muted);
 }
 /* A's inverted closing block: ink/cream, one accent button */
-.pw .cta-band {
-    background: var(--text);
-    color: var(--bg);
-    border-radius: 32px;
-}
-.pw .cta-band::after {
-    display: none;
-}
-.pw .cta-band p {
-    color: color-mix(in srgb, var(--bg) 70%, transparent);
-}
-.pw .cta-band .btn {
-    background: var(--accent);
-    color: var(--on-accent);
-    border-color: var(--accent);
-}
+
 .pw .btn {
     box-shadow: none;
     text-transform: uppercase;
@@ -1304,7 +1234,7 @@
         grid-template-columns: repeat(2, 1fr);
     }
 }
-/* ---- round 4 ---- */
+
 /* project cards: real screenshot in a browser frame, aligned action row */
 .pw .shot {
     border-radius: 16px;
@@ -1480,7 +1410,7 @@
         grid-template-columns: 1fr;
     }
 }
-/* ---- round 5: no tile row, no "01 02" numbering ---- */
+
 .pw .glance {
     display: none;
 }
@@ -1510,28 +1440,9 @@
     background: var(--accent);
     flex: none;
 }
-/* ---- round 6 ---- */
+
 /* closing block: A's vermilion, smaller */
-.pw .cta-band {
-    background: var(--accent);
-    color: #fff;
-    border-radius: 28px;
-    padding: 34px 36px;
-    gap: 10px;
-}
-.pw .cta-band h2 {
-    font-size: clamp(1.4rem, 1rem + 1.3vw, 2rem);
-}
-.pw .cta-band p {
-    color: rgb(255 255 255/0.88);
-    font-size: 0.95rem;
-}
-.pw .cta-band .btn {
-    background: #fff;
-    color: var(--accent);
-    border-color: #fff;
-    margin-top: 6px;
-}
+
 /* screenshots and placeholders never dominate a card */
 .pw .shot img,
 .pw .ph2-body {
@@ -2150,9 +2061,7 @@
     .pw .ph2-body {
         max-height: 200px;
     }
-    .pw .cta-band {
-        padding: 26px 22px;
-    }
+
     .pw .tr {
         grid-template-columns: 1fr 44px;
         gap: 6px;
@@ -2198,7 +2107,7 @@
         width: 38px;
     }
 }
-/* ---- round 7 ---- */
+
 .pw .page {
     padding-top: 150px;
 }
@@ -2214,17 +2123,7 @@
 .pw .pen:hover {
     color: var(--on-accent);
 }
-.pw .cta-band {
-    color: var(--on-accent);
-}
-.pw .cta-band p {
-    color: color-mix(in srgb, var(--on-accent) 85%, transparent);
-}
-.pw .cta-band .btn {
-    background: var(--on-accent);
-    color: var(--accent);
-    border-color: var(--on-accent);
-}
+
 .pw .btn {
     color: var(--on-accent);
 }
@@ -2517,7 +2416,7 @@
 .pw .editpill {
     padding: 0 14px 0 12px;
 }
-/* ---- round 8: header and footer exactly as on woofi-developments.at ---- */
+
 .pw {
     --float: 0 1px 2px rgb(0 0 0/0.3), 0 12px 32px -12px rgb(0 0 0/0.6);
 }
@@ -2660,7 +2559,6 @@
         height: 34px;
     }
 }
-/* ---- round 9: new colour system (no orange), smaller header, YouTube Music block ---- */
 
 /* header: calmer type and height */
 .pw .logo-w {
@@ -3002,11 +2900,11 @@
         width: 140px;
     }
 }
-/* ---- round 10: palette tokens (dark + light each) and contrast levels ---- */
+
 /* 1. every palette only declares raw colours */
 /* 2. map raw colours to the tokens the page uses, with a contrast level on top */
 /* 3. popover controls */
-/* ---- round 11: contrast steps (soft · low · medium · med-high · high), palette chips ---- */
+
 .pw #pp-ctr {
     flex-wrap: nowrap;
 }
@@ -3016,7 +2914,7 @@
 }
 /* old heatmap tooltip is replaced by the shared tooltip */
 /* popover buttons: undo the old row layout */
-/* ---- round 12: Appearance drawer ---- */
+
 .pw input[type='range'] {
     -webkit-appearance: none;
     appearance: none;
@@ -3061,7 +2959,7 @@
 .pw .btn:not(.ghost) {
     box-shadow: none;
 }
-/* ---- round 13: AI score ---- */
+
 .pw .hb {
     display: inline-flex;
     gap: 8px;
@@ -3225,7 +3123,7 @@
         grid-column: 1 / -1;
     }
 }
-/* ---- round 14: inline admin, signed-in menu, 1:1 secret entry, real images ---- */
+
 .pw .editpill,
 .pw .editbar {
     display: none !important;
@@ -3967,49 +3865,7 @@
 .pw .svc2 .btn {
     align-self: flex-start;
 }
-.pw .steps {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr auto 1fr;
-    gap: 12px;
-    align-items: stretch;
-}
-.pw .card.step {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 22px;
-}
-.pw .card.step b {
-    font-size: 1.02rem;
-    letter-spacing: -0.01em;
-}
-.pw .card.step p {
-    margin: 0;
-    font-size: 0.88rem;
-}
-.pw .step-ico {
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
-    display: grid;
-    place-items: center;
-    background: color-mix(in srgb, var(--accent) 16%, var(--surface-2));
-    color: var(--accent);
-}
-.pw .step-arr {
-    align-self: center;
-    color: var(--muted);
-    font-size: 1.4rem;
-}
-@media (max-width: 900px) {
-    .pw .steps {
-        grid-template-columns: 1fr;
-    }
-    .pw .step-arr {
-        transform: rotate(90deg);
-        justify-self: center;
-    }
-}
+
 /* YouTube cover art */
 .pw .cover img.yt {
     position: absolute;
@@ -4347,4 +4203,8 @@
 .pw h2,
 .pw h3 {
     text-wrap: balance;
+}
+.pw .svc-note {
+    max-width: 62ch;
+    margin: 32px 0 0;
 }

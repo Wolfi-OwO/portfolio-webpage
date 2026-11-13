@@ -3,9 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { EyeIcon, EyeSlashIcon, LockClosedIcon, UserIcon } from '@heroicons/react/24/outline';
 import { initialState, reducer } from './adminLoginReducer.js';
 import { TOKEN_STORAGE_KEY } from '../../utils/auth.js';
+import { FIELD } from '../../components/field-classes.js';
 
-const inputCls =
-    'w-full rounded-md border border-[var(--line)] bg-[var(--bg)] py-3 pl-10 pr-4 text-sm text-[var(--text)] placeholder-[var(--muted)] transition focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]';
+const inputCls = `${FIELD} py-3 pl-10 pr-4`;
 
 export default function AdminLoginPage() {
     const navigate = useNavigate();

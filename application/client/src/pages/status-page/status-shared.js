@@ -8,6 +8,7 @@
 // that DO need JSX and therefore live in their own file.
 import { useCallback, useEffect, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { FIELD } from '../../components/field-classes.js';
 import {
     CheckCircleIcon,
     ExclamationTriangleIcon,
@@ -192,8 +193,7 @@ export function toApiRange({ from, to }) {
     return { from: `${from}T00:00:00.000Z`, to: new Date(toMs).toISOString() };
 }
 
-export const inputCls =
-    'mt-2 w-full rounded-md border border-[var(--line)] bg-[var(--bg)] px-4 py-2.5 text-sm text-[var(--text)] placeholder-[var(--muted)] transition focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]';
+export const inputCls = `${FIELD} mt-2 px-4 py-2.5`;
 export const labelCls =
     'block text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]';
 

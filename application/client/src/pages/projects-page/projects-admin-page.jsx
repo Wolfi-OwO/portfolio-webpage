@@ -7,6 +7,7 @@ import { ProjectCard } from '../../components/design-bits.jsx';
 import { rowSpans } from '../../components/project-layout.js';
 import TailwindColorPicker from '../../components/TailwindColorPicker.jsx';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
+import { FIELD } from '../../components/field-classes.js';
 
 export default function ProjectsPage() {
     usePageMeta(
@@ -506,8 +507,7 @@ function NewTechRow({ query, color, onColorChange, onCreate }) {
     );
 }
 
-const inputClass =
-    'mt-2 w-full rounded-2xl border border-[var(--line)] bg-[var(--bg)] px-4 py-2.5 text-sm text-[var(--text)] placeholder-[var(--muted)] transition focus:border-[var(--accent)] focus:bg-[var(--surface)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]';
+const inputClass = `${FIELD} mt-2 px-4 py-2.5`;
 
 function Field({ label, required, children }) {
     return (
