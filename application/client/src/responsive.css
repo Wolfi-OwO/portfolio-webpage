@@ -1,10 +1,69 @@
-.pw .tech-list {
+/* Two rows of technologies drifting in opposite directions. Each track holds two identical
+   sets and slides by exactly one set, so the loop has no visible seam. */
+.pw .tech-rows {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 12px;
+}
+.pw .tech-row {
+    overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+}
+.pw .tech-track {
+    display: flex;
+    width: max-content;
+    animation: tech-right 55s linear infinite;
+}
+.pw .tech-row.back .tech-track {
+    animation-name: tech-left;
+    animation-duration: 65s;
+}
+.pw .tech-row:hover .tech-track {
+    animation-play-state: paused;
+}
+.pw .tech-set {
+    display: flex;
     gap: 10px;
+    padding: 2px 5px;
     margin: 0;
-    padding: 0;
     list-style: none;
+}
+.pw .tech-set .tech {
+    flex: none;
+    white-space: nowrap;
+}
+@keyframes tech-right {
+    from {
+        transform: translateX(-50%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+@keyframes tech-left {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .pw .tech-row {
+        mask-image: none;
+        -webkit-mask-image: none;
+    }
+    .pw .tech-track {
+        animation: none;
+        width: auto;
+    }
+    .pw .tech-set {
+        flex-wrap: wrap;
+    }
+    .pw .tech-set[aria-hidden='true'] {
+        display: none;
+    }
 }
 .pw .colophon {
     max-width: 62ch;
