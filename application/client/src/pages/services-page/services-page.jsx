@@ -47,7 +47,6 @@ function ServicesView() {
         <div className="pw">
             <div className="page" style={{ padding: 0 }}>
                 <header className="page-h">
-                    <span className="kicker mono">What I build</span>
                     <h1>
                         Services, <em>priced</em> plainly
                     </h1>

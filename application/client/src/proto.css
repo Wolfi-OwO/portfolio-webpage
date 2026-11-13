@@ -196,7 +196,7 @@
     gap: 6px;
 }
 .pw .tag {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     padding: 3px 9px;
     border-radius: 999px;
     background: var(--surface-2);
@@ -437,7 +437,7 @@
 .pw .heat-months {
     display: flex;
     justify-content: space-between;
-    font-size: 0.68rem;
+    font-size: 0.72rem;
     color: var(--muted);
     min-width: 720px;
     margin-bottom: 6px;
@@ -1331,7 +1331,7 @@
 .pw .chrome span {
     margin-left: 8px;
     font:
-        500 0.68rem 'JetBrains Mono',
+        500 0.72rem 'JetBrains Mono',
         monospace;
     color: var(--muted);
     white-space: nowrap;
@@ -1383,7 +1383,7 @@
 .pw .btn.sm span {
     display: inline-block;
     line-height: 1;
-    font-size: 0.95em;
+    font-size: 1em;
     transform: translateY(-1px);
 }
 .pw .links a:hover {
@@ -1411,7 +1411,7 @@
     column-gap: 3px;
     min-width: 0;
     margin-bottom: 8px;
-    font-size: 0.66rem;
+    font-size: 0.72rem;
     white-space: nowrap;
 }
 .pw .heat-months span {
@@ -2016,13 +2016,13 @@
     font-variant-numeric: tabular-nums;
 }
 .pw .unit span {
-    font-size: 0.66rem;
+    font-size: 0.72rem;
     text-transform: uppercase;
     letter-spacing: 0.1em;
 }
 .pw .gift .note {
-    border-left: 4px solid var(--accent);
-    padding: 4px 0 4px 18px;
+    border-top: 1px solid var(--line);
+    padding: 18px 0 4px;
     margin: 14px 0;
     display: grid;
     gap: 8px;
@@ -2300,7 +2300,7 @@
     inset: -5px 5px 5px -5px;
 }
 .pw .avatar.sm .ph {
-    font-size: 0.6rem;
+    font-size: 0.72rem;
 }
 .pw .teaser {
     display: flex;
@@ -2363,7 +2363,7 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
-    font: 500 0.66rem 'JetBrains Mono';
+    font: 500 0.72rem 'JetBrains Mono';
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -2820,7 +2820,7 @@
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    font: 600 0.68rem 'JetBrains Mono';
+    font: 600 0.72rem 'JetBrains Mono';
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--accent);
@@ -3011,7 +3011,7 @@
 }
 .pw #pp-ctr button {
     padding: 5px 8px;
-    font-size: 0.68rem;
+    font-size: 0.72rem;
 }
 /* old heatmap tooltip is replaced by the shared tooltip */
 /* popover buttons: undo the old row layout */
@@ -3197,7 +3197,7 @@
 }
 .pw .conf {
     font:
-        600 0.64rem 'JetBrains Mono',
+        600 0.72rem 'JetBrains Mono',
         monospace;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -3493,7 +3493,7 @@
     place-items: center;
     background: color-mix(in srgb, var(--accent) 16%, var(--surface-2));
     color: var(--accent);
-    transition: 0.4s cubic-bezier(0.3, 1.6, 0.5, 1);
+    transition: 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 .pw .card.hobby:hover .hico {
     transform: rotate(-10deg) scale(1.12);
@@ -3534,8 +3534,8 @@
     border: 1px solid var(--line);
     transform: rotate(var(--rot));
     cursor: default;
-    transition: 0.3s cubic-bezier(0.3, 1.6, 0.5, 1);
-    animation: pop 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+    transition: 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    animation: pop 0.6s cubic-bezier(0.25, 1, 0.5, 1) both;
     animation-delay: calc(var(--i) * 70ms + 200ms);
 }
 .pw .word:nth-child(3n + 1) {
@@ -3866,15 +3866,6 @@
     overflow: hidden;
     transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.pw .card.svc2::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--accent), transparent);
-    opacity: 0;
-    transition: 0.3s;
-}
 .pw .card.svc2:hover {
     transform: translateY(-6px);
     border-color: var(--accent);
@@ -3890,7 +3881,7 @@
     place-items: center;
     background: color-mix(in srgb, var(--accent) 16%, var(--surface-2));
     color: var(--accent);
-    transition: 0.4s cubic-bezier(0.3, 1.6, 0.5, 1);
+    transition: 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 .pw .card.svc2:hover .svc-ico {
     transform: rotate(-8deg) scale(1.1);
@@ -3959,7 +3950,7 @@
     flex-direction: column;
 }
 .pw .price2 small {
-    font-size: 0.66rem;
+    font-size: 0.72rem;
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.1em;
@@ -4340,4 +4331,22 @@
 }
 .pw .pactions + h3 {
     padding-right: 88px;
+}
+
+/* Running text stays at a readable line length on wide screens. */
+.pw .page-h .lead,
+.pw .page-h p {
+    max-width: 66ch;
+}
+
+/* No last line with a single word on it. */
+.pw p,
+.pw .lead,
+.pw li {
+    text-wrap: pretty;
+}
+.pw h1,
+.pw h2,
+.pw h3 {
+    text-wrap: balance;
 }

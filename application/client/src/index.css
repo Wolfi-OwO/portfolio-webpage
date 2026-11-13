@@ -90,17 +90,7 @@
    of accent light that used to sit in the upper right is gone: it was a glow, and
    the grid alone carries the brand. Kept low-contrast so text on top stays readable. */
 .app-ground {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background-image:
-        linear-gradient(to right, var(--line) 1px, transparent 1px),
-        linear-gradient(to bottom, var(--line) 1px, transparent 1px);
-    background-size: 72px 72px;
-    opacity: 0.35;
-    -webkit-mask-image: radial-gradient(90% 60% at 50% 0%, #000 0%, transparent 100%);
-    mask-image: radial-gradient(90% 60% at 50% 0%, #000 0%, transparent 100%);
+    display: none;
 }
 
 /* The middle column is the only scroll container in the app — the bars are fixed
