@@ -1,6 +1,6 @@
 {
   "name": "@portfolio/server",
-  "version": "7.4.27",
+  "version": "7.4.28",
   "description": "Personal developer portfolio website showcasing projects, skills, and experience.",
   "main": "src/server.js",
   "type": "module",
