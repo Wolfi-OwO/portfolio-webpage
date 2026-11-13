@@ -231,30 +231,19 @@ export default function Homepage() {
 
                     <section>
                         <h2 className="sec-label">Technologies I use</h2>
-                        <div className="tech-rows" aria-label="Technologies I use">
-                            {[
-                                technologies_list.slice(0, Math.ceil(technologies_list.length / 2)),
-                                technologies_list.slice(Math.ceil(technologies_list.length / 2)),
-                            ].map((row, r) => (
-                                <div className={`tech-row ${r === 1 ? 'back' : ''}`} key={r}>
-                                    <div className="tech-track">
-                                        {[0, 1].map((copy) => (
-                                            <ul
-                                                className="tech-set"
-                                                key={copy}
-                                                aria-hidden={copy === 1}
-                                            >
-                                                {row.map(({ name, icon: Icon, color }) => (
-                                                    <li className="tech" key={name}>
-                                                        <Icon className="tico" style={{ color }} />
-                                                        {name}
-                                                    </li>
-                                                ))}
-                                            </ul>
+                        <div className="tech-row" aria-label="Technologies I use">
+                            <div className="tech-track">
+                                {[0, 1].map((copy) => (
+                                    <ul className="tech-set" key={copy} aria-hidden={copy === 1}>
+                                        {technologies_list.map(({ name, icon: Icon, color }) => (
+                                            <li className="tech" key={name}>
+                                                <Icon className="tico" style={{ color }} />
+                                                {name}
+                                            </li>
                                         ))}
-                                    </div>
-                                </div>
-                            ))}
+                                    </ul>
+                                ))}
+                            </div>
                         </div>
                     </section>
 
