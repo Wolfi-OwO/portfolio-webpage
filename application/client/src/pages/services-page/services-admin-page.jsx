@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 import {
     CheckIcon,
@@ -63,7 +62,7 @@ export default function ServicesPage() {
 
     usePageMeta(
         'Services',
-        'Websites, web apps, Android apps in Kotlin and desktop GUIs with JavaFX or .NET — what I build, and what it costs.',
+        'Websites, web apps, Android apps in Kotlin and desktop GUIs with JavaFX or .NET. What I build and what it costs.',
     );
 
     const [services, setServices] = useState([]);
@@ -178,7 +177,7 @@ export default function ServicesPage() {
                     <p className="mt-4 leading-7 text-[var(--muted)]">
                         <FormattedMessage
                             id="services.intro"
-                            defaultMessage="Websites, web applications, Android apps in Kotlin and desktop interfaces with JavaFX or .NET. The prices below are starting points, not quotes — what a project really costs depends on what it has to do, and I would rather tell you that honestly after a conversation than pretend a number on a page can know it."
+                            defaultMessage="Websites, web applications, Android apps in Kotlin and desktop interfaces with JavaFX or .NET. These prices are starting points. What a project costs depends on what it has to do, and I can only say that after we have talked."
                         />
                     </p>
                 </div>
@@ -236,37 +235,15 @@ export default function ServicesPage() {
                 ))}
             </section>
 
-            <section className="mt-12 rounded-lg border border-[var(--line)] bg-[var(--surface)] p-6 sm:p-8">
-                <h2 className="text-xl font-bold text-[var(--accent)]">
-                    <FormattedMessage
-                        id="services.cta.title"
-                        defaultMessage="Not sure which of these you need?"
-                    />
-                </h2>
-
-                <p className="mt-3 leading-7 text-[var(--text)]">
-                    <FormattedMessage
-                        id="services.cta.text"
-                        defaultMessage="Describe what you want to happen, and I will tell you what it takes to build it — including when it is not worth building. Note that I am on an internship until the end of September and with the Bundesheer until April 2027, so larger projects realistically start after that; small work in between is possible."
-                    />
-                </p>
-
-                <div className="mt-6 flex flex-wrap gap-3">
-                    <Link
-                        to="/contact"
-                        className="rounded-md bg-[var(--text)] px-4 py-2 text-sm font-semibold text-[var(--bg)] transition hover:opacity-90"
-                    >
-                        <FormattedMessage id="services.cta.button" defaultMessage="Get in touch" />
-                    </Link>
-
-                    <a
-                        href={`mailto:${IDENTITY.email}`}
-                        className="rounded-md border border-[var(--line)] px-4 py-2 text-sm font-semibold text-[var(--text)] transition hover:border-[var(--accent)]"
-                    >
-                        {IDENTITY.email}
-                    </a>
-                </div>
-            </section>
+            <p className="mt-12 max-w-[62ch] leading-7 text-[var(--muted)]">
+                <FormattedMessage
+                    id="services.note"
+                    defaultMessage="Write to me with a few lines about what the thing should do and I reply with what it would take. Small jobs fit in now, bigger projects start in April 2027."
+                />{' '}
+                <a className="text-[var(--accent)] underline" href={`mailto:${IDENTITY.email}`}>
+                    {IDENTITY.email}
+                </a>
+            </p>
         </div>
     );
 }
