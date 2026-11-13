@@ -6,10 +6,8 @@ import { useApiList } from '../../hooks/useApiList.js';
 import { Link } from 'react-router-dom';
 import { Lines, ProjectCard } from '../../components/design-bits.jsx';
 import '../../proto.css';
-import AvailabilityBadge from '../../components/availability-badge.jsx';
 import ActivityHeatmap from '../../components/activity-heatmap.jsx';
 import { shouldBoot } from '../../utils/boot.js';
-import { badgeState } from '../../utils/availability.js';
 import { IDENTITY } from '../../utils/identity.js';
 import {
     SiJavascript,
@@ -143,12 +141,9 @@ export default function Homepage() {
     );
 
     const [booting, setBooting] = useState(shouldBoot);
-    // Availability is fetched once and shared: the hero badge reads it.
-    const [availability] = useApiList('/api/availability');
     const [projects] = useApiList('/api/projects');
     const [technologies] = useApiList('/api/technologies');
     const tech = Object.fromEntries(technologies.map((t) => [t._id, t.tech]));
-    const badge = badgeState(availability.filter((entry) => entry.published));
     const featured = ['Metrion', 'NetViz', 'Nutrilens']
         .map((t) => projects.find((p) => p.title === t))
         .filter(Boolean);
@@ -159,11 +154,6 @@ export default function Homepage() {
             <div className="pw">
                 <div className="page" style={{ padding: 0 }}>
                     <section className="hero">
-                        <div className="hero-top mono muted">
-                            <span className="hb">
-                                <AvailabilityBadge badge={badge} />
-                            </span>
-                        </div>
                         <Lines
                             lines={[
                                 <>
@@ -266,17 +256,6 @@ export default function Homepage() {
                                 ))}
                             </div>
                         </div>
-                    </section>
-
-                    <section className="cta-band">
-                        <h2>Not sure what you need?</h2>
-                        <p>
-                            Describe what should happen and I'll tell you what it takes to build it,
-                            even if it isn't worth it.
-                        </p>
-                        <Link className="btn" to="/contact">
-                            Start a conversation
-                        </Link>
                     </section>
                 </div>
             </div>

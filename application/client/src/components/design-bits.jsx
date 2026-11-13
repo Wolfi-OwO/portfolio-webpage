@@ -14,7 +14,7 @@ export const Lines = ({ lines }) => (
 
 const MAX_TAGS = 4;
 
-export function ProjectCard({ p, tech, span, lead = false, maxTags = MAX_TAGS }) {
+export function ProjectCard({ p, tech, span, lead = false, maxTags = MAX_TAGS, actions = null }) {
     const shot = SHOTS[p.title];
     const names = (p.technologies || []).map((id) => tech[id]).filter(Boolean);
     const rest = names.slice(maxTags);
@@ -27,10 +27,15 @@ export function ProjectCard({ p, tech, span, lead = false, maxTags = MAX_TAGS })
                 API would be decoration with nothing behind it. */}
             {shot && (
                 <div className="pshot">
-                    <img src={shot} alt={`Screenshot of ${p.title}`} loading="lazy" />
+                    <img
+                        src={shot}
+                        alt={`${shot.endsWith('.svg') ? 'Cover' : 'Screenshot'} of ${p.title}`}
+                        loading="lazy"
+                    />
                 </div>
             )}
             <div className="pbody">
+                {actions && <div className="pactions">{actions}</div>}
                 <h3>{p.title}</h3>
                 <p>{p.description}</p>
                 <div className="tags">
