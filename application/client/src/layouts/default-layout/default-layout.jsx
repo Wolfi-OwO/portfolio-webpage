@@ -219,7 +219,7 @@ export default function DefaultLayout() {
                 language button. Now the links get their own row below md (grid row 2)
                 and share the row with the controls from md up. The DOM order is
                 wordmark, links, controls, so Tab reaches the links first. */}
-            <header className="relative z-40 shrink-0 bg-[var(--bg)] border-b border-[color-mix(in_srgb,var(--text)_10%,transparent)] pt-[env(safe-area-inset-top)]">
+            <header className="relative z-40 shrink-0 border-b border-[color-mix(in_srgb,var(--text)_10%,transparent)] bg-[var(--bg)] pt-[env(safe-area-inset-top)]">
                 <nav
                     aria-label={intl.formatMessage({
                         id: 'nav.main',
@@ -564,7 +564,7 @@ export default function DefaultLayout() {
                 195px for a link set that needs about 245px, and the links slid into
                 the auto middle cell. In flow, never fixed; bottom padding clears the
                 iOS home indicator. */}
-            <footer className="relative z-20 shrink-0 bg-[var(--bg)] border-t border-[color-mix(in_srgb,var(--text)_10%,transparent)] px-4 pb-[env(safe-area-inset-bottom)] sm:px-6 lg:px-8">
+            <footer className="relative z-20 shrink-0 border-t border-[color-mix(in_srgb,var(--text)_10%,transparent)] bg-[var(--bg)] px-4 pb-[env(safe-area-inset-bottom)] sm:px-6 lg:px-8">
                 <div className="grid w-full grid-cols-2 items-center gap-x-4 text-sm lg:h-10 lg:grid-cols-[1fr_auto_1fr] lg:gap-x-4 lg:text-xs">
                     {/* Same size as the pill (house rule). nowrap because the old
                         copyright stacked "(c)" over "2026" at <=402px. */}

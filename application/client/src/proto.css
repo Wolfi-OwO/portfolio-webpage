@@ -1488,7 +1488,9 @@
     display: none;
 }
 .pw .sec-label {
-    font-family: Schibsted Grotesk, sans-serif;
+    font-family:
+        Schibsted Grotesk,
+        sans-serif;
     text-transform: none;
     letter-spacing: -0.03em;
     font-size: clamp(1.4rem, 1rem + 1.2vw, 1.9rem);
