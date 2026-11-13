@@ -1,7 +1,7 @@
 {
   "name": "@portfolio/client",
   "private": true,
-  "version": "7.4.20",
+  "version": "7.4.21",
   "description": "React frontend for the Woofi Developments portfolio website.",
   "type": "module",
   "author": "Wolfi-OwO",
