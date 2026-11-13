@@ -231,14 +231,20 @@ export default function Homepage() {
 
                     <section>
                         <h2 className="sec-label">Technologies I use</h2>
-                        <ul className="tech-list" aria-label="Technologies I use">
-                            {technologies_list.map(({ name, icon: Icon, color }) => (
-                                <li className="tech" key={name}>
-                                    <Icon className="tico" style={{ color }} />
-                                    {name}
-                                </li>
-                            ))}
-                        </ul>
+                        <div className="tech-row" aria-label="Technologies I use">
+                            <div className="tech-track">
+                                {[0, 1].map((copy) => (
+                                    <ul className="tech-set" key={copy} aria-hidden={copy === 1}>
+                                        {technologies_list.map(({ name, icon: Icon, color }) => (
+                                            <li className="tech" key={name}>
+                                                <Icon className="tico" style={{ color }} />
+                                                {name}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ))}
+                            </div>
+                        </div>
                     </section>
 
                     <section>
