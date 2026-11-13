@@ -34,7 +34,6 @@ function ProjectsView() {
         <div className="pw">
             <div className="page" style={{ padding: 0 }}>
                 <header className="page-h">
-                    <span className="kicker mono">Projects</span>
                     <h1>
                         Things I've <em>shipped</em>
                     </h1>

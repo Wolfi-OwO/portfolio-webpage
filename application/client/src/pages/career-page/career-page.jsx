@@ -58,7 +58,6 @@ function CareerView() {
         <div className="pw">
             <div className="page cp-page" style={{ padding: 0 }}>
                 <header className="page-h">
-                    <span className="kicker mono">Career</span>
                     <h1>
                         Where I've <em>been</em>
                     </h1>

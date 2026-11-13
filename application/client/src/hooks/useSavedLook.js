@@ -26,7 +26,7 @@ export default function useSavedLook() {
             // Drop the colours the head script painted from the cache; they are recomputed below.
             TOKENS.forEach((t) => root.style.removeProperty(t));
             root.dataset.palette = 'cobalt';
-            root.dataset.contrast = 'low';
+            root.dataset.contrast = 'medium';
             root.dataset.theme = root.classList.contains('dark') ? 'dark' : 'light';
             applyCustom(FACTORY);
             try {

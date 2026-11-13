@@ -62,7 +62,7 @@
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
-        font-size: 0.66rem;
+        font-size: 0.72rem;
     }
     html .pw .hero-row {
         grid-template-columns: 1fr;
@@ -209,7 +209,7 @@
     height: 18px;
     text-align: center;
     font:
-        500 0.64rem/18px 'JetBrains Mono',
+        500 0.72rem/18px 'JetBrains Mono',
         monospace;
     font-style: normal;
     color: var(--muted);
@@ -333,7 +333,7 @@
 .pw .ch .when {
     display: block;
     color: var(--muted);
-    font-size: 0.68rem;
+    font-size: 0.72rem;
 }
 @media (max-width: 640px) {
     html .pw .ch-logo {
@@ -425,7 +425,7 @@
 }
 .pw .heat-src a > span > span:last-child,
 .pw .heat-repos a > span > span:last-child {
-    font-size: 0.68rem;
+    font-size: 0.72rem;
     line-height: 1.3;
     letter-spacing: 0.05em;
 }
@@ -498,7 +498,7 @@ html .pw .pbody .tags {
     align-items: center;
 }
 html .pw .pbody .tag {
-    font-size: 0.68rem;
+    font-size: 0.72rem;
     line-height: 1;
     padding: 6px 10px;
 }

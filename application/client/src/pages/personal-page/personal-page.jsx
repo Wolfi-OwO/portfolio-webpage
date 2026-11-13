@@ -84,7 +84,6 @@ export default function PersonalPage() {
             <div className="page" style={{ padding: 0 }}>
                 <section className="phero">
                     <div className="ptxt">
-                        <span className="kicker mono">Beyond the code</span>
                         <h1>
                             The person
                             <br />
