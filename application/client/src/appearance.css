@@ -538,3 +538,10 @@ html:root[data-palette][data-theme='light'][data-contrast='low'] {
     --muted: var(--c-muted);
     --line: color-mix(in srgb, var(--c-text) 14%, transparent);
 }
+
+/* Set by useSavedLook for the first two frames, see there. */
+html.look-applying *,
+html.look-applying *::before,
+html.look-applying *::after {
+    transition: none !important;
+}
