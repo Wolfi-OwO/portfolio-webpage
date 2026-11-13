@@ -2,7 +2,8 @@ import { FormattedMessage } from 'react-intl';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import { useApiList } from '../../hooks/useApiList.js';
 import { Link } from 'react-router-dom';
-import { Lines, ProjectCard } from '../../components/design-bits.jsx';
+import { ProjectCard } from '../../components/design-bits.jsx';
+import RunningNow from '../../components/running-now.jsx';
 import '../../proto.css';
 import ActivityHeatmap from '../../components/activity-heatmap.jsx';
 import { IDENTITY } from '../../utils/identity.js';
@@ -148,62 +149,53 @@ export default function Homepage() {
         <>
             <div className="pw">
                 <div className="page" style={{ padding: 0 }}>
-                    <section className="hero">
-                        <Lines
-                            lines={[
-                                <>
-                                    Hi, I'm <em>Phillip</em>.
-                                </>,
-                                'I make software that',
-                                'does what it says.',
-                            ]}
-                        />
-                        <div className="hero-row">
-                            <img
-                                className="portrait"
-                                src="/profile-image.webp"
-                                alt={`${IDENTITY.name}, portrait`}
-                                fetchPriority="high"
-                            />
-                            <div>
-                                <p className="lead big">
+                    <section className="hero2">
+                        <div className="hero2-main">
+                            <div className="who">
+                                <img
+                                    src="/profile-image.webp"
+                                    alt={`${IDENTITY.name}, portrait`}
+                                    width="76"
+                                    height="76"
+                                    fetchPriority="high"
+                                />
+                                <span>
+                                    Phillip
+                                    <br />
                                     <FormattedMessage
                                         id="homepage.role"
-                                        defaultMessage="Fullstack developer / Carinthia, Austria"
+                                        defaultMessage="Fullstack developer, Carinthia, Austria"
                                     />
-                                    .
-                                </p>
-                                <p className="lead">
-                                    <FormattedMessage
-                                        id="homepage.bio"
-                                        defaultMessage="I'm Phillip, a software developer from Carinthia. I build web applications, websites and apps, and I'm happiest where data and machine learning meet everyday software: tools that are fast and a pleasure to use. Alongside the code I climb, hike and keep tinkering with new ideas. More on <link>LinkedIn</link>."
-                                        values={{
-                                            link: (chunks) => (
-                                                <a
-                                                    href={IDENTITY.linkedInUrl}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="acc"
-                                                >
-                                                    {chunks}
-                                                </a>
-                                            ),
-                                        }}
-                                    />
-                                </p>
-                                <div className="btns">
-                                    <Link className="btn" to="/contact">
-                                        Start a conversation
-                                    </Link>
-                                    <Link className="btn ghost" to="/projects">
-                                        Read the work →
-                                    </Link>
-                                    <Link className="btn ghost" to="/career">
-                                        Career &amp; education →
-                                    </Link>
-                                </div>
+                                </span>
+                            </div>
+                            <h1>
+                                I make software that <em>does what it says.</em>
+                            </h1>
+                            <p className="lead">
+                                <FormattedMessage
+                                    id="homepage.bio"
+                                    defaultMessage="I'm Phillip, a software developer from Carinthia. I build web applications, websites and apps, and I'm happiest where data and machine learning meet everyday software: tools that are fast and a pleasure to use. Alongside the code I climb, hike and keep tinkering with new ideas. More on <link>LinkedIn</link>."
+                                    values={{
+                                        link: (chunks) => (
+                                            <a
+                                                href={IDENTITY.linkedInUrl}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="acc"
+                                            >
+                                                {chunks}
+                                            </a>
+                                        ),
+                                    }}
+                                />
+                            </p>
+                            <div className="hero2-links">
+                                <Link to="/contact">Start a conversation</Link>
+                                <Link to="/projects">Read the work</Link>
+                                <Link to="/career">Career &amp; education</Link>
                             </div>
                         </div>
+                        <RunningNow />
                     </section>
 
                     <section>

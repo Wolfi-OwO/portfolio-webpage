@@ -1,7 +1,8 @@
 /* Type.
    mono — JetBrains Mono: the structural voice. Prompts, output, labels, numbers.
    sans — Schibsted Grotesk: prose and headings. Weight 800 with negative tracking is what
-          carries the headlines; there is no second display face. */
+          carries the section headings.
+   serif — Newsreader: the home headline only, so the first thing you read has its own voice. */
 /* Self-hosted rather than fetched from Google's font CDN. Such a request
    sets no cookie but still transmits the visitor's IP to a US server on first
    paint, before any consent — LG München I, 20.01.2022, Az. 3 O 17493/20
@@ -14,6 +15,8 @@
 @import '@fontsource/schibsted-grotesk/600.css';
 @import '@fontsource/schibsted-grotesk/700.css';
 @import '@fontsource/schibsted-grotesk/800.css';
+@import '@fontsource/newsreader/400.css';
+@import '@fontsource/newsreader/400-italic.css';
 @import '@fontsource/jetbrains-mono/400.css';
 @import '@fontsource/jetbrains-mono/500.css';
 @import '@fontsource/jetbrains-mono/700.css';
