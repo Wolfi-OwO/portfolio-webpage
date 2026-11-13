@@ -1,7 +1,7 @@
 [
   {
     "title": "Website",
-    "description": "Eine schnelle, moderne Website — Landingpage, Portfolio oder Firmenauftritt. Responsiv, barrierearm und ohne Baukasten-Ballast.",
+    "description": "Eine schnelle, moderne Website: Landingpage, Portfolio oder Firmenauftritt. Responsiv, barrierearm und ohne Baukasten-Ballast.",
     "category": "web",
     "deliverables": [
       "Design und Umsetzung mit React und Tailwind",
@@ -34,7 +34,7 @@
   },
   {
     "title": "Android-App",
-    "description": "Native Android-Anwendung in Kotlin — von der einfachen Utility-App bis zur App mit eigenem Backend.",
+    "description": "Native Android-Anwendung in Kotlin, von der einfachen Utility-App bis zur App mit eigenem Backend.",
     "category": "mobile",
     "deliverables": [
       "Native Umsetzung in Kotlin",
@@ -50,7 +50,7 @@
   },
   {
     "title": "Desktop-Anwendung",
-    "description": "Eine Desktop-GUI mit JavaFX oder .NET — für Werkzeuge, die lokal laufen müssen statt im Browser.",
+    "description": "Eine Desktop-GUI mit JavaFX oder .NET für Werkzeuge, die lokal laufen müssen statt im Browser.",
     "category": "desktop",
     "deliverables": [
       "Oberfläche mit JavaFX oder .NET (WPF)",

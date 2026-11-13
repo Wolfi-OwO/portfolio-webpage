@@ -134,7 +134,7 @@ export default {
     'services.label': 'Was ich baue',
     'services.title': 'Leistungen',
     'services.intro':
-        'Websites, Webanwendungen, Android-Apps in Kotlin und Desktop-Oberflächen mit JavaFX oder .NET. Die Preise unten sind Startpunkte, keine Angebote — was ein Projekt wirklich kostet, hängt davon ab, was es können muss. Das sage ich dir lieber ehrlich nach einem Gespräch, als so zu tun, als wüsste es eine Zahl auf einer Seite.',
+        'Websites, Webanwendungen, Android-Apps in Kotlin und Desktop-Oberflächen mit JavaFX oder .NET. Die Preise unten sind Startpunkte. Was ein Projekt kostet, hängt davon ab, was es können muss, und das kann ich erst nach einem Gespräch sagen.',
     'services.hourlyRate': 'Stundensatz: {rate} € / h',
     'services.priceFrom': 'ab {price} €',
     'services.byTheHour': '{rate} € / h',
@@ -146,10 +146,8 @@ export default {
     'services.category.mobile': 'Mobile',
     'services.category.desktop': 'Desktop',
     'services.category.other': 'Sonstiges',
-    'services.cta.title': 'Nicht sicher, was davon du brauchst?',
-    'services.cta.text':
-        'Beschreib mir, was passieren soll, und ich sage dir, was es braucht, um es zu bauen — auch dann, wenn es sich nicht lohnt. Beachte: Bis Ende September bin ich im Praktikum und danach bis April 2027 beim Bundesheer, größere Projekte starten also realistisch danach. Kleinere Arbeiten dazwischen sind möglich.',
-    'services.cta.button': 'Kontakt aufnehmen',
+    'services.note':
+        'Schreib mir ein paar Zeilen dazu, was das Ding können soll, und ich antworte, was dafür nötig wäre. Kleine Aufträge passen jetzt dazwischen, größere Projekte starten im April 2027.',
 
     'contact.title': 'Kontakt aufnehmen',
     'contact.description':
