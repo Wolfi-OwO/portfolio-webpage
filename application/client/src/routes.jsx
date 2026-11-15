@@ -30,10 +30,6 @@ const router = createBrowserRouter([
                 lazy: page(() => import('./pages/services-page/services-page.jsx')),
             },
             {
-                path: '/personal',
-                lazy: page(() => import('./pages/personal-page/personal-page.jsx')),
-            },
-            {
                 path: '/contact',
                 lazy: page(() => import('./pages/contact-page/contact-page.jsx')),
             },

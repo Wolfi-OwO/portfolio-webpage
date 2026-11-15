@@ -7,7 +7,6 @@ export default {
     'nav.logout': 'Abmelden',
     'nav.career': 'Werdegang',
     'nav.services': 'Leistungen',
-    'nav.personal': 'Persönlich',
     'nav.secret': 'Ein neues Geheimnis?!',
 
     'theme.label': 'Design',
