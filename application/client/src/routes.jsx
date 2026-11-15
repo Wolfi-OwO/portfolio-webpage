@@ -1,16 +1,11 @@
 import { createBrowserRouter } from 'react-router-dom';
 import DefaultLayout from './layouts/default-layout/default-layout.jsx';
 import Homepage from './pages/homepage/homepage.jsx';
-import ProjectsPage from './pages/projects-page/projects-page.jsx';
-import CareerPage from './pages/career-page/career-page.jsx';
-import ContactPage from './pages/contact-page/contact-page.jsx';
-import ServicesPage from './pages/services-page/services-page.jsx';
-import PrivacyPolicyPage from './pages/privacy-policy-page/privacy-policy-page.jsx';
-import ImprintPage from './pages/imprint-page/imprint-page.jsx';
-import AdminLoginPage from './pages/admin-login-page/admin-login-page.jsx';
-import SecretPage from './pages/secret-page/secret-page.jsx';
-import PersonalPage from './pages/personal-page/personal-page.jsx';
 import ErrorPage from './pages/error-page/error-page.jsx';
+
+// Everything except the layout and the home page is fetched when its route is first opened,
+// so a visit to the home page does not download the admin, legal and career code.
+const page = (load) => async () => ({ Component: (await load()).default });
 
 const router = createBrowserRouter([
     {
@@ -24,42 +19,42 @@ const router = createBrowserRouter([
             },
             {
                 path: '/projects',
-                element: <ProjectsPage />,
+                lazy: page(() => import('./pages/projects-page/projects-page.jsx')),
             },
             {
                 path: '/career',
-                element: <CareerPage />,
+                lazy: page(() => import('./pages/career-page/career-page.jsx')),
             },
             {
                 path: '/services',
-                element: <ServicesPage />,
+                lazy: page(() => import('./pages/services-page/services-page.jsx')),
             },
             {
                 path: '/personal',
-                element: <PersonalPage />,
+                lazy: page(() => import('./pages/personal-page/personal-page.jsx')),
             },
             {
                 path: '/contact',
-                element: <ContactPage />,
+                lazy: page(() => import('./pages/contact-page/contact-page.jsx')),
             },
             {
                 path: '/privacy-policy',
-                element: <PrivacyPolicyPage />,
+                lazy: page(() => import('./pages/privacy-policy-page/privacy-policy-page.jsx')),
             },
             // §5 ECG wants the imprint easy to find and recognisably labelled.
             // It is still a section of the privacy policy, but reaching it only
             // through a link labelled "Privacy Policy" does not meet that.
             {
                 path: '/impressum',
-                element: <ImprintPage />,
+                lazy: page(() => import('./pages/imprint-page/imprint-page.jsx')),
             },
             {
                 path: '/admin/login',
-                element: <AdminLoginPage />,
+                lazy: page(() => import('./pages/admin-login-page/admin-login-page.jsx')),
             },
             {
                 path: '/secret',
-                element: <SecretPage />,
+                lazy: page(() => import('./pages/secret-page/secret-page.jsx')),
             },
         ],
     },
