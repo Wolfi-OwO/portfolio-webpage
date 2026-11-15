@@ -259,10 +259,6 @@ export default function DefaultLayout() {
                             <FormattedMessage id="nav.services" defaultMessage="Services" />
                         </NavLink>
 
-                        <NavLink to="/personal" className={navLinkClasses}>
-                            <FormattedMessage id="nav.personal" defaultMessage="Personal" />
-                        </NavLink>
-
                         {/* Only here once the combo has been typed. Fades in rather
                             than popping, so it reads as something appearing. */}
                         {secretFound && (
@@ -457,7 +453,6 @@ export default function DefaultLayout() {
                             ['/projects', 'nav.projects', 'Projects'],
                             ['/career', 'nav.career', 'Career'],
                             ['/services', 'nav.services', 'Services'],
-                            ['/personal', 'nav.personal', 'Personal'],
                             ['/contact', 'footer.contact', 'Contact'],
                         ].map(([to, id, label]) => (
                             <NavLink
