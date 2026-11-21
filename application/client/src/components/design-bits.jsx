@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import '../proto.css';
 
 import { SHOTS } from './project-layout.js';
@@ -17,7 +19,9 @@ const MAX_TAGS = 4;
 export function ProjectCard({ p, tech, span, lead = false, maxTags = MAX_TAGS, actions = null }) {
     const shot = SHOTS[p.title];
     const names = (p.technologies || []).map((id) => tech[id]).filter(Boolean);
+    const [open, setOpen] = useState(false);
     const rest = names.slice(maxTags);
+    const shown = open ? names : names.slice(0, maxTags);
     return (
         <article
             className={`card proj ${shot ? 'has-shot' : 'plain'} ${lead ? 'lead-card' : ''}`}
@@ -39,15 +43,21 @@ export function ProjectCard({ p, tech, span, lead = false, maxTags = MAX_TAGS, a
                 <h3>{p.title}</h3>
                 <p>{p.description}</p>
                 <div className="tags">
-                    {names.slice(0, maxTags).map((n) => (
+                    {shown.map((n) => (
                         <span className="tag" key={n}>
                             {n}
                         </span>
                     ))}
                     {rest.length > 0 && (
-                        <span className="tag more" title={rest.join(', ')}>
-                            +{rest.length}
-                        </span>
+                        <button
+                            type="button"
+                            className="tag more"
+                            aria-expanded={open}
+                            title={open ? undefined : rest.join(', ')}
+                            onClick={() => setOpen((v) => !v)}
+                        >
+                            {open ? 'Less' : `+${rest.length}`}
+                        </button>
                     )}
                 </div>
                 <div className="links">

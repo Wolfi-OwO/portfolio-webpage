@@ -754,3 +754,30 @@ html .pw .heat-sec > div.mt-3 {
         padding: 18px 16px 20px;
     }
 }
+
+/* Selected work and the activity block: the saved "line strength" is 60%, so every card
+   edge, tag outline and heatmap cell read as a hard white or black rule. These two
+   sections draw their lines at a third of the chosen strength; the slider still moves
+   them, and the high contrast steps keep their full rules. The "+N" tag is a button
+   now, so it needs the tag box without the browser's button look, and it must not take
+   the 18px top margin that belongs to the "All projects" link (.pw .more). */
+html {
+    --line-soft: color-mix(in srgb, var(--line) 34%, transparent);
+}
+html:not([data-contrast='high']):not([data-contrast='medhigh']) .pw .pgrid > .proj,
+html:not([data-contrast='high']):not([data-contrast='medhigh']) .pw .heat-sec {
+    --line: var(--line-soft);
+}
+html .pw .pbody button.tag {
+    font-family: inherit;
+    cursor: pointer;
+    margin-top: 0;
+    appearance: none;
+}
+html .pw .pbody button.tag.more:hover {
+    background: color-mix(in srgb, var(--accent) 12%, var(--surface-2));
+}
+html .pw .pbody button.tag.more:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
