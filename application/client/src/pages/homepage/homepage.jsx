@@ -238,18 +238,6 @@ export default function Homepage() {
                             </div>
                         </div>
                     </section>
-
-                    <section>
-                        <h2 className="sec-label">About this site</h2>
-                        <p className="colophon">
-                            It runs on one VPS in the EU behind Caddy and is deployed from GitHub
-                            Actions with a blue-green switch, so a release never takes the old
-                            version down first. The fonts are served from here, nothing loads from a
-                            third-party host, and the{' '}
-                            <a href="https://status.woofi-developments.at">status page</a> shows
-                            what is up right now.
-                        </p>
-                    </section>
                 </div>
             </div>
         </>
