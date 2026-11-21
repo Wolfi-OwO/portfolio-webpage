@@ -25,7 +25,7 @@ const anotherExampleProject = {
     title: 'Alpinfex',
     description:
         'A blog website for enthusiastic mountaineers who want to share their experiences with others.',
-    repositoryUrl: 'https://gitlab.com/woofi4/Projects/tourblog.git',
+    repositoryUrl: 'https://github.com/Wolfi-OwO/alpinfex.git',
     technologies: [
         {
             tech: 'React',

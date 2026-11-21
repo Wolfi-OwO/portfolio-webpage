@@ -18,7 +18,7 @@
   {
     "title": "Alpinfex",
     "description": "A blog website for enthusiastic mountaineers who want to share their experiences with others.",
-    "repositoryUrl": "https://gitlab.com/woofi4/Projects/tourblog.git",
+    "repositoryUrl": "https://github.com/Wolfi-OwO/alpinfex.git",
     "technologies": [
       {
         "tech": "React",
@@ -141,7 +141,7 @@
   {
     "title": "Metrion",
     "description": "A multi-tenant infrastructure metrics platform. Sign in with Google, Microsoft or GitHub, issue per-project API keys and stream CPU, memory, disk and network metrics from any language into a self-hosted TimescaleDB. A dependency graph names the root cause of an outage instead of alerting every service downstream.",
-    "repositoryUrl": "https://github.com/Wolfi-OwO/mona.git",
+    "repositoryUrl": "https://github.com/Wolfi-OwO/metrion.git",
     "livedemo": "https://metrion.woofi-developments.at/",
     "technologies": [
       {
@@ -188,7 +188,7 @@
   {
     "title": "LearnSphere",
     "description": "A learning-platform prototype for practising school subjects and skills, featuring a personalized landing page, course catalog, progress tracking and interactive materials.",
-    "repositoryUrl": "https://gitlab.com/woofi4/Projects/learning-app.git",
+    "repositoryUrl": "https://github.com/Wolfi-OwO/learnsphere.git",
     "technologies": [
       {
         "tech": "React",
@@ -207,7 +207,7 @@
   {
     "title": "Home Statistics Board",
     "description": "A full-stack dashboard that connects to Daikin's Onecta API to collect and visualize home climate and energy statistics from heat-pump and AC units.",
-    "repositoryUrl": "https://gitlab.com/woofi4/Projects/daikin-home-dashboard.git",
+    "repositoryUrl": "https://gitlab.com/WoofiOwO/daikin-home-dashboard.git",
     "technologies": [
       {
         "tech": "React",
