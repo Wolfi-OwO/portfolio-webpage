@@ -198,12 +198,14 @@ export default function DefaultLayout() {
 
     // 44px high rows (the old py-1.5 links were about 32px). The active page gets a
     // 2px accent bar under the text instead of a tinted pill: it reads as a tab on
-    // the hairline below, and colour is not the only cue (the bar is a shape).
+    // the hairline below, and colour is not the only cue (the bar is a shape). Every
+    // link carries the bar scaled to nothing; hover draws a third of it as a preview and
+    // the open page shows all of it, so the bar grows from the left instead of popping in.
     const navLinkClasses = ({ isActive }) =>
-        `relative inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] md:px-3 ${
+        `relative inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] md:px-3 after:absolute after:inset-x-2 after:bottom-1 after:h-0.5 after:origin-left after:rounded-full after:bg-[var(--accent)] after:transition-transform after:duration-300 motion-reduce:after:transition-none md:after:inset-x-3 ${
             isActive
-                ? 'text-[var(--text)] after:absolute after:inset-x-2 after:bottom-1 after:h-0.5 after:rounded-full after:bg-[var(--accent)] md:after:inset-x-3'
-                : 'text-[var(--muted)] hover:text-[var(--text)]'
+                ? 'text-[var(--text)] after:scale-x-100'
+                : 'text-[var(--muted)] after:scale-x-0 hover:text-[var(--text)] hover:after:scale-x-[0.35]'
         }`;
 
     return (

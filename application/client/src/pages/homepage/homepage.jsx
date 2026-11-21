@@ -160,7 +160,7 @@ export default function Homepage() {
                                     fetchPriority="high"
                                 />
                                 <span>
-                                    Phillip
+                                    <strong>Phillip</strong>
                                     <br />
                                     <FormattedMessage
                                         id="homepage.role"

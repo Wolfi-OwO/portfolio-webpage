@@ -781,3 +781,104 @@ html .pw .pbody button.tag.more:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
 }
+
+/* Notes from a design review of the home page: the open page in the header, the "running now"
+   panel, the portrait and the three links under the hero. */
+
+/* "Running now": a little more air in the rows, the numbers in two fixed columns so they line
+   up down the panel, and hairlines at the softer strength used on the cards. */
+html:not([data-contrast='high']):not([data-contrast='medhigh']) .pw .now {
+    --line: var(--line-soft);
+}
+html .pw .now {
+    border-radius: 10px;
+    overflow: hidden;
+}
+html .pw .now-h,
+html .pw .now-f {
+    padding: 12px 18px;
+}
+html .pw .now li {
+    padding: 14px 18px;
+    column-gap: 16px;
+    row-gap: 3px;
+}
+html .pw .now-n {
+    min-width: 13ch;
+    text-align: right;
+}
+html .pw .now li:hover {
+    background: color-mix(in srgb, var(--text) 4%, transparent);
+}
+
+/* The portrait sits on the same baseline as the name and role, with a hairline edge instead of
+   a bare crop, and the name carries the weight. */
+html .pw .hero2 .who {
+    gap: 18px;
+}
+html .pw .hero2 .who img {
+    border-radius: 12px;
+    box-shadow:
+        0 0 0 1px var(--line-soft),
+        0 6px 18px -10px color-mix(in srgb, var(--text) 40%, transparent);
+}
+html .pw .hero2 .who strong {
+    color: var(--text);
+    font-weight: 600;
+    letter-spacing: -0.005em;
+}
+
+/* The three links: the underline fills from the left on hover and an arrow slides in, so the
+   links answer the pointer without moving the line they sit on. */
+html .pw .hero2-links a {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    border-bottom: 0;
+    padding-bottom: 4px;
+    background:
+        linear-gradient(var(--accent), var(--accent)) left bottom / 0% 1px no-repeat,
+        linear-gradient(var(--line-strong, var(--line)), var(--line-strong, var(--line))) left
+            bottom / 100% 1px no-repeat;
+    transition:
+        background-size 0.28s cubic-bezier(0.22, 0.8, 0.2, 1),
+        color 0.2s;
+}
+html .pw .hero2-links a:first-child {
+    background: linear-gradient(var(--accent), var(--accent)) left bottom / 100% 1px no-repeat;
+}
+html .pw .hero2-links a::after {
+    content: '→';
+    display: inline-block;
+    width: 0;
+    overflow: hidden;
+    opacity: 0;
+    color: var(--accent);
+    transition:
+        width 0.24s cubic-bezier(0.22, 0.8, 0.2, 1),
+        opacity 0.2s,
+        margin-left 0.24s cubic-bezier(0.22, 0.8, 0.2, 1);
+}
+html .pw .hero2-links a:hover,
+html .pw .hero2-links a:focus-visible {
+    border-bottom: 0;
+}
+html .pw .hero2-links a:hover:not(:first-child),
+html .pw .hero2-links a:focus-visible:not(:first-child) {
+    background-size:
+        100% 1px,
+        100% 1px;
+}
+html .pw .hero2-links a:hover::after,
+html .pw .hero2-links a:focus-visible::after {
+    width: 1.1em;
+    margin-left: 6px;
+    opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+    html .pw .hero2-links a,
+    html .pw .hero2-links a::after {
+        transition: none;
+    }
+}
