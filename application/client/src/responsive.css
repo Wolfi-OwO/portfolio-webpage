@@ -2,6 +2,8 @@
    sets and slides by exactly one set, so the loop has no visible seam. */
 .pw .tech-row {
     overflow: hidden;
+    /* Pulls back the 4px of padding added to the sets so the row keeps its height. */
+    margin: -4px 0;
     mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
     -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
 }
@@ -16,7 +18,9 @@
 .pw .tech-set {
     display: flex;
     gap: 10px;
-    padding: 2px 5px;
+    /* Room above and below for the 3px lift on hover: the row clips its overflow (it is a scrolling
+       marquee), so a chip that rises past the track would lose the top of its border. */
+    padding: 6px 5px;
     margin: 0;
     list-style: none;
 }
@@ -881,4 +885,10 @@ html .pw .hero2-links a:focus-visible::after {
     html .pw .hero2-links a::after {
         transition: none;
     }
+}
+
+/* The chip lists only the properties that change, instead of "all" (which also animated layout). */
+html .pw .tech {
+    transition-property: transform, border-color, background-color;
+    transition-duration: 0.25s;
 }

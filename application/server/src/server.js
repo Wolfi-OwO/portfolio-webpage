@@ -29,6 +29,7 @@ import { statusRouter } from './routes/status-route.js';
 import { secretRouter } from './routes/secret-route.js';
 import { contactRouter } from './routes/contact-route.js';
 import { errorHandler, NotFound } from './middlewares/error-handlers.js';
+import { publicCache } from './middlewares/cache.js';
 import { apiRootLinks } from './utils/hateoas.js';
 
 /* ***************** CONFIG and CONSTS ********************* */
@@ -147,6 +148,12 @@ app.use(
 );
 
 // setup routes
+// Public read-only data: see middlewares/cache.js for why and for what is left out.
+app.use(
+    ['/api/info/', '/api/projects/', '/api/services/', '/api/availability/', '/api/technologies/'],
+    publicCache(60, 600),
+);
+app.use('/api/activity/', publicCache(300, 3600));
 app.use('/auth/', authRouter);
 app.use('/api/info/', infoRouter);
 app.use('/api/projects/', projectsRouter);
