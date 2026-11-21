@@ -28,7 +28,7 @@ on:
         required: false
 
 permissions:
-  contents: write # sync-version commits the bumped package.json files back
+  contents: read
 
 jobs:
   resolve-metadata:
@@ -59,48 +59,6 @@ jobs:
           echo "image_jobs=${IMAGE_JOBS}" >> "$GITHUB_OUTPUT"
           echo "build_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
           echo "Resolved ${IMAGE}:${TAG} / ${IMAGE_JOBS}:${TAG}"
-
-  sync-version:
-    name: Sync package versions to the tag
-    runs-on: ubuntu-latest
-    needs: resolve-metadata
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          # The release tag points at a commit, not a branch. Check out the branch
-          # so the version bump has somewhere to land.
-          ref: ${{ github.event.repository.default_branch }}
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: application/package-lock.json
-
-      # The git tag is the single source of truth for "which version is this?".
-      # Rather than bumping four package.json files by hand (and forgetting one),
-      # the tag is stamped into all of them, lockfiles included.
-      - name: Stamp the version into every package.json
-        working-directory: application
-        run: npm run version:sync -- "${{ needs.resolve-metadata.outputs.tag }}"
-
-      # Authored as the repo owner, not github-actions[bot]. The bump is a
-      # mechanical consequence of a release *he* published, and attributing it to
-      # a bot puts github-actions[bot] in the repository's contributor list for
-      # what is really his commit. The noreply address is the one GitHub issues
-      # for this account, so the commit still links to it without exposing a
-      # private email.
-      - name: Commit the bump
-        run: |
-          if git diff --quiet; then
-            echo "Versions already match ${{ needs.resolve-metadata.outputs.tag }} — nothing to commit."
-            exit 0
-          fi
-          git config user.name "Wolfi-OwO"
-          git config user.email "121342560+Wolfi-OwO@users.noreply.github.com"
-          git add application/package.json application/*/package.json application/package-lock.json application/jobs/package-lock.json
-          git commit -m "chore(release): set version to ${{ needs.resolve-metadata.outputs.tag }}"
-          git push
 
   build-client:
     name: Build client bundle
@@ -140,12 +98,9 @@ jobs:
           cache: npm
           cache-dependency-path: application/package-lock.json
 
-      # sync-version pushes its bump to the default branch, but this job builds
-      # from the *tag*, whose tree was written before that commit existed — so the
-      # tag still carries the previous version. Stamp it again here, into the build
-      # context only (never committed), so the package.json baked into the image
-      # agrees with the tag the image is published under. Without this the image's
-      # own metadata reports the previous release.
+      # The tag is the source of truth for the version: it is stamped into the
+      # build context only (never committed), so main stays protected by required
+      # checks and the image still carries the right package.json version.
       - name: Stamp the version into the build context
         working-directory: application
         run: npm run version:sync -- "${{ needs.resolve-metadata.outputs.tag }}"
