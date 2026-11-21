@@ -1,4 +1,4 @@
-name: Release Deploy
+name: Release
 
 # Publishing a GitHub Release builds the client, pushes both images (web,
 # jobs) to the private Azure Container Registry, then SSHes into the Oracle
