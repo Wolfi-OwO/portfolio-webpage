@@ -16,7 +16,10 @@ WORKDIR /home/site/wwwroot
 # Install production deps first for better layer caching — only re-runs when
 # package*.json changes, not on every source edit.
 COPY package*.json ./
-RUN npm ci --omit=dev
+# The Functions host runs the worker with node directly, so npm is not needed once the dependencies are
+# installed; the copy bundled in the base image carries unpatched dependencies.
+RUN npm ci --omit=dev \
+ && rm -rf /usr/lib/node_modules/npm /usr/lib/node_modules/corepack /usr/bin/npm /usr/bin/npx /usr/bin/corepack
 
 # Function source + host configuration.
 COPY host.json ./
