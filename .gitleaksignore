@@ -9,3 +9,15 @@ application/docker-compose.prod.yaml:generic-api-key:283
 # Production is guarded against ever using this secret (see server.js's
 # boot-time check added alongside this entry).
 application/server/tests/tokens.js:jwt:4
+
+# History-scan fingerprints (commit:file:rule:line) for the same two reviewed
+# findings in older commits. Azurite account key, a public constant that
+# Microsoft publishes for the local emulator:
+1b6bf51b74e0597bdfb27d0328b3b60f854f143c:application/docker-compose.prod.yaml:generic-api-key:129
+79219ee49f4a18be1fb92879bc67a34e5f85d411:application/docker-compose.prod.yaml:generic-api-key:129
+897154cdbf51a5536975343ec29c3384e379c39f:application/docker-compose.yaml:generic-api-key:83
+91bff17469e9f8acee9c9312ad53be976e8a9377:application/server/docker-compose.yaml:generic-api-key:70
+# The test JWT signed with the throwaway secret in tests/helpers/env-setup.js:
+3cf435866a757185e2998c53561f91877aaa63e7:app/tests/tokens.js:jwt:1
+5e006a54586425debb6dcba0a5e192b13fc30ba4:app/tests/tokens.js:jwt:3
+897154cdbf51a5536975343ec29c3384e379c39f:application/server/tests/tokens.js:jwt:4
