@@ -4,10 +4,12 @@ import { EyeIcon, EyeSlashIcon, LockClosedIcon, UserIcon } from '@heroicons/reac
 import { initialState, reducer } from './adminLoginReducer.js';
 import { TOKEN_STORAGE_KEY } from '../../utils/auth.js';
 import { FIELD } from '../../components/field-classes.js';
+import { useNoIndex } from '../../hooks/useNoIndex.js';
 
 const inputCls = `${FIELD} py-3 pl-10 pr-4`;
 
 export default function AdminLoginPage() {
+    useNoIndex();
     const navigate = useNavigate();
     const [state, dispatch] = useReducer(reducer, initialState);
     const { username, password, showPassword, error, submitting } = state;

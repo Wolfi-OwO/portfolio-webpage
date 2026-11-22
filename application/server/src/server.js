@@ -206,6 +206,18 @@ const KNOWN_CLIENT_ROUTES = new Set([
     '/secret',
 ]);
 
+// Pages that must never appear in a search index. The header is the reliable half: it reaches the crawler on
+// the HTML response itself, and unlike a robots.txt Disallow it does not publish the path to anyone reading
+// /robots.txt (so /secret is deliberately NOT listed there or in the sitemap). A Disallow would also stop Google
+// from fetching the page, which is the only way it ever sees a noindex.
+const PRIVATE_PATH = /^\/(secret|admin)(\/|$)/i;
+app.use((req, res, next) => {
+    if (PRIVATE_PATH.test(req.path) || req.path.startsWith('/api/')) {
+        res.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+    }
+    next();
+});
+
 // SPA fallback (support direct navigation to client routes like /projects).
 // The `status.` subdomain gets its own standalone bundle instead of the main
 // app's, and has no client router at all (status-main.jsx renders a single
