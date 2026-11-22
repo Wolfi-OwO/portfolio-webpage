@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FIELD } from '../../components/field-classes.js';
-import { Link } from 'react-router-dom';
+import { Link } from '../../i18n/router-links.jsx';
 import { FormattedMessage, useIntl } from 'react-intl';
 import {
     ArrowDownTrayIcon,

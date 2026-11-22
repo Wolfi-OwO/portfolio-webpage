@@ -1,5 +1,5 @@
 import { FormattedMessage } from 'react-intl';
-import { Link } from 'react-router-dom';
+import { Link } from '../../i18n/router-links.jsx';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import ImprintText from '../../components/imprint-text.jsx';
 

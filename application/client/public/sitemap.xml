@@ -1,37 +1,114 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://www.woofi-developments.at/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.woofi-developments.at/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.woofi-developments.at/de"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.woofi-developments.at/"/>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.woofi-developments.at/de</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.woofi-developments.at/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.woofi-developments.at/de"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.woofi-developments.at/"/>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.woofi-developments.at/projects</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.woofi-developments.at/projects"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.woofi-developments.at/de/projects"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.woofi-developments.at/projects"/>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.woofi-developments.at/de/projects</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.woofi-developments.at/projects"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.woofi-developments.at/de/projects"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.woofi-developments.at/projects"/>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.woofi-developments.at/career</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.woofi-developments.at/career"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.woofi-developments.at/de/career"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.woofi-developments.at/career"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.woofi-developments.at/de/career</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.woofi-developments.at/career"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.woofi-developments.at/de/career"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.woofi-developments.at/career"/>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.woofi-developments.at/services</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.woofi-developments.at/services"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.woofi-developments.at/de/services"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.woofi-developments.at/services"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.woofi-developments.at/de/services</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.woofi-developments.at/services"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.woofi-developments.at/de/services"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.woofi-developments.at/services"/>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.woofi-developments.at/contact</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.woofi-developments.at/contact"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.woofi-developments.at/de/contact"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.woofi-developments.at/contact"/>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.woofi-developments.at/de/contact</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.woofi-developments.at/contact"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.woofi-developments.at/de/contact"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.woofi-developments.at/contact"/>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.woofi-developments.at/impressum</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.woofi-developments.at/impressum"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.woofi-developments.at/de/impressum"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.woofi-developments.at/impressum"/>
+    <changefreq>yearly</changefreq>
+    <priority>0.1</priority>
+  </url>
+  <url>
+    <loc>https://www.woofi-developments.at/de/impressum</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.woofi-developments.at/impressum"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.woofi-developments.at/de/impressum"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.woofi-developments.at/impressum"/>
     <changefreq>yearly</changefreq>
     <priority>0.1</priority>
   </url>
   <url>
     <loc>https://www.woofi-developments.at/privacy-policy</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.woofi-developments.at/privacy-policy"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.woofi-developments.at/de/privacy-policy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.woofi-developments.at/privacy-policy"/>
+    <changefreq>yearly</changefreq>
+    <priority>0.1</priority>
+  </url>
+  <url>
+    <loc>https://www.woofi-developments.at/de/privacy-policy</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.woofi-developments.at/privacy-policy"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.woofi-developments.at/de/privacy-policy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.woofi-developments.at/privacy-policy"/>
     <changefreq>yearly</changefreq>
     <priority>0.1</priority>
   </url>

@@ -157,7 +157,7 @@ app.use(
 // the HTML response itself, and unlike a robots.txt Disallow it does not publish the path to anyone reading
 // /robots.txt (so /secret is deliberately NOT listed there or in the sitemap). A Disallow would also stop Google
 // from fetching the page, which is the only way it ever sees a noindex.
-const PRIVATE_PATH = /^\/(secret|admin)(\/|$)/i;
+const PRIVATE_PATH = /^\/(de\/)?(secret|admin)(\/|$)/i;
 app.use((req, res, next) => {
     if (PRIVATE_PATH.test(req.path) || req.path.startsWith('/api/')) {
         res.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
@@ -206,8 +206,7 @@ app.use('/api', (req, _res, next) => {
 // matching independent of the HTTP status), but curl/crawlers/monitoring
 // saw "this page exists" for something that provably doesn't. Keep in sync
 // if a route is added or removed there.
-const KNOWN_CLIENT_ROUTES = new Set([
-    '/',
+const CLIENT_PAGES = [
     '/projects',
     '/career',
     '/services',
@@ -216,6 +215,13 @@ const KNOWN_CLIENT_ROUTES = new Set([
     '/impressum',
     '/admin/login',
     '/secret',
+];
+// The German site lives under /de and mirrors every page.
+const KNOWN_CLIENT_ROUTES = new Set([
+    '/',
+    '/de',
+    ...CLIENT_PAGES,
+    ...CLIENT_PAGES.map((p) => `/de${p}`),
 ]);
 
 // SPA fallback (support direct navigation to client routes like /projects).

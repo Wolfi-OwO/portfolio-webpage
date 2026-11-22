@@ -37,7 +37,7 @@ describe('GET /livez, /readyz', function () {
 
 // The private pages must carry a noindex header, and the public ones must not.
 describe('X-Robots-Tag on private pages', function () {
-    for (const path of ['/secret', '/admin/login', '/api/gibt-es-nicht']) {
+    for (const path of ['/secret', '/admin/login', '/de/secret', '/de/admin/login', '/api/gibt-es-nicht']) {
         it(`${path} is marked noindex`, async function () {
             const res = await request(httpServer).get(path);
             assert.match(res.headers['x-robots-tag'] ?? '', /noindex/);
@@ -46,5 +46,24 @@ describe('X-Robots-Tag on private pages', function () {
     it('a public page is not marked noindex', async function () {
         const res = await request(httpServer).get('/career');
         assert.strictEqual(res.headers['x-robots-tag'], undefined);
+    });
+    it('the German public page is not marked noindex either', async function () {
+        const res = await request(httpServer).get('/de/career');
+        assert.strictEqual(res.headers['x-robots-tag'], undefined);
+    });
+});
+
+// The German site mirrors the English routes under /de; the server must answer 200 for a real
+// page there and 404 for one that does not exist, same as for the English paths.
+describe('German routes under /de', function () {
+    for (const path of ['/de', '/de/services', '/de/career', '/de/impressum']) {
+        it(`${path} is a known page`, async function () {
+            const res = await request(httpServer).get(path);
+            assert.strictEqual(res.status, 200);
+        });
+    }
+    it('an unknown German path is a 404', async function () {
+        const res = await request(httpServer).get('/de/gibt-es-nicht');
+        assert.strictEqual(res.status, 404);
     });
 });

@@ -1,4 +1,6 @@
-import { isRouteErrorResponse, NavLink, useRouteError } from 'react-router-dom';
+import { isRouteErrorResponse, useRouteError } from 'react-router-dom';
+import { FormattedMessage, useIntl } from 'react-intl';
+import { NavLink } from '../../i18n/router-links.jsx';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 
 // React Router's own path matching can only ever throw a 404 ErrorResponse
@@ -10,13 +12,20 @@ import { usePageMeta } from '../../hooks/usePageMeta.js';
 const COPY = {
     404: {
         label: '404',
-        heading: 'Page not found',
-        body: "Sorry, we couldn't find the page you're looking for.",
+        heading: { id: 'error.404.heading', defaultMessage: 'Page not found' },
+        body: {
+            id: 'error.404.body',
+            defaultMessage: "Sorry, we couldn't find the page you're looking for.",
+        },
     },
     500: {
         label: '500',
-        heading: 'This page failed to render',
-        body: 'An unexpected error occurred while loading this page. Reloading may help, or go back home.',
+        heading: { id: 'error.500.heading', defaultMessage: 'This page failed to render' },
+        body: {
+            id: 'error.500.body',
+            defaultMessage:
+                'An unexpected error occurred while loading this page. Reloading may help, or go back home.',
+        },
     },
 };
 
@@ -38,7 +47,7 @@ function ErrorLayout({ label, heading, body }) {
                     to={'/'}
                     className="rounded-md bg-[var(--text)] px-3.5 py-2.5 text-sm font-semibold text-[var(--bg)] transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
                 >
-                    Go back home
+                    <FormattedMessage id="error.home" defaultMessage="Go back home" />
                 </NavLink>
             </div>
         </div>
@@ -49,6 +58,13 @@ export default function ErrorPage() {
     const error = useRouteError();
     const is404 = isRouteErrorResponse(error) && error.status === 404;
     const copy = is404 ? COPY[404] : COPY[500];
+    const intl = useIntl();
 
-    return <ErrorLayout label={copy.label} heading={copy.heading} body={copy.body} />;
+    return (
+        <ErrorLayout
+            label={copy.label}
+            heading={intl.formatMessage(copy.heading)}
+            body={intl.formatMessage(copy.body)}
+        />
+    );
 }

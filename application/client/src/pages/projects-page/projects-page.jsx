@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import { useApiList } from '../../hooks/useApiList.js';
 import { isAdmin } from '../../utils/auth.js';
@@ -14,7 +15,14 @@ export default function ProjectsPage() {
 }
 
 function ProjectsView() {
-    usePageMeta('Projects', 'Software projects by Wolfi: web apps, tooling and infrastructure.');
+    const intl = useIntl();
+    usePageMeta(
+        intl.formatMessage({ id: 'projects.meta.title', defaultMessage: 'Projects' }),
+        intl.formatMessage({
+            id: 'projects.meta.description',
+            defaultMessage: 'Software projects by Wolfi: web apps, tooling and infrastructure.',
+        }),
+    );
     const [projects] = useApiList('/api/projects');
     const [technologies] = useApiList('/api/technologies');
     const [filter, setFilter] = useState('All');
@@ -35,11 +43,18 @@ function ProjectsView() {
             <div className="page" style={{ padding: 0 }}>
                 <header className="page-h">
                     <h1>
-                        Things I've <em>shipped</em>
+                        <FormattedMessage
+                            id="projects.headline"
+                            defaultMessage="Things I've <em>shipped</em>"
+                            values={{ em: (chunks) => <em>{chunks}</em> }}
+                        />
                     </h1>
                     <p className="lead">
-                        {projects.length} projects, from teaching tools to infrastructure. Filter by
-                        stack.
+                        <FormattedMessage
+                            id="projects.lead"
+                            defaultMessage="{count} projects, from teaching tools to infrastructure. Filter by stack."
+                            values={{ count: projects.length }}
+                        />
                     </p>
                     <div className="chips">
                         {FILTERS.map((c) => (
@@ -48,7 +63,12 @@ function ProjectsView() {
                                 className={filter === c ? 'on' : ''}
                                 onClick={() => setFilter(c)}
                             >
-                                {c}
+                                {c === 'All'
+                                    ? intl.formatMessage({
+                                          id: 'projects.filterAll',
+                                          defaultMessage: 'All',
+                                      })
+                                    : c}
                             </button>
                         ))}
                     </div>
@@ -61,7 +81,15 @@ function ProjectsView() {
                         <ProjectCard key={p._id} p={p} tech={tech} span={spansP[i]} />
                     ))}
                 </div>
-                {shown.length === 0 && <p className="muted">Nothing with {filter} yet.</p>}
+                {shown.length === 0 && (
+                    <p className="muted">
+                        <FormattedMessage
+                            id="projects.empty"
+                            defaultMessage="Nothing with {filter} yet."
+                            values={{ filter }}
+                        />
+                    </p>
+                )}
             </div>
         </div>
     );
