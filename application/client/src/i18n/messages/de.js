@@ -274,9 +274,6 @@ export default {
     'secret.unit.minutes': 'Minuten',
     'secret.unit.seconds': 'Sekunden',
     // Public pages: titles, descriptions and copy for /de. Search results show these texts.
-    'homepage.meta.title': 'Webentwickler in Kärnten: Websites und Web-Apps',
-    'homepage.meta.description':
-        'Woofi Developments entwickelt Websites, Webanwendungen und Android-Apps mit React, Node.js und Cloud-Technologien. Freelance-Webentwicklung aus Villach, Kärnten.',
     'homepage.portraitAlt': '{name}, Porträt',
     'homepage.headline': 'Ich baue Software, die <em>tut, was sie verspricht.</em>',
     'homepage.cta.contact': 'Gespräch beginnen',
@@ -287,9 +284,6 @@ export default {
     'homepage.activity': 'Aktivität',
     'homepage.techHeading': 'Technologien, die ich nutze',
 
-    'services.page.meta.title': 'Website erstellen lassen: Leistungen und Preise',
-    'services.page.meta.description':
-        'Websites, Webanwendungen, Android- und Desktop-Apps vom Freelancer in Villach. Mit klaren Preisen und ohne Baukasten-Ballast.',
     'services.page.headline': 'Leistungen mit <em>klaren</em> Preisen',
     'services.page.lead':
         'Diese Preise sind Richtwerte. Was ein Projekt kostet, hängt davon ab, was es können muss, und das kann ich erst nach einem Gespräch sagen.',
@@ -302,18 +296,12 @@ export default {
     'services.page.note':
         'Schreib mir ein paar Zeilen dazu, was das Ganze können soll, und ich antworte, was dafür nötig ist. Kleine Aufträge passen jetzt hinein, größere Projekte beginnen im April 2027. <link>Kontakt aufnehmen</link>.',
 
-    'projects.meta.title': 'Projekte',
-    'projects.meta.description':
-        'Softwareprojekte von Wolfi: Web-Apps, Werkzeuge und Infrastruktur.',
     'projects.headline': 'Was ich <em>gebaut</em> habe',
     'projects.lead':
         '{count} Projekte, von Lehrwerkzeugen bis zur Infrastruktur. Nach Technologie filtern.',
     'projects.filterAll': 'Alle',
     'projects.empty': 'Noch nichts mit {filter}.',
 
-    'career.page.meta.title': 'Werdegang',
-    'career.page.meta.description':
-        'Berufserfahrung und Ausbildung von Wolfi, freiberuflicher Fullstack-Entwickler aus Villach, Österreich.',
     'career.page.headline': 'Wo ich <em>war</em>',
     'career.page.lead':
         'Schule, ein HTL-Abschluss in IT und Ferialpraktika bei Infineon, auf einer Zeitleiste dargestellt. Fahre über eine Linie, um die Station zu sehen.',
@@ -330,13 +318,9 @@ export default {
     'error.500.body':
         'Beim Laden ist ein unerwarteter Fehler aufgetreten. Neu laden hilft vielleicht, oder gehe zurück zur Startseite.',
     'error.home': 'Zur Startseite',
-    'contact.page.meta.title': 'Kontakt',
-    'contact.page.meta.description':
-        'Kontakt für Freelance-Projekte, Zusammenarbeit und moderne Webentwicklung. Webentwickler aus Villach, Kärnten.',
-    'privacy.page.meta.title': 'Datenschutzerklärung',
-    'privacy.page.meta.description':
-        'Wie diese Seite mit Daten umgeht: kein Tracking, keine Analyse, keine Cookies, und genau das, was verarbeitet wird.',
-    'imprint.page.meta.title': 'Impressum',
-    'imprint.page.meta.description':
-        'Angaben gemäß § 5 ECG und § 25 MedienG für woofi-developments.at.',
+    'project.coverAlt': 'Titelbild von {title}',
+    'project.screenshotAlt': 'Screenshot von {title}',
+    'project.less': 'Weniger',
+    'project.liveDemo': 'Live-Demo',
+    'project.repository': 'Repository',
 };

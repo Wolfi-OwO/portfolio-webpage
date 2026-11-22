@@ -1,4 +1,13 @@
 // Form state helpers shared by the timeline editor and the inline editing on the career chart.
+import { translationToForm, translationToPayload } from './translation-form.js';
+
+// Entries are written in German; the English version is edited alongside.
+export const TRANSLATION_FIELDS = [
+    { key: 'title' },
+    { key: 'organisation' },
+    { key: 'description' },
+    { key: 'location' },
+];
 
 export const EMPTY_FORM = {
     _id: null,
@@ -11,6 +20,7 @@ export const EMPTY_FORM = {
     kind: 'work',
     published: true,
     tags: [],
+    translation: translationToForm(undefined, 'en', TRANSLATION_FIELDS),
 };
 
 /** yyyy-mm-dd, the only format <input type="date"> accepts. */
@@ -29,6 +39,7 @@ export function toForm(entry) {
         startDate: toDateInput(entry.startDate),
         endDate: toDateInput(entry.endDate),
         tags: (entry.tags || []).map((t) => t.tech),
+        translation: translationToForm(entry.translations, 'en', TRANSLATION_FIELDS),
     };
 }
 
@@ -52,6 +63,12 @@ export function toPayload(form, technologies) {
         kind: form.kind,
         published: Boolean(form.published),
         track: 'career',
+        translations: translationToPayload(
+            form.translations,
+            'en',
+            form.translation,
+            TRANSLATION_FIELDS,
+        ),
         tags: form.tags
             .map((techName) => technologies.find((t) => t.tech === techName))
             .filter(Boolean)

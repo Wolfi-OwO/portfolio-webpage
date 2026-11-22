@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { FormattedMessage, useIntl } from 'react-intl';
-import { usePageMeta } from '../../hooks/usePageMeta.js';
+import { FormattedMessage } from 'react-intl';
+import { usePublicPageMeta } from '../../hooks/usePublicPageMeta.js';
 import { SOCIALS } from '../../utils/identity.js';
 import AvailabilityTimeline from '../../components/availability-timeline.jsx';
 
@@ -109,15 +109,7 @@ function Channel({ social, note }) {
 }
 
 export default function ContactPage() {
-    const intl = useIntl();
-    usePageMeta(
-        intl.formatMessage({ id: 'contact.page.meta.title', defaultMessage: 'Contact' }),
-        intl.formatMessage({
-            id: 'contact.page.meta.description',
-            defaultMessage:
-                'Get in touch about freelance projects, collaborations, and modern web engineering work.',
-        }),
-    );
+    usePublicPageMeta('/contact');
 
     return (
         <div className="animate-fade-up mx-auto max-w-5xl">

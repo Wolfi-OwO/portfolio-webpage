@@ -1,5 +1,5 @@
 import { FormattedMessage, useIntl } from 'react-intl';
-import { usePageMeta } from '../../hooks/usePageMeta.js';
+import { usePublicPageMeta } from '../../hooks/usePublicPageMeta.js';
 import { useApiList } from '../../hooks/useApiList.js';
 import { localize } from '../../i18n/localize.js';
 import { Link } from '../../i18n/router-links.jsx';
@@ -135,17 +135,7 @@ const technologies_list = [
 
 export default function Homepage() {
     const intl = useIntl();
-    usePageMeta(
-        intl.formatMessage({
-            id: 'homepage.meta.title',
-            defaultMessage: 'Fullstack Web Development',
-        }),
-        intl.formatMessage({
-            id: 'homepage.meta.description',
-            defaultMessage:
-                'Woofi Developments builds modern web applications with React, Node.js, and cloud technologies - fullstack software development based in Carinthia, Austria.',
-        }),
-    );
+    usePublicPageMeta('/');
 
     const [projects] = useApiList('/api/projects');
     const [technologies] = useApiList('/api/technologies');

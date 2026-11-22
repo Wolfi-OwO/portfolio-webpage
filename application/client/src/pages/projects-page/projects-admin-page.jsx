@@ -8,6 +8,7 @@ import { rowSpans } from '../../components/project-layout.js';
 import TailwindColorPicker from '../../components/TailwindColorPicker.jsx';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import { FIELD } from '../../components/field-classes.js';
+import { translationToPayload } from '../../utils/translation-form.js';
 
 export default function ProjectsPage() {
     usePageMeta(
@@ -40,7 +41,15 @@ export default function ProjectsPage() {
     async function handleSubmit(event) {
         event.preventDefault();
 
-        const { title, description, repositoryUrl, livedemo, selectedTechnologies } = state.form;
+        const {
+            title,
+            description,
+            repositoryUrl,
+            livedemo,
+            selectedTechnologies,
+            translations,
+            translationDescription,
+        } = state.form;
 
         if (!title || !description || !repositoryUrl) {
             dispatch({
@@ -85,6 +94,12 @@ export default function ProjectsPage() {
                 repositoryUrl,
                 livedemo: livedemo || undefined,
                 technologies: techIds.map((_id) => ({ _id })),
+                translations: translationToPayload(
+                    translations,
+                    'de',
+                    { description: translationDescription },
+                    [{ key: 'description' }],
+                ),
             };
 
             const isEdit = state.formMode === 'edit' && state.editingProjectId;
@@ -307,6 +322,15 @@ function ProjectForm({ state, dispatch, onSubmit }) {
                             className={`${inputClass} min-h-[6rem] resize-y`}
                             placeholder="Briefly describe what this project does."
                             required
+                        />
+                    </Field>
+
+                    <Field label="Description (German, shown on the German site)">
+                        <textarea
+                            value={form.translationDescription ?? ''}
+                            onChange={(e) => setField('translationDescription', e.target.value)}
+                            className={`${inputClass} min-h-[6rem] resize-y`}
+                            placeholder="Leave blank to show the English description."
                         />
                     </Field>
 

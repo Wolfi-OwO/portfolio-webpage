@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { usePageMeta } from '../../hooks/usePageMeta.js';
+import { usePublicPageMeta } from '../../hooks/usePublicPageMeta.js';
 import { useApiList } from '../../hooks/useApiList.js';
 import { localizeAll } from '../../i18n/localize.js';
 import { isAdmin } from '../../utils/auth.js';
@@ -17,13 +17,7 @@ export default function ProjectsPage() {
 
 function ProjectsView() {
     const intl = useIntl();
-    usePageMeta(
-        intl.formatMessage({ id: 'projects.meta.title', defaultMessage: 'Projects' }),
-        intl.formatMessage({
-            id: 'projects.meta.description',
-            defaultMessage: 'Software projects by Wolfi: web apps, tooling and infrastructure.',
-        }),
-    );
+    usePublicPageMeta('/projects');
     const [rawProjects] = useApiList('/api/projects');
     const projects = localizeAll(rawProjects, intl.locale);
     const [technologies] = useApiList('/api/technologies');

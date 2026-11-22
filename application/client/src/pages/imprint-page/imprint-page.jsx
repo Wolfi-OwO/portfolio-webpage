@@ -1,6 +1,6 @@
-import { FormattedMessage, useIntl } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
 import { Link } from '../../i18n/router-links.jsx';
-import { usePageMeta } from '../../hooks/usePageMeta.js';
+import { usePublicPageMeta } from '../../hooks/usePublicPageMeta.js';
 import ImprintText from '../../components/imprint-text.jsx';
 
 const EMAIL = 'KoflerPhillip@outlook.com';
@@ -15,15 +15,7 @@ const EMAIL = 'KoflerPhillip@outlook.com';
  * restating the text, so the two can never drift apart.
  */
 export default function ImprintPage() {
-    const intl = useIntl();
-    usePageMeta(
-        intl.formatMessage({ id: 'imprint.page.meta.title', defaultMessage: 'Impressum' }),
-        intl.formatMessage({
-            id: 'imprint.page.meta.description',
-            defaultMessage:
-                'Information pursuant to §5 ECG and §25 MedienG for woofi-developments.at.',
-        }),
-    );
+    usePublicPageMeta('/impressum');
 
     return (
         <div className="animate-fade-up mx-auto max-w-5xl">
