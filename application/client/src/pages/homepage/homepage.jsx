@@ -1,6 +1,7 @@
 import { FormattedMessage, useIntl } from 'react-intl';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import { useApiList } from '../../hooks/useApiList.js';
+import { localize } from '../../i18n/localize.js';
 import { Link } from '../../i18n/router-links.jsx';
 import { ProjectCard } from '../../components/design-bits.jsx';
 import RunningNow from '../../components/running-now.jsx';
@@ -151,7 +152,8 @@ export default function Homepage() {
     const tech = Object.fromEntries(technologies.map((t) => [t._id, t.tech]));
     const featured = ['Metrion', 'NetViz', 'Nutrilens']
         .map((t) => projects.find((p) => p.title === t))
-        .filter(Boolean);
+        .filter(Boolean)
+        .map((p) => localize(p, intl.locale));
 
     return (
         <>

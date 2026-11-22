@@ -1,4 +1,4 @@
-import { FormattedDate, FormattedMessage } from 'react-intl';
+import { FormattedDate, FormattedMessage, useIntl } from 'react-intl';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import ImprintText from '../../components/imprint-text.jsx';
 
@@ -16,9 +16,14 @@ const AUTHORITY = 'https://www.dsb.gv.at';
  * server logs, and the third parties that hosting genuinely involves.
  */
 export default function PrivacyPolicyPage() {
+    const intl = useIntl();
     usePageMeta(
-        'Privacy Policy',
-        'How this site handles data: no tracking, no analytics, no cookies — and exactly what does get processed.',
+        intl.formatMessage({ id: 'privacy.page.meta.title', defaultMessage: 'Privacy Policy' }),
+        intl.formatMessage({
+            id: 'privacy.page.meta.description',
+            defaultMessage:
+                'How this site handles data: no tracking, no analytics, no cookies — and exactly what does get processed.',
+        }),
     );
 
     return (

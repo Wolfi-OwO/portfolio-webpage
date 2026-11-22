@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import { SOCIALS } from '../../utils/identity.js';
 import AvailabilityTimeline from '../../components/availability-timeline.jsx';
@@ -109,9 +109,14 @@ function Channel({ social, note }) {
 }
 
 export default function ContactPage() {
+    const intl = useIntl();
     usePageMeta(
-        'Contact',
-        'Get in touch about freelance projects, collaborations, and modern web engineering work.',
+        intl.formatMessage({ id: 'contact.page.meta.title', defaultMessage: 'Contact' }),
+        intl.formatMessage({
+            id: 'contact.page.meta.description',
+            defaultMessage:
+                'Get in touch about freelance projects, collaborations, and modern web engineering work.',
+        }),
     );
 
     return (

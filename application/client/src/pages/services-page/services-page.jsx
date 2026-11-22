@@ -2,6 +2,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { Link } from '../../i18n/router-links.jsx';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import { useApiList } from '../../hooks/useApiList.js';
+import { localizeAll } from '../../i18n/localize.js';
 import { isAdmin } from '../../utils/auth.js';
 import { Icon } from '../../components/design-bits.jsx';
 import ServicesAdminPage from './services-admin-page.jsx';
@@ -30,7 +31,7 @@ function ServicesView() {
     const euro = (n) =>
         intl.formatNumber(n, { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
     const [services] = useApiList('/api/services');
-    const shown = services
+    const shown = localizeAll(services, intl.locale)
         .filter((s) => s.published !== false)
         .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     const rate = shown[0]?.hourlyRate ?? 30;

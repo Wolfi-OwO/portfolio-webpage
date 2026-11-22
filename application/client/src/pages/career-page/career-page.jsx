@@ -1,6 +1,7 @@
 import { FormattedMessage, useIntl } from 'react-intl';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import { useApiList } from '../../hooks/useApiList.js';
+import { localizeAll } from '../../i18n/localize.js';
 import { isAdmin } from '../../utils/auth.js';
 import CareerChart from '../../components/career-chart.jsx';
 import CareerAdminPage from './career-admin-page.jsx';
@@ -51,7 +52,7 @@ function CareerView() {
     );
     const loc = locale.startsWith('de') ? 'de-AT' : 'en-GB';
     const [entries] = useApiList('/api/availability?track=career');
-    const published = entries.filter((e) => e.published);
+    const published = localizeAll(entries, locale).filter((e) => e.published);
     const newest = (a, b) => new Date(b.startDate) - new Date(a.startDate);
     const work = published.filter((e) => e.kind !== 'education').sort(newest);
     const school = published.filter((e) => e.kind === 'education').sort(newest);
