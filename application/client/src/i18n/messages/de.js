@@ -273,4 +273,61 @@ export default {
     'secret.unit.hours': 'Stunden',
     'secret.unit.minutes': 'Minuten',
     'secret.unit.seconds': 'Sekunden',
+    // Public pages: titles, descriptions and copy for /de. Search results show these texts.
+    'homepage.meta.title': 'Webentwickler in Kärnten: Websites und Web-Apps',
+    'homepage.meta.description':
+        'Woofi Developments entwickelt Websites, Webanwendungen und Android-Apps mit React, Node.js und Cloud-Technologien. Freelance-Webentwicklung aus Villach, Kärnten.',
+    'homepage.portraitAlt': '{name}, Porträt',
+    'homepage.headline': 'Ich baue Software, die <em>tut, was sie verspricht.</em>',
+    'homepage.cta.contact': 'Gespräch beginnen',
+    'homepage.cta.work': 'Arbeiten ansehen',
+    'homepage.cta.career': 'Werdegang & Ausbildung',
+    'homepage.selected': 'Ausgewählte Arbeiten',
+    'homepage.allProjects': 'Alle {count} Projekte →',
+    'homepage.activity': 'Aktivität',
+    'homepage.techHeading': 'Technologien, die ich nutze',
+
+    'services.page.meta.title': 'Website erstellen lassen: Leistungen und Preise',
+    'services.page.meta.description':
+        'Websites, Webanwendungen, Android- und Desktop-Apps vom Freelancer in Villach. Mit klaren Preisen und ohne Baukasten-Ballast.',
+    'services.page.headline': 'Leistungen mit <em>klaren</em> Preisen',
+    'services.page.lead':
+        'Diese Preise sind Richtwerte. Was ein Projekt kostet, hängt davon ab, was es können muss, und das kann ich erst nach einem Gespräch sagen.',
+    'services.page.hourlyRate': 'Stundensatz {rate}',
+    'services.page.availability': 'Kleine Aufträge jetzt · größere Projekte ab April 2027',
+    'services.page.startingAt': 'ab',
+    'services.page.price': 'Preis',
+    'services.page.onRequest': 'Auf Anfrage',
+    'services.page.ask': 'Dazu anfragen',
+    'services.page.note':
+        'Schreib mir ein paar Zeilen dazu, was das Ganze können soll, und ich antworte, was dafür nötig ist. Kleine Aufträge passen jetzt hinein, größere Projekte beginnen im April 2027. <link>Kontakt aufnehmen</link>.',
+
+    'projects.meta.title': 'Projekte',
+    'projects.meta.description':
+        'Softwareprojekte von Wolfi: Web-Apps, Werkzeuge und Infrastruktur.',
+    'projects.headline': 'Was ich <em>gebaut</em> habe',
+    'projects.lead':
+        '{count} Projekte, von Lehrwerkzeugen bis zur Infrastruktur. Nach Technologie filtern.',
+    'projects.filterAll': 'Alle',
+    'projects.empty': 'Noch nichts mit {filter}.',
+
+    'career.page.meta.title': 'Werdegang',
+    'career.page.meta.description':
+        'Berufserfahrung und Ausbildung von Wolfi, freiberuflicher Fullstack-Entwickler aus Villach, Österreich.',
+    'career.page.headline': 'Wo ich <em>war</em>',
+    'career.page.lead':
+        'Schule, ein HTL-Abschluss in IT und Ferialpraktika bei Infineon, auf einer Zeitleiste dargestellt. Fahre über eine Linie, um die Station zu sehen.',
+    'career.page.firstStation': 'erste Station',
+    'career.page.workStations': 'Arbeitsstationen',
+    'career.page.schools': 'Schulen',
+    'career.page.currentNow': '{organisation}, aktuell',
+    'career.page.work': 'Berufserfahrung',
+    'career.page.education': 'Ausbildung',
+
+    'error.404.heading': 'Seite nicht gefunden',
+    'error.404.body': 'Die gesuchte Seite gibt es leider nicht.',
+    'error.500.heading': 'Diese Seite konnte nicht angezeigt werden',
+    'error.500.body':
+        'Beim Laden ist ein unerwarteter Fehler aufgetreten. Neu laden hilft vielleicht, oder gehe zurück zur Startseite.',
+    'error.home': 'Zur Startseite',
 };

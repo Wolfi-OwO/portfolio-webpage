@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { FormattedMessage, useIntl } from 'react-intl';
+import { Link } from '../../i18n/router-links.jsx';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import { useApiList } from '../../hooks/useApiList.js';
 import { isAdmin } from '../../utils/auth.js';
@@ -17,10 +18,17 @@ export default function ServicesPage() {
 }
 
 function ServicesView() {
+    const intl = useIntl();
     usePageMeta(
-        'Services',
-        'What Wolfi builds: websites, web applications, Android apps and desktop software, with plain prices.',
+        intl.formatMessage({ id: 'services.page.meta.title', defaultMessage: 'Services' }),
+        intl.formatMessage({
+            id: 'services.page.meta.description',
+            defaultMessage:
+                'What Wolfi builds: websites, web applications, Android apps and desktop software, with plain prices.',
+        }),
     );
+    const euro = (n) =>
+        intl.formatNumber(n, { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
     const [services] = useApiList('/api/services');
     const shown = services
         .filter((s) => s.published !== false)
@@ -31,17 +39,32 @@ function ServicesView() {
             <div className="page" style={{ padding: 0 }}>
                 <header className="page-h">
                     <h1>
-                        Services, <em>priced</em> plainly
+                        <FormattedMessage
+                            id="services.page.headline"
+                            defaultMessage="Services, <em>priced</em> plainly"
+                            values={{ em: (chunks) => <em>{chunks}</em> }}
+                        />
                     </h1>
                     <p className="lead">
-                        These prices are starting points. What a project costs depends on what it
-                        has to do, and I can only say that after we have talked.
+                        <FormattedMessage
+                            id="services.page.lead"
+                            defaultMessage="These prices are starting points. What a project costs depends on what it has to do, and I can only say that after we have talked."
+                        />
                     </p>
                     <div className="svc-meta">
-                        <span className="metachip big">Hourly rate €{rate}</span>
+                        <span className="metachip big">
+                            <FormattedMessage
+                                id="services.page.hourlyRate"
+                                defaultMessage="Hourly rate {rate}"
+                                values={{ rate: euro(rate) }}
+                            />
+                        </span>
                         <span className="metachip big live">
                             <i />
-                            Small jobs now · larger projects from April 2027
+                            <FormattedMessage
+                                id="services.page.availability"
+                                defaultMessage="Small jobs now · larger projects from April 2027"
+                            />
                         </span>
                     </div>
                 </header>
@@ -67,25 +90,46 @@ function ServicesView() {
                             <div className="svc-foot">
                                 <div className="price2">
                                     <small className="mono">
-                                        {s.priceFrom ? 'starting at' : 'price'}
+                                        {s.priceFrom
+                                            ? intl.formatMessage({
+                                                  id: 'services.page.startingAt',
+                                                  defaultMessage: 'starting at',
+                                              })
+                                            : intl.formatMessage({
+                                                  id: 'services.page.price',
+                                                  defaultMessage: 'price',
+                                              })}
                                     </small>
-                                    <b>{s.priceFrom ? `€${s.priceFrom}` : 'On request'}</b>
+                                    <b>
+                                        {s.priceFrom
+                                            ? euro(s.priceFrom)
+                                            : intl.formatMessage({
+                                                  id: 'services.page.onRequest',
+                                                  defaultMessage: 'On request',
+                                              })}
+                                    </b>
                                 </div>
                                 <div className="svc-chips">
-                                    <span className="metachip">€{s.hourlyRate} / h</span>
+                                    <span className="metachip">{euro(s.hourlyRate)} / h</span>
                                     {s.duration && <span className="metachip">{s.duration}</span>}
                                 </div>
                             </div>
                             <Link className="btn sm" to="/contact">
-                                Ask about this <span>→</span>
+                                <FormattedMessage
+                                    id="services.page.ask"
+                                    defaultMessage="Ask about this"
+                                />{' '}
+                                <span>→</span>
                             </Link>
                         </article>
                     ))}
                 </div>
                 <p className="muted svc-note">
-                    Write to me with a few lines about what the thing should do and I reply with
-                    what it would take. Small jobs fit in now, bigger projects start in April 2027.{' '}
-                    <Link to="/contact">Get in touch</Link>.
+                    <FormattedMessage
+                        id="services.page.note"
+                        defaultMessage="Write to me with a few lines about what the thing should do and I reply with what it would take. Small jobs fit in now, bigger projects start in April 2027. <link>Get in touch</link>."
+                        values={{ link: (chunks) => <Link to="/contact">{chunks}</Link> }}
+                    />
                 </p>
             </div>
         </div>

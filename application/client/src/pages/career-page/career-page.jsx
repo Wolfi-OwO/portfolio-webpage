@@ -1,4 +1,4 @@
-import { useIntl } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import { useApiList } from '../../hooks/useApiList.js';
 import { isAdmin } from '../../utils/auth.js';
@@ -39,11 +39,16 @@ function Column({ title, items, loc }) {
 }
 
 function CareerView() {
+    const intl = useIntl();
+    const { locale } = intl;
     usePageMeta(
-        'Career',
-        'Work experience and education of Wolfi, a freelance full-stack developer from Villach, Austria.',
+        intl.formatMessage({ id: 'career.page.meta.title', defaultMessage: 'Career' }),
+        intl.formatMessage({
+            id: 'career.page.meta.description',
+            defaultMessage:
+                'Work experience and education of Wolfi, a freelance full-stack developer from Villach, Austria.',
+        }),
     );
-    const { locale } = useIntl();
     const loc = locale.startsWith('de') ? 'de-AT' : 'en-GB';
     const [entries] = useApiList('/api/availability?track=career');
     const published = entries.filter((e) => e.published);
@@ -59,39 +64,80 @@ function CareerView() {
             <div className="page cp-page" style={{ padding: 0 }}>
                 <header className="page-h">
                     <h1>
-                        Where I've <em>been</em>
+                        <FormattedMessage
+                            id="career.page.headline"
+                            defaultMessage="Where I've <em>been</em>"
+                            values={{ em: (chunks) => <em>{chunks}</em> }}
+                        />
                     </h1>
                     <p className="lead">
-                        School, an HTL diploma in IT and summer placements at Infineon, drawn on one
-                        timeline. Hover a line to see which station it is.
+                        <FormattedMessage
+                            id="career.page.lead"
+                            defaultMessage="School, an HTL diploma in IT and summer placements at Infineon, drawn on one timeline. Hover a line to see which station it is."
+                        />
                     </p>
                 </header>
                 {published.length > 0 && (
                     <div className="cp-stats">
                         <div>
                             <b>{since}</b>
-                            <span>first station</span>
+                            <span>
+                                <FormattedMessage
+                                    id="career.page.firstStation"
+                                    defaultMessage="first station"
+                                />
+                            </span>
                         </div>
                         <div>
                             <b>{work.length}</b>
-                            <span>work stations</span>
+                            <span>
+                                <FormattedMessage
+                                    id="career.page.workStations"
+                                    defaultMessage="work stations"
+                                />
+                            </span>
                         </div>
                         <div>
                             <b>{school.length}</b>
-                            <span>schools</span>
+                            <span>
+                                <FormattedMessage
+                                    id="career.page.schools"
+                                    defaultMessage="schools"
+                                />
+                            </span>
                         </div>
                         {current && (
                             <div>
                                 <b>{current.title}</b>
-                                <span>{current.organisation}, now</span>
+                                <span>
+                                    <FormattedMessage
+                                        id="career.page.currentNow"
+                                        defaultMessage="{organisation}, now"
+                                        values={{ organisation: current.organisation }}
+                                    />
+                                </span>
                             </div>
                         )}
                     </div>
                 )}
                 <CareerChart entries={published} />
                 <div className="cp-cols">
-                    <Column title="Work" items={work} loc={loc} />
-                    <Column title="Education" items={school} loc={loc} />
+                    <Column
+                        title={intl.formatMessage({
+                            id: 'career.page.work',
+                            defaultMessage: 'Work',
+                        })}
+                        items={work}
+                        loc={loc}
+                    />
+                    <Column
+                        title={intl.formatMessage({
+                            id: 'career.page.education',
+                            defaultMessage: 'Education',
+                        })}
+                        items={school}
+                        loc={loc}
+                    />
                 </div>
             </div>
         </div>

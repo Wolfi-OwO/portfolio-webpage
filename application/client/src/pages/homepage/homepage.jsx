@@ -1,7 +1,7 @@
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import { useApiList } from '../../hooks/useApiList.js';
-import { Link } from 'react-router-dom';
+import { Link } from '../../i18n/router-links.jsx';
 import { ProjectCard } from '../../components/design-bits.jsx';
 import RunningNow from '../../components/running-now.jsx';
 import '../../proto.css';
@@ -133,9 +133,17 @@ const technologies_list = [
 ];
 
 export default function Homepage() {
+    const intl = useIntl();
     usePageMeta(
-        'Fullstack Web Development',
-        'Woofi Developments builds modern web applications with React, Node.js, and cloud technologies - fullstack software development based in Carinthia, Austria.',
+        intl.formatMessage({
+            id: 'homepage.meta.title',
+            defaultMessage: 'Fullstack Web Development',
+        }),
+        intl.formatMessage({
+            id: 'homepage.meta.description',
+            defaultMessage:
+                'Woofi Developments builds modern web applications with React, Node.js, and cloud technologies - fullstack software development based in Carinthia, Austria.',
+        }),
     );
 
     const [projects] = useApiList('/api/projects');
@@ -154,7 +162,13 @@ export default function Homepage() {
                             <div className="who">
                                 <img
                                     src="/profile-image.webp"
-                                    alt={`${IDENTITY.name}, portrait`}
+                                    alt={intl.formatMessage(
+                                        {
+                                            id: 'homepage.portraitAlt',
+                                            defaultMessage: '{name}, portrait',
+                                        },
+                                        { name: IDENTITY.name },
+                                    )}
                                     width="76"
                                     height="76"
                                     fetchPriority="high"
@@ -169,7 +183,11 @@ export default function Homepage() {
                                 </span>
                             </div>
                             <h1>
-                                I make software that <em>does what it says.</em>
+                                <FormattedMessage
+                                    id="homepage.headline"
+                                    defaultMessage="I make software that <em>does what it says.</em>"
+                                    values={{ em: (chunks) => <em>{chunks}</em> }}
+                                />
                             </h1>
                             <p className="lead">
                                 <FormattedMessage
@@ -190,16 +208,36 @@ export default function Homepage() {
                                 />
                             </p>
                             <div className="hero2-links">
-                                <Link to="/contact">Start a conversation</Link>
-                                <Link to="/projects">Read the work</Link>
-                                <Link to="/career">Career &amp; education</Link>
+                                <Link to="/contact">
+                                    <FormattedMessage
+                                        id="homepage.cta.contact"
+                                        defaultMessage="Start a conversation"
+                                    />
+                                </Link>
+                                <Link to="/projects">
+                                    <FormattedMessage
+                                        id="homepage.cta.work"
+                                        defaultMessage="Read the work"
+                                    />
+                                </Link>
+                                <Link to="/career">
+                                    <FormattedMessage
+                                        id="homepage.cta.career"
+                                        defaultMessage="Career &amp; education"
+                                    />
+                                </Link>
                             </div>
                         </div>
                         <RunningNow />
                     </section>
 
                     <section>
-                        <h2 className="sec-label">Selected work</h2>
+                        <h2 className="sec-label">
+                            <FormattedMessage
+                                id="homepage.selected"
+                                defaultMessage="Selected work"
+                            />
+                        </h2>
                         <div className="pgrid bento">
                             {featured.map((p, i) => (
                                 <ProjectCard
@@ -212,18 +250,35 @@ export default function Homepage() {
                             ))}
                         </div>
                         <Link className="btn ghost more" to="/projects">
-                            All {projects.length} projects →
+                            <FormattedMessage
+                                id="homepage.allProjects"
+                                defaultMessage="All {count} projects →"
+                                values={{ count: projects.length }}
+                            />
                         </Link>
                     </section>
 
                     <section>
-                        <h2 className="sec-label">Activity</h2>
+                        <h2 className="sec-label">
+                            <FormattedMessage id="homepage.activity" defaultMessage="Activity" />
+                        </h2>
                         <ActivityHeatmap />
                     </section>
 
                     <section>
-                        <h2 className="sec-label">Technologies I use</h2>
-                        <div className="tech-row" aria-label="Technologies I use">
+                        <h2 className="sec-label">
+                            <FormattedMessage
+                                id="homepage.techHeading"
+                                defaultMessage="Technologies I use"
+                            />
+                        </h2>
+                        <div
+                            className="tech-row"
+                            aria-label={intl.formatMessage({
+                                id: 'homepage.techHeading',
+                                defaultMessage: 'Technologies I use',
+                            })}
+                        >
                             <div className="tech-track">
                                 {[0, 1].map((copy) => (
                                     <ul className="tech-set" key={copy} aria-hidden={copy === 1}>

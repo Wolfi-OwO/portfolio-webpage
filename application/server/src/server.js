@@ -31,6 +31,7 @@ import { contactRouter } from './routes/contact-route.js';
 import { errorHandler, NotFound } from './middlewares/error-handlers.js';
 import { publicCache } from './middlewares/cache.js';
 import { apiRootLinks } from './utils/hateoas.js';
+import { KNOWN_CLIENT_ROUTES } from './client-routes.js';
 
 /* ***************** CONFIG and CONSTS ********************* */
 /* Take configuration from environment variables or use hardcoded default value */
@@ -157,7 +158,7 @@ app.use(
 // the HTML response itself, and unlike a robots.txt Disallow it does not publish the path to anyone reading
 // /robots.txt (so /secret is deliberately NOT listed there or in the sitemap). A Disallow would also stop Google
 // from fetching the page, which is the only way it ever sees a noindex.
-const PRIVATE_PATH = /^\/(secret|admin)(\/|$)/i;
+const PRIVATE_PATH = /^\/(de\/)?(secret|admin)(\/|$)/i;
 app.use((req, res, next) => {
     if (PRIVATE_PATH.test(req.path) || req.path.startsWith('/api/')) {
         res.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
@@ -206,18 +207,6 @@ app.use('/api', (req, _res, next) => {
 // matching independent of the HTTP status), but curl/crawlers/monitoring
 // saw "this page exists" for something that provably doesn't. Keep in sync
 // if a route is added or removed there.
-const KNOWN_CLIENT_ROUTES = new Set([
-    '/',
-    '/projects',
-    '/career',
-    '/services',
-    '/contact',
-    '/privacy-policy',
-    '/impressum',
-    '/admin/login',
-    '/secret',
-]);
-
 // SPA fallback (support direct navigation to client routes like /projects).
 // The `status.` subdomain gets its own standalone bundle instead of the main
 // app's, and has no client router at all (status-main.jsx renders a single

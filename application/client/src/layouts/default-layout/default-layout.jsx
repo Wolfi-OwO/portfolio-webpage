@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
+import { NavLink, useNavigate } from '../../i18n/router-links.jsx';
 import { FormattedMessage, useIntl } from 'react-intl';
 import {
     ArrowRightOnRectangleIcon,

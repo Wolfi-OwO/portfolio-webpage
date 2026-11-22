@@ -1,5 +1,5 @@
 import { useReducer } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from '../../i18n/router-links.jsx';
 import { EyeIcon, EyeSlashIcon, LockClosedIcon, UserIcon } from '@heroicons/react/24/outline';
 import { initialState, reducer } from './adminLoginReducer.js';
 import { TOKEN_STORAGE_KEY } from '../../utils/auth.js';

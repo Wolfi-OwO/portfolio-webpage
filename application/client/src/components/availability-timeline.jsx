@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '../i18n/router-links.jsx';
 import { FormattedDate, FormattedMessage, useIntl } from 'react-intl';
 import { PencilSquareIcon, PlusIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { authHeaders, isAdmin } from '../utils/auth.js';
