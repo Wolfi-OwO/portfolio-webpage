@@ -1,5 +1,5 @@
-import { FormattedDate, FormattedMessage, useIntl } from 'react-intl';
-import { usePageMeta } from '../../hooks/usePageMeta.js';
+import { FormattedDate, FormattedMessage } from 'react-intl';
+import { usePublicPageMeta } from '../../hooks/usePublicPageMeta.js';
 import ImprintText from '../../components/imprint-text.jsx';
 
 const LAST_UPDATED = new Date('2026-10-03');
@@ -16,15 +16,7 @@ const AUTHORITY = 'https://www.dsb.gv.at';
  * server logs, and the third parties that hosting genuinely involves.
  */
 export default function PrivacyPolicyPage() {
-    const intl = useIntl();
-    usePageMeta(
-        intl.formatMessage({ id: 'privacy.page.meta.title', defaultMessage: 'Privacy Policy' }),
-        intl.formatMessage({
-            id: 'privacy.page.meta.description',
-            defaultMessage:
-                'How this site handles data: no tracking, no analytics, no cookies — and exactly what does get processed.',
-        }),
-    );
+    usePublicPageMeta('/privacy-policy');
 
     return (
         <div className="animate-fade-up mx-auto max-w-5xl">

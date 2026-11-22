@@ -1,5 +1,5 @@
 import { FormattedMessage, useIntl } from 'react-intl';
-import { usePageMeta } from '../../hooks/usePageMeta.js';
+import { usePublicPageMeta } from '../../hooks/usePublicPageMeta.js';
 import { useApiList } from '../../hooks/useApiList.js';
 import { localizeAll } from '../../i18n/localize.js';
 import { isAdmin } from '../../utils/auth.js';
@@ -42,14 +42,7 @@ function Column({ title, items, loc }) {
 function CareerView() {
     const intl = useIntl();
     const { locale } = intl;
-    usePageMeta(
-        intl.formatMessage({ id: 'career.page.meta.title', defaultMessage: 'Career' }),
-        intl.formatMessage({
-            id: 'career.page.meta.description',
-            defaultMessage:
-                'Work experience and education of Wolfi, a freelance full-stack developer from Villach, Austria.',
-        }),
-    );
+    usePublicPageMeta('/career');
     const loc = locale.startsWith('de') ? 'de-AT' : 'en-GB';
     const [entries] = useApiList('/api/availability?track=career');
     const published = localizeAll(entries, locale).filter((e) => e.published);

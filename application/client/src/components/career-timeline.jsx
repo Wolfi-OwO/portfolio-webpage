@@ -574,6 +574,11 @@ function Field({ label, required, children }) {
 
 export function CareerEntryForm({ form, setForm, saving, technologies, onSubmit, onCancel }) {
     const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+    const setTranslation = (key, value) =>
+        setForm((current) => ({
+            ...current,
+            translation: { ...current.translation, [key]: value },
+        }));
 
     return (
         <form
@@ -688,6 +693,43 @@ export function CareerEntryForm({ form, setForm, saving, technologies, onSubmit,
                     ))}
                 </select>
             </Field>
+
+            <fieldset className="space-y-4 rounded-lg border border-[var(--line)] p-4">
+                <legend className="px-2 text-sm font-semibold text-[var(--text)]">
+                    English version (shown on the English site; blank fields fall back to the German
+                    text)
+                </legend>
+                <div className="grid gap-4 sm:grid-cols-2">
+                    <Field label="Title (English)">
+                        <input
+                            value={form.translation?.title ?? ''}
+                            onChange={(e) => setTranslation('title', e.target.value)}
+                            className={INPUT}
+                        />
+                    </Field>
+                    <Field label="Organisation (English)">
+                        <input
+                            value={form.translation?.organisation ?? ''}
+                            onChange={(e) => setTranslation('organisation', e.target.value)}
+                            className={INPUT}
+                        />
+                    </Field>
+                </div>
+                <Field label="Description (English)">
+                    <input
+                        value={form.translation?.description ?? ''}
+                        onChange={(e) => setTranslation('description', e.target.value)}
+                        className={INPUT}
+                    />
+                </Field>
+                <Field label="Location (English)">
+                    <input
+                        value={form.translation?.location ?? ''}
+                        onChange={(e) => setTranslation('location', e.target.value)}
+                        className={INPUT}
+                    />
+                </Field>
+            </fieldset>
 
             <label className="flex items-center gap-2 text-sm text-[var(--text)]">
                 <input

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import '../proto.css';
 
@@ -17,6 +18,7 @@ export const Lines = ({ lines }) => (
 const MAX_TAGS = 4;
 
 export function ProjectCard({ p, tech, span, lead = false, maxTags = MAX_TAGS, actions = null }) {
+    const intl = useIntl();
     const shot = SHOTS[p.title];
     const names = (p.technologies || []).map((id) => tech[id]).filter(Boolean);
     const [open, setOpen] = useState(false);
@@ -33,7 +35,15 @@ export function ProjectCard({ p, tech, span, lead = false, maxTags = MAX_TAGS, a
                 <div className="pshot">
                     <img
                         src={shot}
-                        alt={`${shot.endsWith('.svg') ? 'Cover' : 'Screenshot'} of ${p.title}`}
+                        alt={intl.formatMessage(
+                            shot.endsWith('.svg')
+                                ? { id: 'project.coverAlt', defaultMessage: 'Cover of {title}' }
+                                : {
+                                      id: 'project.screenshotAlt',
+                                      defaultMessage: 'Screenshot of {title}',
+                                  },
+                            { title: p.title },
+                        )}
                         loading="lazy"
                     />
                 </div>
@@ -56,14 +66,19 @@ export function ProjectCard({ p, tech, span, lead = false, maxTags = MAX_TAGS, a
                             title={open ? undefined : rest.join(', ')}
                             onClick={() => setOpen((v) => !v)}
                         >
-                            {open ? 'Less' : `+${rest.length}`}
+                            {open ? (
+                                <FormattedMessage id="project.less" defaultMessage="Less" />
+                            ) : (
+                                `+${rest.length}`
+                            )}
                         </button>
                     )}
                 </div>
                 <div className="links">
                     {p.livedemo && (
                         <a className="btn sm" href={p.livedemo} target="_blank" rel="noreferrer">
-                            Live demo <span>↗</span>
+                            <FormattedMessage id="project.liveDemo" defaultMessage="Live demo" />{' '}
+                            <span>↗</span>
                         </a>
                     )}
                     {p.repositoryUrl && (
@@ -73,7 +88,8 @@ export function ProjectCard({ p, tech, span, lead = false, maxTags = MAX_TAGS, a
                             target="_blank"
                             rel="noreferrer"
                         >
-                            Repository <span>↗</span>
+                            <FormattedMessage id="project.repository" defaultMessage="Repository" />{' '}
+                            <span>↗</span>
                         </a>
                     )}
                 </div>

@@ -1,6 +1,6 @@
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link } from '../../i18n/router-links.jsx';
-import { usePageMeta } from '../../hooks/usePageMeta.js';
+import { usePublicPageMeta } from '../../hooks/usePublicPageMeta.js';
 import { useApiList } from '../../hooks/useApiList.js';
 import { localizeAll } from '../../i18n/localize.js';
 import { isAdmin } from '../../utils/auth.js';
@@ -20,14 +20,7 @@ export default function ServicesPage() {
 
 function ServicesView() {
     const intl = useIntl();
-    usePageMeta(
-        intl.formatMessage({ id: 'services.page.meta.title', defaultMessage: 'Services' }),
-        intl.formatMessage({
-            id: 'services.page.meta.description',
-            defaultMessage:
-                'What Wolfi builds: websites, web applications, Android apps and desktop software, with plain prices.',
-        }),
-    );
+    usePublicPageMeta('/services');
     const euro = (n) =>
         intl.formatNumber(n, { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
     const [services] = useApiList('/api/services');

@@ -10,6 +10,15 @@ import {
 import { authHeaders, isAdmin } from '../../utils/auth.js';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import { IDENTITY } from '../../utils/identity.js';
+import { translationToForm, translationToPayload } from '../../utils/translation-form.js';
+
+// A service is written in German; the English version is edited alongside it.
+const TRANSLATION_FIELDS = [
+    { key: 'title' },
+    { key: 'description' },
+    { key: 'deliverables', list: true },
+    { key: 'duration' },
+];
 
 const CATEGORIES = [
     { id: 'web', labelId: 'services.category.web', defaultLabel: 'Web' },
@@ -29,6 +38,7 @@ const EMPTY_FORM = {
     duration: '',
     order: 0,
     published: true,
+    translation: translationToForm(undefined, 'en', TRANSLATION_FIELDS),
 };
 
 /** The API stores deliverables as an array; the form edits them as one line per item. */
@@ -37,6 +47,7 @@ function toForm(service) {
         ...EMPTY_FORM,
         ...service,
         deliverables: (service.deliverables || []).join('\n'),
+        translation: translationToForm(service.translations, 'en', TRANSLATION_FIELDS),
     };
 }
 
@@ -54,6 +65,12 @@ function toPayload(form) {
         duration: form.duration.trim(),
         order: Number(form.order) || 0,
         published: Boolean(form.published),
+        translations: translationToPayload(
+            form.translations,
+            'en',
+            form.translation,
+            TRANSLATION_FIELDS,
+        ),
     };
 }
 
@@ -332,6 +349,11 @@ function ServiceCard({ service, admin, onEdit, onDelete }) {
 
 function ServiceForm({ form, setForm, saving, onSubmit, onCancel }) {
     const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+    const setTranslation = (key, value) =>
+        setForm((current) => ({
+            ...current,
+            translation: { ...current.translation, [key]: value },
+        }));
 
     return (
         <form
@@ -438,6 +460,44 @@ function ServiceForm({ form, setForm, saving, onSubmit, onCancel }) {
                     />
                 </Field>
             </div>
+
+            <fieldset className="space-y-5 rounded-lg border border-[var(--line)] p-4">
+                <legend className="px-2 text-sm font-semibold text-[var(--text)]">
+                    English version (shown on the English site; blank fields fall back to the German
+                    text)
+                </legend>
+                <Field label="Title (English)">
+                    <input
+                        value={form.translation.title}
+                        onChange={(e) => setTranslation('title', e.target.value)}
+                        className={INPUT}
+                    />
+                </Field>
+                <Field label="Description (English)">
+                    <textarea
+                        value={form.translation.description}
+                        onChange={(e) => setTranslation('description', e.target.value)}
+                        rows={3}
+                        className={INPUT}
+                    />
+                </Field>
+                <Field label="Deliverables (English, one per line)">
+                    <textarea
+                        value={form.translation.deliverables}
+                        onChange={(e) => setTranslation('deliverables', e.target.value)}
+                        rows={4}
+                        className={`${INPUT} font-mono text-sm`}
+                    />
+                </Field>
+                <Field label="Duration (English)">
+                    <input
+                        value={form.translation.duration}
+                        onChange={(e) => setTranslation('duration', e.target.value)}
+                        placeholder="2–4 weeks"
+                        className={INPUT}
+                    />
+                </Field>
+            </fieldset>
 
             <label className="flex items-center gap-2 text-sm text-[var(--text)]">
                 <input

@@ -25,6 +25,7 @@
     "preview": "vite preview",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "test": "node --test \"src/**/*.test.mjs\"",
     "test:e2e": "playwright test"
   },
   "dependencies": {

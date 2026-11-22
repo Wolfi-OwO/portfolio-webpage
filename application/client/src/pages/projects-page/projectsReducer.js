@@ -45,6 +45,8 @@ const emptyForm = {
     description: '',
     repositoryUrl: '',
     livedemo: '',
+    translations: null,
+    translationDescription: '',
     selectedTechnologies: [],
     techQuery: '',
     newTechColor: DEFAULT_TECH_COLOR,
@@ -104,6 +106,8 @@ function reducer(state, action) {
                     description: p.description || '',
                     repositoryUrl: p.repositoryUrl || '',
                     livedemo: p.livedemo || '',
+                    translations: p.translations || null,
+                    translationDescription: p.translations?.de?.description || '',
                     selectedTechnologies: (p.technologies || []).map((t) => ({
                         _id: t._id,
                         tech: t.tech,
