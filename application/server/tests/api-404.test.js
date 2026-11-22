@@ -34,3 +34,17 @@ describe('GET /livez, /readyz', function () {
         assert.deepStrictEqual(readyz.body, ready.body);
     });
 });
+
+// The private pages must carry a noindex header, and the public ones must not.
+describe('X-Robots-Tag on private pages', function () {
+    for (const path of ['/secret', '/admin/login', '/api/gibt-es-nicht']) {
+        it(`${path} is marked noindex`, async function () {
+            const res = await request(httpServer).get(path);
+            assert.match(res.headers['x-robots-tag'] ?? '', /noindex/);
+        });
+    }
+    it('a public page is not marked noindex', async function () {
+        const res = await request(httpServer).get('/career');
+        assert.strictEqual(res.headers['x-robots-tag'], undefined);
+    });
+});

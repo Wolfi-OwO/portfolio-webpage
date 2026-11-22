@@ -11,6 +11,7 @@ import {
     LockClosedIcon,
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
+import { useNoIndex } from '../../hooks/useNoIndex.js';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import { elapsedSince, monthlyMilestone } from './elapsed.js';
 
@@ -25,6 +26,7 @@ const UNLOCK_TOKEN_KEY = 'portfolio.secretToken';
 const GIFT_MILESTONE = 7;
 
 export default function SecretPage() {
+    useNoIndex();
     const intl = useIntl();
     const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem(UNLOCK_KEY) === 'true');
 
