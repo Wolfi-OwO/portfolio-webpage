@@ -37,7 +37,7 @@ describe('GET /livez, /readyz', function () {
 
 // The private pages must carry a noindex header, and the public ones must not.
 describe('X-Robots-Tag on private pages', function () {
-    for (const path of ['/secret', '/admin/login', '/api/ready']) {
+    for (const path of ['/secret', '/admin/login', '/api/gibt-es-nicht']) {
         it(`${path} is marked noindex`, async function () {
             const res = await request(httpServer).get(path);
             assert.match(res.headers['x-robots-tag'] ?? '', /noindex/);
