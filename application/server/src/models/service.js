@@ -61,6 +61,11 @@ const serviceSchema = new mongoose.Schema(
             type: Boolean,
             default: true,
         },
+        // The same record in the other language, keyed by locale: { en: { title, description, ... } }.
+        // The fields above hold the language the record was written in.
+        translations: {
+            type: mongoose.Schema.Types.Mixed,
+        },
     },
     {
         optimisticConcurrency: true,

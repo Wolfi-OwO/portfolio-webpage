@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import { useApiList } from '../../hooks/useApiList.js';
+import { localizeAll } from '../../i18n/localize.js';
 import { isAdmin } from '../../utils/auth.js';
 import { ProjectCard } from '../../components/design-bits.jsx';
 import { hasShot, rowSpans } from '../../components/project-layout.js';
@@ -23,7 +24,8 @@ function ProjectsView() {
             defaultMessage: 'Software projects by Wolfi: web apps, tooling and infrastructure.',
         }),
     );
-    const [projects] = useApiList('/api/projects');
+    const [rawProjects] = useApiList('/api/projects');
+    const projects = localizeAll(rawProjects, intl.locale);
     const [technologies] = useApiList('/api/technologies');
     const [filter, setFilter] = useState('All');
     const tech = Object.fromEntries(technologies.map((t) => [t._id, t.tech]));

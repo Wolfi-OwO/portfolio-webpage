@@ -24,6 +24,11 @@ const projectSchema = new mongoose.Schema(
                 ref: 'Technology',
             },
         ],
+        // The same record in the other language, keyed by locale: { de: { description } }.
+        // The fields above hold the language the record was written in.
+        translations: {
+            type: mongoose.Schema.Types.Mixed,
+        },
     },
     {
         optimisticConcurrency: true,

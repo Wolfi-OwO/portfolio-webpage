@@ -330,4 +330,13 @@ export default {
     'error.500.body':
         'Beim Laden ist ein unerwarteter Fehler aufgetreten. Neu laden hilft vielleicht, oder gehe zurück zur Startseite.',
     'error.home': 'Zur Startseite',
+    'contact.page.meta.title': 'Kontakt',
+    'contact.page.meta.description':
+        'Kontakt für Freelance-Projekte, Zusammenarbeit und moderne Webentwicklung. Webentwickler aus Villach, Kärnten.',
+    'privacy.page.meta.title': 'Datenschutzerklärung',
+    'privacy.page.meta.description':
+        'Wie diese Seite mit Daten umgeht: kein Tracking, keine Analyse, keine Cookies, und genau das, was verarbeitet wird.',
+    'imprint.page.meta.title': 'Impressum',
+    'imprint.page.meta.description':
+        'Angaben gemäß § 5 ECG und § 25 MedienG für woofi-developments.at.',
 };

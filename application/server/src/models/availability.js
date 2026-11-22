@@ -99,6 +99,11 @@ const availabilitySchema = new mongoose.Schema(
             ],
             default: undefined,
         },
+        // The same record in the other language, keyed by locale: { en: { title, organisation, description, location } }.
+        // The fields above hold the language the record was written in.
+        translations: {
+            type: mongoose.Schema.Types.Mixed,
+        },
     },
     {
         optimisticConcurrency: true,

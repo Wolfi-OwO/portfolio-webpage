@@ -15,6 +15,7 @@ import path from 'path';
 import { logger } from './utils/logger.js';
 import { setupHealthChecks } from './utils/health-checks.js';
 import { dropCurrentDatabase, setupDatabaseConnection } from './database/database.js';
+import { backfillTranslations } from './utils/backfill-translations.js';
 
 /* ***************** IMPORT ROUTES **************** */
 import { projectsRouter } from './routes/projects-route.js';
@@ -32,6 +33,7 @@ import { errorHandler, NotFound } from './middlewares/error-handlers.js';
 import { publicCache } from './middlewares/cache.js';
 import { apiRootLinks } from './utils/hateoas.js';
 import { KNOWN_CLIENT_ROUTES } from './client-routes.js';
+import { servePublicPage } from './seo/serve.js';
 
 /* ***************** CONFIG and CONSTS ********************* */
 /* Take configuration from environment variables or use hardcoded default value */
@@ -212,8 +214,9 @@ app.use('/api', (req, _res, next) => {
 // app's, and has no client router at all (status-main.jsx renders a single
 // page unconditionally) -- it never had per-path 404 handling, and adding
 // one is out of scope here, so its 200-for-everything behaviour is unchanged.
-app.get(/^(?!\/api).*/, (req, res) => {
+app.get(/^(?!\/api).*/, async (req, res) => {
     const isStatusHost = /^status\./i.test(req.hostname);
+    if (!isStatusHost && (await servePublicPage(req, res, CLIENT_DIST))) return;
     const entry = isStatusHost ? 'status.html' : 'index.html';
     const knownPath = isStatusHost || KNOWN_CLIENT_ROUTES.has(req.path);
     res.status(knownPath ? 200 : 404).sendFile(path.join(CLIENT_DIST, entry));
@@ -230,7 +233,7 @@ const httpServer = createServer(app);
 setupHealthChecks(httpServer);
 
 // setup database connection
-setupDatabaseConnection(MONGODB_CONNECTION_STRING, MONGODB_RECREATE);
+setupDatabaseConnection(MONGODB_CONNECTION_STRING, MONGODB_RECREATE).then(backfillTranslations);
 httpServer.dropCurrentDatabase = dropCurrentDatabase;
 
 // Monitor checks are performed entirely by the separate monitor-checker Azure
