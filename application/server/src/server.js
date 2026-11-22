@@ -31,6 +31,7 @@ import { contactRouter } from './routes/contact-route.js';
 import { errorHandler, NotFound } from './middlewares/error-handlers.js';
 import { publicCache } from './middlewares/cache.js';
 import { apiRootLinks } from './utils/hateoas.js';
+import { KNOWN_CLIENT_ROUTES } from './client-routes.js';
 
 /* ***************** CONFIG and CONSTS ********************* */
 /* Take configuration from environment variables or use hardcoded default value */
@@ -206,24 +207,6 @@ app.use('/api', (req, _res, next) => {
 // matching independent of the HTTP status), but curl/crawlers/monitoring
 // saw "this page exists" for something that provably doesn't. Keep in sync
 // if a route is added or removed there.
-const CLIENT_PAGES = [
-    '/projects',
-    '/career',
-    '/services',
-    '/contact',
-    '/privacy-policy',
-    '/impressum',
-    '/admin/login',
-    '/secret',
-];
-// The German site lives under /de and mirrors every page.
-const KNOWN_CLIENT_ROUTES = new Set([
-    '/',
-    '/de',
-    ...CLIENT_PAGES,
-    ...CLIENT_PAGES.map((p) => `/de${p}`),
-]);
-
 // SPA fallback (support direct navigation to client routes like /projects).
 // The `status.` subdomain gets its own standalone bundle instead of the main
 // app's, and has no client router at all (status-main.jsx renders a single

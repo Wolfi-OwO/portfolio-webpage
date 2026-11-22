@@ -2,6 +2,7 @@
 import httpServer from '../src/server.js';
 import assert from 'assert';
 import request from 'supertest';
+import { KNOWN_CLIENT_ROUTES } from '../src/client-routes.js';
 
 /* ***************** DECLARE testfunctions *********************** */
 // Regression test for a measured bug: an unmatched /api/ path used to fall
@@ -59,17 +60,21 @@ describe('X-Robots-Tag on private pages', function () {
     });
 });
 
-// The German site mirrors the English routes under /de; the server must answer 200 for a real
-// page there and 404 for one that does not exist, same as for the English paths.
+// The German site mirrors the English routes under /de. The route list is tested directly: a request
+// for a page file would depend on the client build being present, which CI's backend job does not have.
 describe('German routes under /de', function () {
     for (const path of ['/de', '/de/services', '/de/career', '/de/impressum']) {
-        it(`${path} is a known page`, async function () {
-            const res = await request(httpServer).get(path);
-            assert.strictEqual(res.status, 200);
+        it(`${path} is a known page`, function () {
+            assert.ok(KNOWN_CLIENT_ROUTES.has(path));
         });
     }
-    it('an unknown German path is a 404', async function () {
-        const res = await request(httpServer).get('/de/gibt-es-nicht');
-        assert.strictEqual(res.status, 404);
+    it('every English page has a German twin', function () {
+        for (const path of KNOWN_CLIENT_ROUTES) {
+            if (path === '/' || path.startsWith('/de')) continue;
+            assert.ok(KNOWN_CLIENT_ROUTES.has(`/de${path}`), `${path} has no /de twin`);
+        }
+    });
+    it('an unknown German path is not a known page', function () {
+        assert.ok(!KNOWN_CLIENT_ROUTES.has('/de/gibt-es-nicht'));
     });
 });
