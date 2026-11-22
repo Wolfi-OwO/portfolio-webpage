@@ -153,6 +153,18 @@ app.use(
     ['/api/info/', '/api/projects/', '/api/services/', '/api/availability/', '/api/technologies/'],
     publicCache(60, 600),
 );
+// Pages that must never appear in a search index. The header is the reliable half: it reaches the crawler on
+// the HTML response itself, and unlike a robots.txt Disallow it does not publish the path to anyone reading
+// /robots.txt (so /secret is deliberately NOT listed there or in the sitemap). A Disallow would also stop Google
+// from fetching the page, which is the only way it ever sees a noindex.
+const PRIVATE_PATH = /^\/(secret|admin)(\/|$)/i;
+app.use((req, res, next) => {
+    if (PRIVATE_PATH.test(req.path) || req.path.startsWith('/api/')) {
+        res.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+    }
+    next();
+});
+
 app.use('/api/activity/', publicCache(300, 3600));
 app.use('/auth/', authRouter);
 app.use('/api/info/', infoRouter);
@@ -205,18 +217,6 @@ const KNOWN_CLIENT_ROUTES = new Set([
     '/admin/login',
     '/secret',
 ]);
-
-// Pages that must never appear in a search index. The header is the reliable half: it reaches the crawler on
-// the HTML response itself, and unlike a robots.txt Disallow it does not publish the path to anyone reading
-// /robots.txt (so /secret is deliberately NOT listed there or in the sitemap). A Disallow would also stop Google
-// from fetching the page, which is the only way it ever sees a noindex.
-const PRIVATE_PATH = /^\/(secret|admin)(\/|$)/i;
-app.use((req, res, next) => {
-    if (PRIVATE_PATH.test(req.path) || req.path.startsWith('/api/')) {
-        res.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
-    }
-    next();
-});
 
 // SPA fallback (support direct navigation to client routes like /projects).
 // The `status.` subdomain gets its own standalone bundle instead of the main
