@@ -133,7 +133,45 @@ function CareerView() {
                         loc={loc}
                     />
                 </div>
+                <Diplomarbeit />
             </div>
         </div>
+    );
+}
+
+// The thesis for the Reife- und Diplomprüfung at HTL Villach. The PDF is German, so the card says so.
+function Diplomarbeit() {
+    return (
+        <section className="cp-thesis card" aria-labelledby="thesis-h">
+            <p className="kicker">
+                <FormattedMessage
+                    id="career.thesis.kicker"
+                    defaultMessage="Reife- und Diplomprüfung · HTL Villach · 2026"
+                />
+            </p>
+            <h2 id="thesis-h">
+                <FormattedMessage
+                    id="career.thesis.title"
+                    defaultMessage="Diploma thesis: migrating a web application to new technologies"
+                />
+            </h2>
+            <p>
+                <FormattedMessage
+                    id="career.thesis.body"
+                    defaultMessage="A web application for managing experiments, written in 2012 with PHP, jQuery and Spring Boot, was migrated to Angular 18 and ASP.NET Core during a two-month internship. The thesis covers the analysis of the old system, the design, the implementation in Scrum with PI Planning, and the rollout to several sites."
+                />
+            </p>
+            <a
+                className="btn"
+                href="/documents/Kofler-Phillip_Diplomarbeit.pdf"
+                target="_blank"
+                rel="noopener"
+            >
+                <FormattedMessage
+                    id="career.thesis.download"
+                    defaultMessage="Read the thesis (PDF, 65 pages, in German)"
+                />
+            </a>
+        </section>
     );
 }
