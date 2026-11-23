@@ -112,4 +112,68 @@
     <changefreq>yearly</changefreq>
     <priority>0.1</priority>
   </url>
+  <url>
+    <loc>https://www.woofi-developments.at/case-studies</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.woofi-developments.at/case-studies"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.woofi-developments.at/de/case-studies"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.woofi-developments.at/case-studies"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.woofi-developments.at/de/case-studies</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.woofi-developments.at/case-studies"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.woofi-developments.at/de/case-studies"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.woofi-developments.at/case-studies"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.woofi-developments.at/case-studies/burrow</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.woofi-developments.at/case-studies/burrow"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.woofi-developments.at/de/case-studies/burrow"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.woofi-developments.at/case-studies/burrow"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.woofi-developments.at/de/case-studies/burrow</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.woofi-developments.at/case-studies/burrow"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.woofi-developments.at/de/case-studies/burrow"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.woofi-developments.at/case-studies/burrow"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.woofi-developments.at/case-studies/netviz</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.woofi-developments.at/case-studies/netviz"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.woofi-developments.at/de/case-studies/netviz"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.woofi-developments.at/case-studies/netviz"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.woofi-developments.at/de/case-studies/netviz</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.woofi-developments.at/case-studies/netviz"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.woofi-developments.at/de/case-studies/netviz"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.woofi-developments.at/case-studies/netviz"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.woofi-developments.at/case-studies/metrion</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.woofi-developments.at/case-studies/metrion"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.woofi-developments.at/de/case-studies/metrion"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.woofi-developments.at/case-studies/metrion"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.woofi-developments.at/de/case-studies/metrion</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.woofi-developments.at/case-studies/metrion"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.woofi-developments.at/de/case-studies/metrion"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.woofi-developments.at/case-studies/metrion"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
 </urlset>

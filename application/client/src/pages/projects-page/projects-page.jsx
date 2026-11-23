@@ -4,6 +4,8 @@ import { usePublicPageMeta } from '../../hooks/usePublicPageMeta.js';
 import { useApiList } from '../../hooks/useApiList.js';
 import { localizeAll } from '../../i18n/localize.js';
 import { isAdmin } from '../../utils/auth.js';
+import { Link } from '../../i18n/router-links.jsx';
+import { INDEX_COPY } from '../../../../server/src/seo/case-studies.js';
 import { ProjectCard } from '../../components/design-bits.jsx';
 import { hasShot, rowSpans } from '../../components/project-layout.js';
 import ProjectsAdminPage from './projects-admin-page.jsx';
@@ -51,6 +53,11 @@ function ProjectsView() {
                             defaultMessage="{count} projects, from teaching tools to infrastructure. Filter by stack."
                             values={{ count: projects.length }}
                         />
+                    </p>
+                    <p className="lead">
+                        <Link to="/case-studies" className="underline underline-offset-4">
+                            {INDEX_COPY[intl.locale].h1} →
+                        </Link>
                     </p>
                     <div className="chips">
                         {FILTERS.map((c) => (

@@ -4,6 +4,8 @@
 // These strings repeat the ones in client/src (usePageMeta calls and i18n/messages/de.js), because the
 // server image carries only the built client, not its sources. Change a title in both places.
 
+import { CASE_STUDIES, CASE_STUDY_ROUTES } from './case-studies.js';
+
 const SITE_NAME = 'Woofi Developments';
 const ORIGIN = 'https://www.woofi-developments.at';
 
@@ -16,6 +18,8 @@ const PUBLIC_ROUTES = [
     '/contact',
     '/privacy-policy',
     '/impressum',
+    '/case-studies',
+    ...CASE_STUDY_ROUTES,
 ];
 
 const META = {
@@ -101,6 +105,25 @@ const META = {
         },
     },
 };
+
+META['/case-studies'] = {
+    en: {
+        title: 'Case Studies',
+        description:
+            'How Burrow, NetViz and Metrion were built: the problem, the decisions that mattered and where each stands.',
+    },
+    de: {
+        title: 'Fallstudien',
+        description:
+            'Wie Burrow, NetViz und Metrion gebaut wurden: das Problem, die Entscheidungen, die zählten, und der Stand heute.',
+    },
+};
+for (const study of CASE_STUDIES) {
+    META[`/case-studies/${study.slug}`] = {
+        en: { title: `${study.name} Case Study: ${study.en.kind}`, description: study.en.summary },
+        de: { title: `${study.name} Fallstudie: ${study.de.kind}`, description: study.de.summary },
+    };
+}
 
 // Visible headings and lead text, so the body holds what the page says and not just its title.
 const COPY = {
