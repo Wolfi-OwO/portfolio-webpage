@@ -3637,3 +3637,100 @@
         min-height: 31rem;
     }
 }
+
+/* ---- case studies ---- */
+.pw .cs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 16px;
+}
+.pw .cs-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 24px;
+}
+.pw .cs-card h2 {
+    font-size: 1.6rem;
+    line-height: 1.1;
+}
+.pw .cs-card p:not(.kicker) {
+    color: var(--muted);
+    line-height: 1.55;
+}
+.pw .cs-card .btn {
+    margin-top: auto;
+}
+.pw .cs-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.pw .cs-back {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    margin-bottom: 8px;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 200ms var(--ease, ease);
+}
+.pw .cs-back:hover {
+    color: var(--text);
+}
+.pw .cs-section {
+    max-width: 960px;
+    margin-top: 48px;
+}
+.pw .cs-section h2 {
+    margin-bottom: 16px;
+    font-size: 1.6rem;
+    line-height: 1.15;
+}
+.pw .cs-prose {
+    max-width: 68ch;
+    font-size: 1.05rem;
+    line-height: 1.65;
+}
+.pw .cs-decisions {
+    display: grid;
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.pw .cs-decisions .card {
+    padding: 20px 24px;
+}
+.pw .cs-decisions h3 {
+    margin: 4px 0 8px;
+    font-size: 1.15rem;
+}
+.pw .cs-decisions p {
+    max-width: 68ch;
+    color: var(--muted);
+    line-height: 1.6;
+}
+.pw .cs-num {
+    font-family: ui-monospace, monospace;
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+.pw .cs-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+}
+@media (min-width: 900px) {
+    .pw .cs-decisions {
+        grid-template-columns: 1fr 1fr;
+    }
+    .pw .cs-decisions li:first-child {
+        grid-column: 1 / -1;
+    }
+}

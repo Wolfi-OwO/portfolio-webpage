@@ -14,6 +14,14 @@ const page = (load) => async () => ({ Component: (await load()).default });
 const pages = [
     { index: true, element: <Homepage /> },
     { path: 'projects', lazy: page(() => import('./pages/projects-page/projects-page.jsx')) },
+    {
+        path: 'case-studies',
+        lazy: page(() => import('./pages/case-studies-page/case-studies-page.jsx')),
+    },
+    {
+        path: 'case-studies/:slug',
+        lazy: page(() => import('./pages/case-studies-page/case-study-page.jsx')),
+    },
     { path: 'career', lazy: page(() => import('./pages/career-page/career-page.jsx')) },
     { path: 'services', lazy: page(() => import('./pages/services-page/services-page.jsx')) },
     { path: 'contact', lazy: page(() => import('./pages/contact-page/contact-page.jsx')) },

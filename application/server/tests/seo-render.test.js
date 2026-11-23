@@ -142,3 +142,30 @@ describe('jsonLdScript and localize', function () {
         assert.strictEqual(localize(item, 'de').title, 'Webanwendung');
     });
 });
+
+describe('case studies', function () {
+    it('are public pages in both languages, each with its own title', function () {
+        for (const slug of ['burrow', 'netviz', 'metrion']) {
+            const route = `/case-studies/${slug}`;
+            assert.ok(PUBLIC_ROUTES.includes(route));
+            assert.deepStrictEqual(parsePublicPath(`/de${route}`), { locale: 'de', route });
+            assert.ok(META[route].en.title.includes('Case Study'));
+            assert.ok(META[route].de.title.includes('Fallstudie'));
+        }
+    });
+
+    it('write the problem and every decision into the page text, in the right language', function () {
+        const en = renderBody('/case-studies/burrow', 'en', {});
+        assert.ok(en.includes('<h1>Burrow: '));
+        assert.ok(en.includes('The problem'));
+        assert.strictEqual((en.match(/<h3>/g) ?? []).length, 5);
+        const de = renderBody('/case-studies/netviz', 'de', {});
+        assert.ok(de.includes('Das Problem'));
+        assert.ok(de.includes('Server-Sent Events'));
+    });
+
+    it('list all three on the index', function () {
+        const html = renderBody('/case-studies', 'en', {});
+        for (const name of ['Burrow', 'NetViz', 'Metrion']) assert.ok(html.includes(name));
+    });
+});

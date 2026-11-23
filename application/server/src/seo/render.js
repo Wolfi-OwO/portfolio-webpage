@@ -1,3 +1,4 @@
+import { CASE_STUDIES, INDEX_COPY, studyBySlug } from './case-studies.js';
 import { SITE_NAME, ORIGIN, PUBLIC_ROUTES, META, COPY } from './pages.js';
 
 // Pure functions, no database and no files: they turn a template, a route and some records into the HTML
@@ -93,7 +94,32 @@ function projectItem(p, techNames) {
 
 // The page's text as plain, semantic HTML. The app replaces it as soon as it starts, so a visitor never
 // reads it twice; a crawler that does not run scripts, or runs them late, reads it first.
+function renderCaseStudy(route, locale) {
+    const copy = INDEX_COPY[locale];
+    if (route === '/case-studies') {
+        return (
+            `<h1>${esc(copy.h1)}</h1><p>${esc(copy.lead)}</p>` +
+            CASE_STUDIES.map(
+                (s) => `<article><h2>${esc(s.name)}</h2><p>${esc(s[locale].summary)}</p></article>`,
+            ).join('')
+        );
+    }
+    const study = studyBySlug(route.replace('/case-studies/', ''));
+    if (!study) return '';
+    const text = study[locale];
+    return (
+        `<h1>${esc(study.name)}: ${esc(text.kind)}</h1><p>${esc(text.summary)}</p>` +
+        `<h2>${esc(copy.problem)}</h2><p>${esc(text.problem)}</p>` +
+        `<h2>${esc(copy.decisions)}</h2>` +
+        text.decisions.map((d) => `<h3>${esc(d.title)}</h3><p>${esc(d.body)}</p>`).join('') +
+        `<h2>${esc(copy.result)}</h2><p>${esc(text.result)}</p>` +
+        `<p>${esc(copy.stack)}: ${esc(study.stack.join(', '))}</p>`
+    );
+}
+
 function renderBody(route, locale, data) {
+    if (route === '/case-studies' || route.startsWith('/case-studies/'))
+        return renderCaseStudy(route, locale);
     const { services = [], projects = [], career = [], techNames = {} } = data;
     const kind = {
         '/': 'home',
