@@ -20,3 +20,12 @@ export const attachmentWriteLimiter = rateLimit({
     legacyHeaders: false,
     message: message('Too many changes. Please try again in a minute.'),
 });
+
+// The admin's ordinary writes (entries, not files): a generous ceiling that only a runaway client reaches.
+export const adminWriteLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 300,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: message('Too many changes. Please try again in a minute.'),
+});

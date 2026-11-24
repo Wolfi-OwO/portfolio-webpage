@@ -26,8 +26,9 @@ async function createAttachment(req, res, next) {
             .trim()
             .toLowerCase();
         const rule = ALLOWED[mime];
-        const body = req.body;
-        if (!rule || !Buffer.isBuffer(body) || body.length === 0) {
+        // A copy of the guarded body: from here on it is a Buffer and nothing else.
+        const body = Buffer.isBuffer(req.body) ? Buffer.from(req.body) : null;
+        if (!rule || !body || body.length === 0) {
             return next(
                 new BadRequest('Attach a PDF, an image, a text file or an Office document.'),
             );
@@ -47,9 +48,11 @@ async function createAttachment(req, res, next) {
             );
         }
 
+        const headerName = req.headers['x-file-name'];
+        const fileName = typeof headerName === 'string' ? headerName : '';
         const created = await AttachmentModel.create({
             entry: entry._id,
-            name: cleanName(req.headers['x-file-name']),
+            name: cleanName(fileName),
             mime,
             size: body.length,
             data: body,
