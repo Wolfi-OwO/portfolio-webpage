@@ -9,6 +9,11 @@ export default {
     'nav.services': 'Leistungen',
     'nav.caseStudies': 'Fallstudien',
     'nav.thesis': 'Diplomarbeit',
+    'attachments.title': 'Anhänge',
+    'attachments.none': 'Noch keine Dateien. Besucher können öffnen, was du hier hinzufügst.',
+    'attachments.remove': '{name} entfernen',
+    'attachments.uploading': 'Wird hochgeladen…',
+    'attachments.add': 'Datei hinzufügen (PDF, Bild, bis 10 MB)',
     'nav.secret': 'Ein neues Geheimnis?!',
 
     'theme.label': 'Design',

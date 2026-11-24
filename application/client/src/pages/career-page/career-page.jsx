@@ -6,6 +6,7 @@ import { useApiList } from '../../hooks/useApiList.js';
 import { localizeAll } from '../../i18n/localize.js';
 import { isAdmin } from '../../utils/auth.js';
 import CareerChart from '../../components/career-chart.jsx';
+import { AttachmentList } from '../../components/attachments.jsx';
 import CareerAdminPage from './career-admin-page.jsx';
 
 export default function CareerPage() {
@@ -35,6 +36,7 @@ function Column({ title, items, loc }) {
                         {e.location ? ` · ${e.location.split(',')[0]}` : ''}
                     </p>
                     {e.description && <p className="cp-desc">{e.description}</p>}
+                    <AttachmentList files={e.attachments} />
                 </article>
             ))}
         </section>
