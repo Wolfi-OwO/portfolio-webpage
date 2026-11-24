@@ -1,3 +1,27 @@
+// An outage shorter than this is a blip (one failed check between two good ones), not an incident worth listing:
+// the page showed one every time a deploy or a slow request cost a single check.
+export const MIN_INCIDENT_SECONDS = 60;
+
+/**
+ * The incidents of one monitor's range, without the blips, and the total adjusted to match. An outage that is still
+ * going counts by how long it has lasted so far.
+ */
+export function visibleIncidents(rangeApp) {
+    const all = rangeApp?.incidents ?? [];
+    const kept = all.filter((inc) => inc.durationSeconds > MIN_INCIDENT_SECONDS);
+    const hidden = all.length - kept.length;
+    return {
+        incidents: kept.map((inc) => ({
+            startedAt: inc.startedAt,
+            endedAt: inc.endedAt ?? null,
+            durationSeconds: inc.durationSeconds,
+            downSamples: inc.downSamples,
+        })),
+        // The total Metrion counted includes the blips that were in the returned list.
+        totalIncidents: Math.max(0, (rangeApp?.totalIncidents ?? 0) - hidden),
+    };
+}
+
 // The `STATUS_SOURCE=metrion` path: builds the same report shape
 // status-checker.js's Mongo path does, but measured entirely from Metrion's
 // public `/uptime` feed instead of MonitorCheck documents. Mongo's `monitors`
@@ -271,14 +295,8 @@ async function buildMetrionRangeStatuses(monitors, fromMs, toMs) {
                 ...entry.uptime,
                 range: rangeApp?.uptimePct != null ? round1(rangeApp.uptimePct) : null,
             },
-            incidents: (rangeApp?.incidents ?? []).map((inc) => ({
-                startedAt: inc.startedAt,
-                endedAt: inc.endedAt ?? null,
-                durationSeconds: inc.durationSeconds,
-                downSamples: inc.downSamples,
-            })),
+            ...visibleIncidents(rangeApp),
             truncated: rangeApp?.truncated ?? false,
-            totalIncidents: rangeApp?.totalIncidents ?? 0,
         };
     });
 

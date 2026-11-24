@@ -42,6 +42,10 @@ async function setupDatabaseConnection(connectionString, recreateDatabase) {
 
         await mongoose.connect(connectionString, {
             serverSelectionTimeoutMS: dbConnectTimeout,
+            // Without these a query on a connection the network quietly dropped waits for the operating system to
+            // give up, which can be minutes: a status request that only needed the database stalled for as long.
+            socketTimeoutMS: 30 * 1000,
+            maxIdleTimeMS: 60 * 1000,
             retryWrites: false,
             retryReads: false,
         });

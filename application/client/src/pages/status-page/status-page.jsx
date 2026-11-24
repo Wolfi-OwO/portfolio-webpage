@@ -919,7 +919,10 @@ export default function StatusPage() {
             url.searchParams.set('to', apiRange.to);
         }
 
-        return fetch(url, admin ? { headers: authHeaders() } : undefined)
+        // A request that never answers must not leave the page waiting: after 20 s it counts as a failed poll,
+        // the last report stays on screen and the next poll tries again.
+        const signal = AbortSignal.timeout(20_000);
+        return fetch(url, admin ? { headers: authHeaders(), signal } : { signal })
             .then((response) => {
                 if (response.ok) return response.json();
                 // A bad range (from>to, a hand-edited URL, a link stale enough
