@@ -1,3 +1,4 @@
+import { AttachmentsEditor } from './attachments.jsx';
 import { useEffect, useState } from 'react';
 import { Link } from '../i18n/router-links.jsx';
 import { FormattedDate, FormattedMessage, useIntl } from 'react-intl';
@@ -740,6 +741,14 @@ export function CareerEntryForm({ form, setForm, saving, technologies, onSubmit,
                 />
                 Published
             </label>
+
+            {form._id && (
+                <AttachmentsEditor
+                    entryId={form._id}
+                    files={form.attachments}
+                    onChange={(files) => set('attachments', files)}
+                />
+            )}
 
             <div className="flex gap-3 border-t border-[var(--line)] pt-4">
                 <button

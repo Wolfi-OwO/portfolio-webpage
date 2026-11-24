@@ -3753,3 +3753,43 @@
     color: var(--muted);
     line-height: 1.6;
 }
+
+/* ---- attachments under a career entry ---- */
+.pw .cp-files {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0 0;
+    padding: 0;
+    list-style: none;
+}
+.pw .cp-files a {
+    display: inline-flex;
+    max-width: 100%;
+    min-height: 36px;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--text);
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition:
+        border-color 200ms ease,
+        color 200ms ease;
+}
+.pw .cp-files a:hover,
+.pw .cp-files a:focus-visible {
+    border-color: var(--accent);
+}
+.pw .cp-files a span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.pw .cp-files small {
+    flex: none;
+    color: var(--muted);
+    font-size: 0.75rem;
+}

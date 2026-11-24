@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import { AvailabilityModel } from '../models/availability.js';
 import { validateQueryParams } from '../utils/validateQueryParams.js';
 import { BadRequest, InternalServerError, NotFound } from '../middlewares/error-handlers.js';
+import { AttachmentModel } from '../models/attachment.js';
+import { attachmentsByEntry } from './attachment-handlers.js';
 import { listPayload, withLinks, availability as availabilityLinks } from '../utils/hateoas.js';
 
 /* ***************** DECLARE handlers *********************** */
@@ -37,7 +39,13 @@ async function getAllAvailability(req, res, next) {
             .limit(limit)
             .skip(offset);
 
-        return res.json(listPayload(req, availabilityLinks, entries));
+        // Each entry carries the list of its attachments (never their bytes).
+        const files = await attachmentsByEntry(entries.map((e) => e._id));
+        const withFiles = entries.map((e) => ({
+            ...e.toJSON(),
+            attachments: files.get(String(e._id)) ?? [],
+        }));
+        return res.json(listPayload(req, availabilityLinks, withFiles));
     } catch (err) {
         if (err instanceof mongoose.Error.ValidationError) {
             return next(new BadRequest(err.message, err));
@@ -62,7 +70,13 @@ async function getAvailabilityById(req, res, next) {
             return next(new NotFound(`Availability entry ${req.params.id} not found.`));
         }
 
-        return res.json(withLinks(entry, availabilityLinks.item(entry._id)));
+        const files = await attachmentsByEntry([entry._id]);
+        return res.json(
+            withLinks(
+                { ...entry.toJSON(), attachments: files.get(String(entry._id)) ?? [] },
+                availabilityLinks.item(entry._id),
+            ),
+        );
     } catch (err) {
         if (err instanceof mongoose.Error.CastError) {
             return next(new BadRequest('Invalid availability id.', err));
@@ -130,6 +144,8 @@ async function deleteAvailabilityById(req, res, next) {
         if (!deleted) {
             return next(new NotFound(`Availability entry ${req.params.id} not found.`));
         }
+        // The files of a deleted entry would be unreachable and still take space.
+        await AttachmentModel.deleteMany({ entry: deleted._id });
 
         return res.status(204).send();
     } catch (err) {

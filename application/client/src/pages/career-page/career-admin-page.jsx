@@ -81,7 +81,8 @@ export default function CareerAdminPage() {
                 setError(payload.message || 'Saving failed.');
                 return;
             }
-            const saved = await res.json();
+            // The save does not carry the files, which were changed on their own; keep what the form shows.
+            const saved = { ...(await res.json()), attachments: form.attachments ?? [] };
             setEntries((current) =>
                 editing
                     ? current.map((e) => (e._id === saved._id ? saved : e))
