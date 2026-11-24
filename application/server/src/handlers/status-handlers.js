@@ -1,4 +1,6 @@
 import jwt from 'jsonwebtoken';
+import { withBudget } from '../utils/with-budget.js';
+import { logger } from '../utils/logger.js';
 import { getStatusReport } from '../utils/status-checker.js';
 import { BadRequest, InternalServerError } from '../middlewares/error-handlers.js';
 import { objectLinks } from '../utils/hateoas.js';
@@ -37,26 +39,60 @@ function evictCacheOverBudget() {
     }
 }
 
-function cachedReport(detailed, range) {
+// The last report that was built successfully, per cache slot. A report that takes too long, or fails, is answered with
+// this instead, so the status page shows what it knew a moment ago, not a spinner. Capped like the cache above.
+const lastGood = new Map();
+// How long a request waits for a fresh report once there is an earlier one to show. A normal report takes well under
+// a second; waiting longer means the database or Metrion is struggling.
+const BUDGET_MS = 6 * 1000;
+
+function slotKey(detailed, range) {
+    return `${currentSource()}:${detailed}:${range ? `${range.from}:${range.to}` : '-'}`;
+}
+
+function cachedReport(detailed, range, compute = getStatusReport) {
     const source = currentSource();
-    const key = `${source}:${detailed}:${range ? `${range.from}:${range.to}` : '-'}`;
+    const key = slotKey(detailed, range);
     const hit = cache.get(key);
     if (hit && Date.now() - hit.at < CACHE_MS) {
         cache.delete(key); // re-insert so this key is no longer the oldest
         cache.set(key, hit);
         return hit.promise;
     }
-    const entry = { at: Date.now(), promise: getStatusReport(detailed, source, range) };
-    entry.promise.catch(() => {
-        if (cache.get(key) === entry) cache.delete(key);
-    });
+    const entry = { at: Date.now(), promise: compute(detailed, source, range) };
+    entry.promise.then(
+        (report) => {
+            lastGood.delete(key);
+            lastGood.set(key, report);
+            while (lastGood.size > CACHE_MAX_ENTRIES) lastGood.delete(lastGood.keys().next().value);
+        },
+        () => {
+            if (cache.get(key) === entry) cache.delete(key);
+        },
+    );
     cache.set(key, entry);
     evictCacheOverBudget();
     return entry.promise;
 }
 
+/**
+ * The report, but never later than the budget once an earlier one exists: a slow or failing build is answered with
+ * the last good report, and the build carries on in the background to fill the cache for the next request. With no
+ * earlier report the caller waits for the build, as before.
+ */
+function reportWithinBudget(detailed, range, { budgetMs = BUDGET_MS, compute } = {}) {
+    const pending = cachedReport(detailed, range, compute);
+    const fallback = lastGood.get(slotKey(detailed, range));
+    if (!fallback) return pending;
+    return withBudget(pending, budgetMs, (reason, error) => {
+        logger.warn(`status: report ${reason}, serving the last good one`, error);
+        return fallback;
+    });
+}
+
 function clearStatusCache() {
     cache.clear();
+    lastGood.clear();
 }
 
 // Test-only: lets the cache-bound check assert on the eviction policy without
@@ -133,7 +169,7 @@ async function getServiceStatus(req, res, next) {
     try {
         // The body differs by Authorization, so shared caches must key on it.
         res.set('Vary', 'Authorization');
-        const report = await cachedReport(isAdminRequest(req), range);
+        const report = await reportWithinBudget(isAdminRequest(req), range);
         // `report` is the shared, cached object (see cachedReport above) — spread
         // rather than mutate it, so `_links` never leaks into what's served to
         // the next caller from the same cache slot.
@@ -152,4 +188,15 @@ async function getServiceStatus(req, res, next) {
     }
 }
 
-export { getServiceStatus, clearStatusCache, statusCacheSize };
+// Test-only: drops the cached promises but keeps the last good reports, as ten seconds of waiting would.
+function expireStatusCache() {
+    cache.clear();
+}
+
+export {
+    getServiceStatus,
+    clearStatusCache,
+    statusCacheSize,
+    reportWithinBudget,
+    expireStatusCache,
+};
