@@ -18,7 +18,7 @@ function CaseStudy({ study }) {
     const text = study[locale];
     return (
         <div className="pw">
-            <div className="page" style={{ padding: 0 }}>
+            <div className="page cs-page" style={{ padding: 0 }}>
                 <Link className="cs-back" to="/case-studies">
                     ← {copy.back}
                 </Link>

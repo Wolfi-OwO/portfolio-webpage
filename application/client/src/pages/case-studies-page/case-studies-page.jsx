@@ -9,7 +9,7 @@ export default function CaseStudiesPage() {
     const copy = INDEX_COPY[locale];
     return (
         <div className="pw">
-            <div className="page" style={{ padding: 0 }}>
+            <div className="page cs-page" style={{ padding: 0 }}>
                 <header className="page-h">
                     <h1>{copy.h1}</h1>
                     <p className="lead">{copy.lead}</p>

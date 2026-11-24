@@ -7,6 +7,8 @@ export default {
     'nav.logout': 'Abmelden',
     'nav.career': 'Werdegang',
     'nav.services': 'Leistungen',
+    'nav.caseStudies': 'Fallstudien',
+    'nav.thesis': 'Diplomarbeit',
     'nav.secret': 'Ein neues Geheimnis?!',
 
     'theme.label': 'Design',
@@ -284,9 +286,7 @@ export default {
     'homepage.activity': 'Aktivität',
     'homepage.techHeading': 'Technologien, die ich nutze',
 
-    'services.page.headline': 'Leistungen mit <em>klaren</em> Preisen',
-    'services.page.lead':
-        'Diese Preise sind Richtwerte. Was ein Projekt kostet, hängt davon ab, was es können muss, und das kann ich erst nach einem Gespräch sagen.',
+    'services.page.headline': 'Leistungen',
     'services.page.hourlyRate': 'Stundensatz {rate}',
     'services.page.availability': 'Kleine Aufträge jetzt · größere Projekte ab April 2027',
     'services.page.startingAt': 'ab',
@@ -302,9 +302,7 @@ export default {
     'projects.filterAll': 'Alle',
     'projects.empty': 'Noch nichts mit {filter}.',
 
-    'career.page.headline': 'Wo ich <em>war</em>',
-    'career.page.lead':
-        'Schule, ein HTL-Abschluss in IT und Ferialpraktika bei Infineon, auf einer Zeitleiste dargestellt. Fahre über eine Linie, um die Station zu sehen.',
+    'career.page.headline': 'Werdegang',
     'career.page.firstStation': 'erste Station',
     'career.page.workStations': 'Arbeitsstationen',
     'career.page.schools': 'Schulen',

@@ -764,7 +764,10 @@ html {
     --line-soft: color-mix(in srgb, var(--line) 34%, transparent);
 }
 html:not([data-contrast='high']):not([data-contrast='medhigh']) .pw .pgrid > .proj,
-html:not([data-contrast='high']):not([data-contrast='medhigh']) .pw .heat-sec {
+html:not([data-contrast='high']):not([data-contrast='medhigh']) .pw .heat-sec,
+html:not([data-contrast='high']):not([data-contrast='medhigh']) .pw .cp-page,
+html:not([data-contrast='high']):not([data-contrast='medhigh']) .pw .svc-page,
+html:not([data-contrast='high']):not([data-contrast='medhigh']) .pw .cs-page {
     --line: var(--line-soft);
 }
 html .pw .pbody button.tag {

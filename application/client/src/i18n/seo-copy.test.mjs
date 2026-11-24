@@ -25,12 +25,7 @@ function english(file, id) {
 
 const PAGES = [
     ['home', 'pages/homepage/homepage.jsx', 'homepage.headline', null],
-    [
-        'services',
-        'pages/services-page/services-page.jsx',
-        'services.page.headline',
-        'services.page.lead',
-    ],
+    ['services', 'pages/services-page/services-page.jsx', 'services.page.headline', null],
     ['projects', 'pages/projects-page/projects-page.jsx', 'projects.headline', null],
     ['career', 'pages/career-page/career-page.jsx', 'career.page.headline', null],
 ];

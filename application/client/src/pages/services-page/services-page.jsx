@@ -30,21 +30,11 @@ function ServicesView() {
     const rate = shown[0]?.hourlyRate ?? 30;
     return (
         <div className="pw">
-            <div className="page" style={{ padding: 0 }}>
+            <div className="page svc-page" style={{ padding: 0 }}>
                 <header className="page-h">
                     <h1>
-                        <FormattedMessage
-                            id="services.page.headline"
-                            defaultMessage="Services, <em>priced</em> plainly"
-                            values={{ em: (chunks) => <em>{chunks}</em> }}
-                        />
+                        <FormattedMessage id="services.page.headline" defaultMessage="Services" />
                     </h1>
-                    <p className="lead">
-                        <FormattedMessage
-                            id="services.page.lead"
-                            defaultMessage="These prices are starting points. What a project costs depends on what it has to do, and I can only say that after we have talked."
-                        />
-                    </p>
                     <div className="svc-meta">
                         <span className="metachip big">
                             <FormattedMessage

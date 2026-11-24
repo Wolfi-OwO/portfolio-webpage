@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { NavLink, useNavigate } from '../../i18n/router-links.jsx';
+import { Link, NavLink, useNavigate } from '../../i18n/router-links.jsx';
 import { FormattedMessage, useIntl } from 'react-intl';
 import {
     ArrowRightOnRectangleIcon,
@@ -262,6 +262,15 @@ export default function DefaultLayout() {
                             <FormattedMessage id="nav.services" defaultMessage="Services" />
                         </NavLink>
 
+                        <NavLink to="/case-studies" className={navLinkClasses}>
+                            <FormattedMessage id="nav.caseStudies" defaultMessage="Case studies" />
+                        </NavLink>
+
+                        {/* The thesis is a card on the career page, so this is a link to that spot, never "active". */}
+                        <Link to="/career#thesis" className={navLinkClasses({ isActive: false })}>
+                            <FormattedMessage id="nav.thesis" defaultMessage="Diploma thesis" />
+                        </Link>
+
                         {/* Only here once the combo has been typed. Fades in rather
                             than popping, so it reads as something appearing. */}
                         {secretFound && (
@@ -456,13 +465,15 @@ export default function DefaultLayout() {
                             ['/projects', 'nav.projects', 'Projects'],
                             ['/career', 'nav.career', 'Career'],
                             ['/services', 'nav.services', 'Services'],
+                            ['/case-studies', 'nav.caseStudies', 'Case studies'],
+                            ['/career#thesis', 'nav.thesis', 'Diploma thesis'],
                             ['/contact', 'footer.contact', 'Contact'],
                         ].map(([to, id, label]) => (
                             <NavLink
                                 key={to}
                                 to={to}
                                 className={({ isActive }) =>
-                                    `flex min-h-12 items-center border-b border-[var(--line)] text-lg font-bold ${isActive ? 'text-[var(--accent)]' : 'text-[var(--text)]'}`
+                                    `flex min-h-12 items-center border-b border-[var(--line)] text-lg font-bold ${isActive && !to.includes('#') ? 'text-[var(--accent)]' : 'text-[var(--text)]'}`
                                 }
                             >
                                 <FormattedMessage id={id} defaultMessage={label} />
