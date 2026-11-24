@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useIntl } from 'react-intl';
 import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { logoFor } from './career-logos.js';
 import '../proto.css';
 
 // Time runs left to right: the oldest station is at the left edge, today at the right. Every station, school or job, is a thin line from its
@@ -11,13 +12,6 @@ const PAD = 28;
 const FUTURE_MONTHS = 12;
 const LABEL_W = { education: 440, work: 250 };
 const ROW_H = { education: 96, work: 66 };
-const LOGOS = [
-    [/infineon/i, '/logos/infineon.png'],
-    [/bundesheer/i, '/logos/bundesheer.png'],
-    [/htl villach/i, '/logos/htl-villach.png'],
-    [/perau/i, '/logos/perau.png'],
-];
-const logoFor = (org = '') => LOGOS.find(([re]) => re.test(org))?.[1];
 const months = (d) => {
     const x = new Date(d);
     return x.getFullYear() * 12 + x.getMonth();
