@@ -16,8 +16,10 @@ import {
  */
 async function createAttachment(req, res, next) {
     try {
-        const entry = await AvailabilityModel.findById(req.params.id).select('_id');
-        if (!entry) return next(new NotFound(`Entry ${req.params.id} not found.`));
+        const id = String(req.params.id);
+        if (!mongoose.isValidObjectId(id)) return next(new BadRequest('Invalid id.'));
+        const entry = await AvailabilityModel.findById(id).select('_id');
+        if (!entry) return next(new NotFound('Entry not found.'));
 
         const mime = String(req.headers['content-type'] ?? '')
             .split(';')[0]
@@ -63,7 +65,9 @@ async function createAttachment(req, res, next) {
 /** The file itself. A draft entry's files are the admin's alone; everyone else gets the same 404 as for a missing id. */
 async function downloadAttachment(req, res, next) {
     try {
-        const file = await AttachmentModel.findById(req.params.id).select('+data');
+        const id = String(req.params.id);
+        if (!mongoose.isValidObjectId(id)) return next(new NotFound('Attachment not found.'));
+        const file = await AttachmentModel.findById(id).select('+data');
         const entry = file && (await AvailabilityModel.findById(file.entry).select('published'));
         if (!file || !entry || (!entry.published && req.user?.role !== 'admin')) {
             return next(new NotFound('Attachment not found.'));
@@ -88,7 +92,9 @@ async function downloadAttachment(req, res, next) {
 
 async function deleteAttachment(req, res, next) {
     try {
-        const removed = await AttachmentModel.findByIdAndDelete(req.params.id);
+        const id = String(req.params.id);
+        if (!mongoose.isValidObjectId(id)) return next(new NotFound('Attachment not found.'));
+        const removed = await AttachmentModel.findByIdAndDelete(id);
         if (!removed) return next(new NotFound('Attachment not found.'));
         return res.status(204).end();
     } catch (err) {

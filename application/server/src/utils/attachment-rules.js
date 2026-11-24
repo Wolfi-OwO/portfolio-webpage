@@ -40,15 +40,18 @@ export const ALLOWED_TYPES = Object.keys(ALLOWED);
 
 /** A display name that cannot carry a path or control characters. */
 export function cleanName(raw) {
+    // A repeated header arrives as an array; only one string is ever used.
+    if (Array.isArray(raw)) raw = raw[0];
     let name = '';
     try {
         name = decodeURIComponent(String(raw ?? ''));
     } catch {
         name = String(raw ?? '');
     }
-    name = name
-        .replace(/[\\/]+/g, ' ')
-        .replace(/[\u0000-\u001f\u007f"]+/g, '')
+    // Path separators become spaces; quotes and control characters (code below 32, and 127) are dropped.
+    name = Array.from(name.replace(/[\\/]+/g, ' '))
+        .filter((ch) => ch !== '"' && ch.charCodeAt(0) >= 32 && ch.charCodeAt(0) !== 127)
+        .join('')
         .trim()
         .slice(0, 120);
     return name || 'attachment';
