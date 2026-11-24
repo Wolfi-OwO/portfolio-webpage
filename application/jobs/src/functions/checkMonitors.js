@@ -128,6 +128,29 @@ async function pingUrl(url) {
 // requests a week. Worst case a cycle takes 10 s + 2 s + 10 s, inside its minute.
 const RETRY_DELAY_MS = 2000;
 
+// Two neutral hosts that are never the thing being monitored. If neither answers, the checker's own network is
+// down, and every monitor failing together says nothing about the sites: on 2026-11-23 06:04Z all seven monitors
+// recorded one down sample in the same second, which showed the whole overview red for a minute.
+const CANARY_URLS = [
+    'https://www.cloudflare.com/cdn-cgi/trace',
+    'https://www.google.com/generate_204',
+];
+
+async function checkerHasNetwork(urls = CANARY_URLS, retryDelayMs = RETRY_DELAY_MS) {
+    const reachable = async () => {
+        const probes = urls.map((url) =>
+            fetch(url, { method: 'GET', signal: AbortSignal.timeout(5000) }).then(
+                (r) => r.status < 500,
+                () => false,
+            ),
+        );
+        return (await Promise.all(probes)).some(Boolean);
+    };
+    if (await reachable()) return true;
+    await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+    return reachable();
+}
+
 async function checkMonitor(monitor, sink, context, retryDelayMs = RETRY_DELAY_MS) {
     let result = await pingUrl(monitor.url);
     if (!result.ok) {
@@ -299,11 +322,23 @@ async function runCheckCycle(context) {
 
     const monitors = await MonitorModel.find();
     let skipped = 0;
+    // No network on the checker's side: leave this minute without samples rather than record every site as down.
+    const hasHttp = monitors.some((m) => resolveCheckMode(m) === 'http');
+    const networkUp = !hasHttp || (await checkerHasNetwork());
+    if (!networkUp) {
+        context.warn?.('monitor-checker: no network from the checker, HTTP checks skipped this cycle');
+    }
     const results = await Promise.allSettled(
         monitors.flatMap((monitor) => {
             const mode = resolveCheckMode(monitor);
             if (mode === 'arm') return [checkContainerAppMonitor(monitor, client, context, sink)];
-            if (mode === 'http') return [checkMonitor(monitor, sink, context)];
+            if (mode === 'http') {
+                if (!networkUp) {
+                    skipped += 1;
+                    return [];
+                }
+                return [checkMonitor(monitor, sink, context)];
+            }
             skipped += 1;
             return [];
         }),
@@ -335,6 +370,7 @@ export {
     runCheckCycle,
     resolveCheckMode,
     checkMonitor,
+    checkerHasNetwork,
     checkContainerAppMonitor,
     revisionIsUp,
     MonitorModel,
