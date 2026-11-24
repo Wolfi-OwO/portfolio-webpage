@@ -99,6 +99,7 @@ curl http://localhost:8080/api/info
 
 ```json
 {
+  "name": "portfolio-webpage",
   "version": "dev",
   "repositoryUrl": "",
   "revision": "",
