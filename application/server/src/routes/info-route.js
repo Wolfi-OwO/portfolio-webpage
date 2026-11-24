@@ -9,6 +9,7 @@ import { objectLinks } from '../utils/hateoas.js';
 /* Build metadata is injected as env vars by the Dockerfile (mirrored from the
  * OCI image labels, see --build-arg APP_VERSION/BUILD_DATE/VCS_REF/APP_SOURCE). */
 const buildInfo = {
+    name: 'portfolio-webpage',
     version: process.env.APP_VERSION || 'dev',
     repositoryUrl: process.env.APP_REPOSITORY_URL || '',
     revision: process.env.APP_REVISION || '',
