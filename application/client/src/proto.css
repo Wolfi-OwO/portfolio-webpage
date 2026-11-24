@@ -3735,25 +3735,6 @@
     }
 }
 
-/* ---- diploma thesis card on the career page ---- */
-.pw .cp-thesis {
-    display: grid;
-    justify-items: start;
-    gap: 12px;
-    max-width: 960px;
-    margin-top: 32px;
-    padding: 24px;
-}
-.pw .cp-thesis h2 {
-    font-size: 1.4rem;
-    line-height: 1.15;
-}
-.pw .cp-thesis p:not(.kicker) {
-    max-width: 68ch;
-    color: var(--muted);
-    line-height: 1.6;
-}
-
 /* ---- attachments under a career entry ---- */
 .pw .cp-files {
     display: flex;

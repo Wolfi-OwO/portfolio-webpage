@@ -8,7 +8,6 @@ export default {
     'nav.career': 'Werdegang',
     'nav.services': 'Leistungen',
     'nav.caseStudies': 'Fallstudien',
-    'nav.thesis': 'Diplomarbeit',
     'attachments.title': 'Anhänge',
     'attachments.none': 'Noch keine Dateien. Besucher können öffnen, was du hier hinzufügst.',
     'attachments.remove': '{name} entfernen',
@@ -314,11 +313,6 @@ export default {
     'career.page.currentNow': '{organisation}, aktuell',
     'career.page.work': 'Berufserfahrung',
     'career.page.education': 'Ausbildung',
-    'career.thesis.kicker': 'Reife- und Diplomprüfung · HTL Villach · 2026',
-    'career.thesis.title': 'Diplomarbeit: Umstellung einer Webanwendung auf neue Technologien',
-    'career.thesis.body':
-        'Eine Webanwendung zur Verwaltung von Experimenten, 2012 mit PHP, jQuery und Spring Boot geschrieben, wurde in einem zweimonatigen Praktikum auf Angular 18 und ASP.NET Core umgestellt. Die Arbeit behandelt die Analyse des Altsystems, den Entwurf, die Umsetzung mit Scrum und PI Planning und die Einführung an mehreren Standorten.',
-    'career.thesis.download': 'Diplomarbeit lesen (PDF, 65 Seiten)',
 
     'error.404.heading': 'Seite nicht gefunden',
     'error.404.body': 'Die gesuchte Seite gibt es leider nicht.',

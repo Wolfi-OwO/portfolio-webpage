@@ -16,6 +16,7 @@ import { logger } from './utils/logger.js';
 import { setupHealthChecks } from './utils/health-checks.js';
 import { dropCurrentDatabase, setupDatabaseConnection } from './database/database.js';
 import { backfillTranslations } from './utils/backfill-translations.js';
+import { seedThesisAttachment } from './utils/seed-thesis-attachment.js';
 
 /* ***************** IMPORT ROUTES **************** */
 import { projectsRouter } from './routes/projects-route.js';
@@ -235,7 +236,9 @@ const httpServer = createServer(app);
 setupHealthChecks(httpServer);
 
 // setup database connection
-setupDatabaseConnection(MONGODB_CONNECTION_STRING, MONGODB_RECREATE).then(backfillTranslations);
+setupDatabaseConnection(MONGODB_CONNECTION_STRING, MONGODB_RECREATE)
+    .then(backfillTranslations)
+    .then(seedThesisAttachment);
 httpServer.dropCurrentDatabase = dropCurrentDatabase;
 
 // Monitor checks are performed entirely by the separate monitor-checker Azure
