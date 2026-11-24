@@ -770,6 +770,11 @@ html:not([data-contrast='high']):not([data-contrast='medhigh']) .pw .svc-page,
 html:not([data-contrast='high']):not([data-contrast='medhigh']) .pw .cs-page {
     --line: var(--line-soft);
 }
+/* One border strength for everything inside <main>: the home page's cards were soft while the chips, the
+   contact page and every other route drew the full strength. High contrast keeps its full rules. */
+html:not([data-contrast='high']):not([data-contrast='medhigh']) main {
+    --line: var(--line-soft);
+}
 html .pw .pbody button.tag {
     font-family: inherit;
     cursor: pointer;
