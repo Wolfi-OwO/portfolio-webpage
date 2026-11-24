@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
+import { useLocation } from 'react-router-dom';
 import { usePublicPageMeta } from '../../hooks/usePublicPageMeta.js';
 import { useApiList } from '../../hooks/useApiList.js';
 import { localizeAll } from '../../i18n/localize.js';
@@ -58,18 +60,8 @@ function CareerView() {
             <div className="page cp-page" style={{ padding: 0 }}>
                 <header className="page-h">
                     <h1>
-                        <FormattedMessage
-                            id="career.page.headline"
-                            defaultMessage="Where I've <em>been</em>"
-                            values={{ em: (chunks) => <em>{chunks}</em> }}
-                        />
+                        <FormattedMessage id="career.page.headline" defaultMessage="Career" />
                     </h1>
-                    <p className="lead">
-                        <FormattedMessage
-                            id="career.page.lead"
-                            defaultMessage="School, an HTL diploma in IT and summer placements at Infineon, drawn on one timeline. Hover a line to see which station it is."
-                        />
-                    </p>
                 </header>
                 {published.length > 0 && (
                     <div className="cp-stats">
@@ -141,8 +133,14 @@ function CareerView() {
 
 // The thesis for the Reife- und Diplomprüfung at HTL Villach. The PDF is German, so the card says so.
 function Diplomarbeit() {
+    const { hash } = useLocation();
+    // The nav's "Diploma thesis" link lands here; the router does not scroll to an anchor by itself.
+    useEffect(() => {
+        if (hash === '#thesis')
+            document.getElementById('thesis')?.scrollIntoView({ block: 'center' });
+    }, [hash]);
     return (
-        <section className="cp-thesis card" aria-labelledby="thesis-h">
+        <section id="thesis" className="cp-thesis card" aria-labelledby="thesis-h">
             <p className="kicker">
                 <FormattedMessage
                     id="career.thesis.kicker"

@@ -105,7 +105,7 @@ describe('renderBody', function () {
     ];
     it('writes services with prices in the page language and escapes the text', function () {
         const de = renderBody('/services', 'de', { services });
-        assert.match(de, /<h1>Leistungen mit klaren Preisen<\/h1>/);
+        assert.match(de, /<h1>Leistungen<\/h1>/);
         assert.match(de, /ab 600\s€/);
         assert.match(de, /&lt;b&gt;Website&lt;\/b&gt;/);
         assert.ok(!de.includes('<b>'));

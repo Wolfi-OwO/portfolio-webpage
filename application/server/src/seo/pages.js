@@ -145,16 +145,14 @@ const COPY = {
     },
     services: {
         en: {
-            h1: 'Services, priced plainly',
-            lead: 'These prices are starting points. What a project costs depends on what it has to do, and I can only say that after we have talked.',
+            h1: 'Services',
             hourly: 'Hourly rate',
             from: 'starting at',
             onRequest: 'On request',
             note: 'Write to me with a few lines about what the thing should do and I reply with what it would take.',
         },
         de: {
-            h1: 'Leistungen mit klaren Preisen',
-            lead: 'Diese Preise sind Richtwerte. Was ein Projekt kostet, hängt davon ab, was es können muss, und das kann ich erst nach einem Gespräch sagen.',
+            h1: 'Leistungen',
             hourly: 'Stundensatz',
             from: 'ab',
             onRequest: 'Auf Anfrage',
@@ -173,14 +171,12 @@ const COPY = {
     },
     career: {
         en: {
-            h1: "Where I've been",
-            lead: 'School, an HTL diploma in IT and summer placements at Infineon.',
+            h1: 'Career',
             work: 'Work',
             education: 'Education',
         },
         de: {
-            h1: 'Wo ich war',
-            lead: 'Schule, ein HTL-Abschluss in IT und Ferialpraktika bei Infineon.',
+            h1: 'Werdegang',
             work: 'Berufserfahrung',
             education: 'Ausbildung',
         },

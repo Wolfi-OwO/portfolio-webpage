@@ -151,7 +151,7 @@ function renderBody(route, locale, data) {
                     `${s.duration ? `, ${esc(s.duration)}` : ''}</p></article>`,
             )
             .join('');
-        return `<h1>${esc(copy.h1)}</h1><p>${esc(copy.lead)}</p>${cards}<p>${esc(copy.note)}</p>`;
+        return `<h1>${esc(copy.h1)}</h1>${cards}<p>${esc(copy.note)}</p>`;
     }
     if (kind === 'projects') {
         return `<h1>${esc(copy.h1)}</h1><p>${esc(copy.lead)}</p>${projects.map((p) => projectItem(p, techNames)).join('')}`;
@@ -163,7 +163,7 @@ function renderBody(route, locale, data) {
         const work = career.filter((e) => e.kind !== 'education');
         const school = career.filter((e) => e.kind === 'education');
         return (
-            `<h1>${esc(copy.h1)}</h1><p>${esc(copy.lead)}</p>` +
+            `<h1>${esc(copy.h1)}</h1>` +
             `<h2>${esc(copy.work)}</h2>${work.map(entry).join('')}` +
             `<h2>${esc(copy.education)}</h2>${school.map(entry).join('')}`
         );
