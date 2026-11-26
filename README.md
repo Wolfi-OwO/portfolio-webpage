@@ -23,7 +23,7 @@ Live at [woofi-developments.at](https://woofi-developments.at) — status at [st
 
 ![A walkthrough of the site: profile card and activity heatmap, projects, services, contact, and the status page](documentation/screenshots/demo.gif)
 
-<sub>The clip above is 50 fps — the ceiling GIF can actually hold. The same walkthrough recorded at a true 60 fps: <a href="documentation/screenshots/demo.mp4">MP4</a> · <a href="documentation/screenshots/demo.webm">WebM</a></sub>
+<sub>A 30-second walkthrough of the live site. The same clip at full resolution (1440×900, 30 fps): <a href="documentation/screenshots/demo.mp4">MP4</a> · <a href="documentation/screenshots/demo.webm">WebM</a></sub>
 
 </div>
 
@@ -73,6 +73,12 @@ Live at [woofi-developments.at](https://woofi-developments.at) — status at [st
 ![Incidents — a day-grouped history of past outages per monitor](documentation/screenshots/incidents.png)
 
 - A dedicated `/incidents` page on the status bundle, listing every recorded incident across all monitors, newest first and grouped by day — drawing on the same combined MongoDB + Metrion history as the status page, so an incident older than MongoDB's 90-day window still shows up.
+
+### Case studies
+
+![Case studies — what was built, the decisions behind it and what came out of it](documentation/screenshots/case-studies.png)
+
+- A page per project with the problem, the decisions and the result, prerendered on the server so it can be read and indexed without running the client.
 
 ### Contact
 
