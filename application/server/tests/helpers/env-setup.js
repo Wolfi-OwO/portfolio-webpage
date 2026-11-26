@@ -6,6 +6,8 @@
 // production 8080, so a real server already listening on 8080 is never the
 // reason a mocha run fails.
 process.env.PORT ??= '0';
+// The warm-up timer would rebuild the status report behind the tests' backs.
+process.env.STATUS_WARMER ??= 'off';
 process.env.JWT_SECRET ??= 'test-jwt-secret-do-not-use-in-production';
 process.env.JWT_EXPIRES_IN ??= '1h';
 process.env.ADMIN_USER ??= 'admin';

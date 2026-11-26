@@ -90,6 +90,24 @@ function reportWithinBudget(detailed, range, { budgetMs = BUDGET_MS, compute } =
     });
 }
 
+const WARM_EVERY_MS = 8 * 1000; // under CACHE_MS, so the public report is never allowed to go stale
+
+let warmer = null;
+/**
+ * Builds the public report in the background, always a little before its cache entry runs out. A visitor then
+ * reads a report that is already there; before this, whoever came first after ten idle seconds paid for the
+ * database and Metrion round trips themselves, and after a restart or a dropped connection that was the slow
+ * page. Errors are only logged: the next tick, or the next request, tries again.
+ */
+function startStatusWarmer() {
+    if (warmer) return;
+    const tick = () =>
+        cachedReport(false, null).catch((err) => logger.warn('status: warm-up failed', err));
+    tick();
+    warmer = setInterval(tick, WARM_EVERY_MS);
+    warmer.unref();
+}
+
 function clearStatusCache() {
     cache.clear();
     lastGood.clear();
@@ -195,6 +213,7 @@ function expireStatusCache() {
 
 export {
     getServiceStatus,
+    startStatusWarmer,
     clearStatusCache,
     statusCacheSize,
     reportWithinBudget,

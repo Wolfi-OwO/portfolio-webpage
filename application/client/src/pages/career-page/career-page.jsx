@@ -1,6 +1,4 @@
-import { useEffect } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { useLocation } from 'react-router-dom';
 import { usePublicPageMeta } from '../../hooks/usePublicPageMeta.js';
 import { useApiList } from '../../hooks/useApiList.js';
 import { localizeAll } from '../../i18n/localize.js';
@@ -127,51 +125,7 @@ function CareerView() {
                         loc={loc}
                     />
                 </div>
-                <Diplomarbeit />
             </div>
         </div>
-    );
-}
-
-// The thesis for the Reife- und Diplomprüfung at HTL Villach. The PDF is German, so the card says so.
-function Diplomarbeit() {
-    const { hash } = useLocation();
-    // The nav's "Diploma thesis" link lands here; the router does not scroll to an anchor by itself.
-    useEffect(() => {
-        if (hash === '#thesis')
-            document.getElementById('thesis')?.scrollIntoView({ block: 'center' });
-    }, [hash]);
-    return (
-        <section id="thesis" className="cp-thesis card" aria-labelledby="thesis-h">
-            <p className="kicker">
-                <FormattedMessage
-                    id="career.thesis.kicker"
-                    defaultMessage="Reife- und Diplomprüfung · HTL Villach · 2026"
-                />
-            </p>
-            <h2 id="thesis-h">
-                <FormattedMessage
-                    id="career.thesis.title"
-                    defaultMessage="Diploma thesis: migrating a web application to new technologies"
-                />
-            </h2>
-            <p>
-                <FormattedMessage
-                    id="career.thesis.body"
-                    defaultMessage="A web application for managing experiments, written in 2012 with PHP, jQuery and Spring Boot, was migrated to Angular 18 and ASP.NET Core during a two-month internship. The thesis covers the analysis of the old system, the design, the implementation in Scrum with PI Planning, and the rollout to several sites."
-                />
-            </p>
-            <a
-                className="btn"
-                href="/documents/Kofler-Phillip_Diplomarbeit.pdf"
-                target="_blank"
-                rel="noopener"
-            >
-                <FormattedMessage
-                    id="career.thesis.download"
-                    defaultMessage="Read the thesis (PDF, 65 pages, in German)"
-                />
-            </a>
-        </section>
     );
 }
