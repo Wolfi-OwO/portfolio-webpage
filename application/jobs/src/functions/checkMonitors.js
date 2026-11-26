@@ -326,7 +326,9 @@ async function runCheckCycle(context) {
     const hasHttp = monitors.some((m) => resolveCheckMode(m) === 'http');
     const networkUp = !hasHttp || (await checkerHasNetwork());
     if (!networkUp) {
-        context.warn?.('monitor-checker: no network from the checker, HTTP checks skipped this cycle');
+        context.warn?.(
+            'monitor-checker: no network from the checker, HTTP checks skipped this cycle',
+        );
     }
     const results = await Promise.allSettled(
         monitors.flatMap((monitor) => {

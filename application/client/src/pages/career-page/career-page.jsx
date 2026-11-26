@@ -129,4 +129,3 @@ function CareerView() {
         </div>
     );
 }
-
