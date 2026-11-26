@@ -53,19 +53,15 @@ const MONTHS_EN = [
     'Dec',
 ];
 
-/**
- * Five buckets, quantised against the busiest day in the window rather than fixed
- * thresholds — a quiet year would otherwise render as one flat grey field.
- */
-function levelOf(count, max) {
-    if (!count) return 0;
-    if (max <= 1) return 4;
+// Where each shade starts, in contributions per day: 1-3, 4-8, 9-14 and 15+. Fixed numbers rather than a share of the busiest
+// day: one 290-contribution day pushed the top shade above 190, so 60% of active days sat in the faintest shade and 1% in the darkest.
+const LEVEL_FROM = [1, 4, 9, 15];
 
-    const ratio = count / max;
-    if (ratio > 0.66) return 4;
-    if (ratio > 0.4) return 3;
-    if (ratio > 0.16) return 2;
-    return 1;
+function levelOf(count) {
+    if (!count) return 0;
+    let level = 1;
+    for (let i = 1; i < LEVEL_FROM.length; i += 1) if (count >= LEVEL_FROM[i]) level = i + 1;
+    return level;
 }
 
 const LEVEL_STYLE = [
@@ -251,7 +247,6 @@ export default function ActivityHeatmap() {
     }, [windows, source]);
 
     const { weeks, months, years } = useMemo(() => buildGrid(days), [days]);
-    const max = useMemo(() => days.reduce((m, d) => Math.max(m, d.count), 0), [days]);
     const total = useMemo(() => days.reduce((sum, d) => sum + d.count, 0), [days]);
 
     const width = weeks.length * COLUMN;
@@ -524,7 +519,7 @@ export default function ActivityHeatmap() {
                                                 }}
                                                 style={{ width: CELL, height: CELL }}
                                                 className={`rounded-[2px] transition ${
-                                                    LEVEL_STYLE[levelOf(day.count, max)]
+                                                    LEVEL_STYLE[levelOf(day.count)]
                                                 } ${
                                                     target
                                                         ? 'cursor-pointer hover:ring-2 hover:ring-[var(--text)]'
