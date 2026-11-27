@@ -13,6 +13,13 @@ ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
 
 WORKDIR /home/site/wwwroot
 
+# Debian publishes security fixes before the Functions base image is rebuilt, and the image scan fails the build on
+# any HIGH finding that already has a fix (libpam-modules CVE-2025-6020 was the one that blocked every change). Taking
+# the fixed packages here keeps the build from waiting on the upstream image.
+RUN apt-get update \
+ && apt-get upgrade -y --no-install-recommends \
+ && rm -rf /var/lib/apt/lists/*
+
 # Install production deps first for better layer caching — only re-runs when
 # package*.json changes, not on every source edit.
 COPY package*.json ./
