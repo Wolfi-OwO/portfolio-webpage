@@ -8,6 +8,7 @@ import {
     CodeBracketIcon,
     ComputerDesktopIcon,
     HeartIcon,
+    KeyIcon,
     LanguageIcon,
     LockClosedIcon,
     MoonIcon,
@@ -382,6 +383,11 @@ export default function DefaultLayout() {
                             )}
                         </div>
 
+                        {loggedIn && (
+                            <NavLink to="/admin/passkeys" aria-label="Passkeys" className={CONTROL}>
+                                <KeyIcon className="h-4 w-4" aria-hidden="true" />
+                            </NavLink>
+                        )}
                         {loggedIn ? (
                             <button
                                 type="button"

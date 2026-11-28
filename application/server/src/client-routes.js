@@ -9,6 +9,7 @@ const CLIENT_PAGES = [
     '/privacy-policy',
     '/impressum',
     '/admin/login',
+    '/admin/passkeys',
     '/secret',
     '/case-studies',
     ...CASE_STUDY_ROUTES,

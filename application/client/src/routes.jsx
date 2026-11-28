@@ -37,6 +37,10 @@ const pages = [
         path: 'admin/login',
         lazy: page(() => import('./pages/admin-login-page/admin-login-page.jsx')),
     },
+    {
+        path: 'admin/passkeys',
+        lazy: page(() => import('./pages/admin-passkeys-page/admin-passkeys-page.jsx')),
+    },
     { path: 'secret', lazy: page(() => import('./pages/secret-page/secret-page.jsx')) },
     {
         path: '*',

@@ -13,3 +13,5 @@ process.env.JWT_EXPIRES_IN ??= '1h';
 process.env.ADMIN_USER ??= 'admin';
 process.env.ADMIN_PASSWORD ??= 'test-admin-password';
 process.env.ADMIN_PASSWORD_HASH ??= '$2b$12$zhs0g9j.UDhRBaxBC30D4e5YC8mJr.ec9suU8ajj6Q8ONgnths6.q';
+// The suite signs in far more often than the real limit of 10 per window allows.
+process.env.LOGIN_RATE_LIMIT_MAX ??= '1000';
