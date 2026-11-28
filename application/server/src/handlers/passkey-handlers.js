@@ -43,9 +43,9 @@ async function saveChallenge(challenge, purpose) {
 
 /** Reads a challenge and deletes it in the same step, so it works once. */
 async function takeChallenge(ceremonyId, purpose) {
-    if (!/^[0-9a-f]{24}$/.test(String(ceremonyId))) return null;
+    if (typeof ceremonyId !== 'string' || !/^[0-9a-f]{24}$/.test(ceremonyId)) return null;
     const doc = await WebauthnChallenge.findOneAndDelete({
-        _id: ceremonyId,
+        _id: { $eq: ceremonyId },
         purpose,
         expiresAt: { $gt: new Date() },
     });
@@ -101,7 +101,7 @@ async function finishRegistration(req, res, next) {
         }).catch(() => null);
         if (!result?.verified) return next(new BadRequest('The passkey could not be verified.'));
         const { credential, credentialBackedUp } = result.registrationInfo;
-        if (await AdminPasskey.exists({ credentialId: credential.id })) {
+        if (await AdminPasskey.exists({ credentialId: { $eq: credential.id } })) {
             return next(new BadRequest('That passkey is already registered.'));
         }
         const saved = await AdminPasskey.create({
@@ -133,7 +133,7 @@ async function listPasskeys(_req, res, next) {
 async function removePasskey(req, res, next) {
     try {
         if (!/^[0-9a-f]{24}$/.test(req.params.id)) return next(new NotFound('No such passkey.'));
-        const gone = await AdminPasskey.findByIdAndDelete(req.params.id);
+        const gone = await AdminPasskey.findOneAndDelete({ _id: { $eq: req.params.id } });
         if (!gone) return next(new NotFound('No such passkey.'));
         return res.status(204).send();
     } catch (err) {
@@ -160,7 +160,7 @@ async function finishLogin(req, res, next) {
         const refuse = () => next(new Unauthorized('That passkey could not be used.'));
         const challenge = await takeChallenge(ceremonyId, 'login');
         if (!challenge || typeof response?.id !== 'string') return refuse();
-        const stored = await AdminPasskey.findOne({ credentialId: response.id });
+        const stored = await AdminPasskey.findOne({ credentialId: { $eq: response.id } });
         if (!stored) return refuse();
         const result = await verifyAuthenticationResponse({
             response,
