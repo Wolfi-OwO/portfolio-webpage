@@ -1,10 +1,9 @@
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
+import { verifyAdminPassword, isLegacy } from '../utils/admin-password.js';
 import { BadRequest, Unauthorized } from '../middlewares/error-handlers.js';
 import { authLoginLinks, authUnlockLinks } from '../utils/hateoas.js';
 
 const ADMIN_USER = process.env.ADMIN_USER;
-const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH;
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
 
@@ -12,9 +11,16 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
 // one. Shorter than the admin token on purpose.
 const SECRET_EXPIRES_IN = process.env.SECRET_EXPIRES_IN || '30m';
 
-// Dummy hash used to keep bcrypt.compare's timing similar when the submitted
-// username doesn't match, so responses don't leak whether a username exists.
-const DUMMY_HASH = '$2b$12$C6UzMDM.H6dfI/f/IKcEeO4pXEbf/pZ0GN2QxU9L1SgFsMImk.KX2';
+/**
+ * Every refusal says whether the page should retry once with the typed password.
+ * That depends only on whether a proof is stored yet, never on what was sent,
+ * so it tells a guesser nothing.
+ */
+async function refusal(message) {
+    const error = new Unauthorized(message);
+    error.legacyLogin = await isLegacy();
+    return error;
+}
 
 /**
  * Issues a JWT for a valid admin username/password pair.
@@ -25,20 +31,23 @@ const DUMMY_HASH = '$2b$12$C6UzMDM.H6dfI/f/IKcEeO4pXEbf/pZ0GN2QxU9L1SgFsMImk.KX2
  */
 async function login(req, res, next) {
     try {
-        const { username, password } = req.body || {};
+        const { username, password, legacyPassword } = req.body || {};
 
-        if (!username || !password) {
+        if (
+            typeof username !== 'string' ||
+            typeof password !== 'string' ||
+            !username ||
+            !password
+        ) {
             return next(new BadRequest('Username and password are required.'));
         }
 
         const usernameMatches = username === ADMIN_USER;
-        const passwordMatches = await bcrypt.compare(
-            password,
-            usernameMatches ? ADMIN_PASSWORD_HASH : DUMMY_HASH,
-        );
+        // Checked even for a wrong username, so the timing does not tell the two apart.
+        const passwordMatches = await verifyAdminPassword(password, legacyPassword);
 
         if (!usernameMatches || !passwordMatches) {
-            return next(new Unauthorized('Invalid credentials.'));
+            return next(await refusal('Invalid credentials.'));
         }
 
         const token = jwt.sign({ sub: username, role: 'admin' }, JWT_SECRET, {
@@ -70,16 +79,14 @@ async function login(req, res, next) {
  */
 async function unlock(req, res, next) {
     try {
-        const { password } = req.body || {};
+        const { password, legacyPassword } = req.body || {};
 
-        if (!password) {
+        if (typeof password !== 'string' || !password) {
             return next(new BadRequest('Password is required.'));
         }
 
-        const matches = await bcrypt.compare(password, ADMIN_PASSWORD_HASH || DUMMY_HASH);
-
-        if (!matches) {
-            return next(new Unauthorized('Invalid password.'));
+        if (!(await verifyAdminPassword(password, legacyPassword))) {
+            return next(await refusal('Invalid password.'));
         }
 
         const token = jwt.sign({ sub: 'secret', role: 'secret' }, JWT_SECRET, {

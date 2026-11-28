@@ -11,6 +11,7 @@ import {
     LockClosedIcon,
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
+import { postWithProof } from '../../utils/password-proof.js';
 import { useNoIndex } from '../../hooks/useNoIndex.js';
 import { usePageMeta } from '../../hooks/usePageMeta.js';
 import { elapsedSince, monthlyMilestone } from './elapsed.js';
@@ -71,11 +72,7 @@ function PasswordGate({ onUnlocked }) {
         setError('');
 
         try {
-            const response = await fetch('/auth/unlock', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password }),
-            });
+            const response = await postWithProof('/auth/unlock', {}, password);
 
             if (!response.ok) {
                 setPassword('');

@@ -1,9 +1,17 @@
 import { useReducer } from 'react';
 import { Link, useNavigate } from '../../i18n/router-links.jsx';
-import { EyeIcon, EyeSlashIcon, LockClosedIcon, UserIcon } from '@heroicons/react/24/outline';
+import {
+    EyeIcon,
+    EyeSlashIcon,
+    KeyIcon,
+    LockClosedIcon,
+    UserIcon,
+} from '@heroicons/react/24/outline';
 import { initialState, reducer } from './adminLoginReducer.js';
 import { TOKEN_STORAGE_KEY } from '../../utils/auth.js';
 import { FIELD } from '../../components/field-classes.js';
+import { postWithProof } from '../../utils/password-proof.js';
+import { passkeysSupported, signInWithPasskey } from '../../utils/passkeys.js';
 import { useNoIndex } from '../../hooks/useNoIndex.js';
 
 const inputCls = `${FIELD} py-3 pl-10 pr-4`;
@@ -19,11 +27,7 @@ export default function AdminLoginPage() {
         dispatch({ type: 'SUBMIT_START' });
 
         try {
-            const response = await fetch('/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password }),
-            });
+            const response = await postWithProof('/auth/login', { username }, password);
 
             if (!response.ok) {
                 const payload = await response.json().catch(() => ({}));
@@ -40,6 +44,17 @@ export default function AdminLoginPage() {
             navigate('/');
         } catch (_err) {
             dispatch({ type: 'SUBMIT_ERROR', payload: 'Could not reach the server. Try again.' });
+        }
+    }
+
+    async function handlePasskey() {
+        dispatch({ type: 'SUBMIT_START' });
+        try {
+            localStorage.setItem(TOKEN_STORAGE_KEY, await signInWithPasskey());
+            dispatch({ type: 'SUBMIT_SUCCESS' });
+            navigate('/');
+        } catch (_err) {
+            dispatch({ type: 'SUBMIT_ERROR', payload: 'That passkey did not work.' });
         }
     }
 
@@ -191,6 +206,18 @@ export default function AdminLoginPage() {
                             )}
                         </button>
                     </form>
+
+                    {passkeysSupported() && (
+                        <button
+                            type="button"
+                            onClick={handlePasskey}
+                            disabled={submitting}
+                            className="mt-3 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-[var(--line)] px-6 py-3 text-sm font-semibold text-[var(--text)] transition hover:bg-[color-mix(in_srgb,var(--text)_6%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            <KeyIcon className="h-5 w-5" aria-hidden="true" />
+                            Sign in with a passkey
+                        </button>
+                    )}
 
                     <p className="mt-6 text-center text-xs text-[var(--muted)]">
                         Not an admin?{' '}
